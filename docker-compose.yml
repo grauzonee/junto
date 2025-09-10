@@ -21,12 +21,10 @@ services:
   redis-stack:
     image: redis/redis-stack:latest
     container_name: junto_redis
-    command: redis-server /usr/local/etc/redis/redis.conf
     environment:
       - REDIS_ARGS=--requirepass ${REDIS_PASS}
     volumes: 
       - redis_data:/data/redis
-      - ./redis.conf:/usr/local/etc/redis/redis.conf
     ports:
       - 6379:6379
     healthcheck:
@@ -46,7 +44,7 @@ services:
       - "27017:27017"
     volumes: 
       - mongodb_data:/data/db
-      - ./init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh -u ${MONGO_USER} -p ${MONGO_PASS} --quiet
       interval: 5s
