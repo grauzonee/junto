@@ -27,5 +27,6 @@ export async function create(req: Request, res: Response) {
 
 export async function list(req: Request, res: Response) {
     const repo = await getRepository()
-    res.status(200).json({ success: true, data: repo.fetch() })
+    const data = await repo.search().return.all()
+    res.status(200).json({ success: true, data: data })
 }

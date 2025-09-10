@@ -1,5 +1,6 @@
 import request from "supertest"
 import app from "@/app"
+jest.mock("ioredis", () => require("ioredis-mock"));
 
 describe("Status test", () => {
     it("GET /status", async () => {

@@ -1,4 +1,4 @@
-import { Schema, Repository } from "redis-om"
+import { Schema, Repository, RedisConnection } from "redis-om"
 import { getClient } from "@/config/redisConfig";
 import { logger } from "@/config/loggerConfig";
 
@@ -33,11 +33,13 @@ const eventSchema = new Schema('events', {
 
 export async function getRepository(): Promise<Repository> {
     const client = await getClient()
+    console.log(client)
     if (!repository) {
-        repository = new Repository(eventSchema, client)
+        repository = new Repository(eventSchema, client as unknown as RedisConnection)
     }
+    console.log(repository)
     try {
-        repository.createIndex()
+        await repository.createIndex()
         logger.debug("Event index created")
     } catch (error) {
         logger.error("Error creating index", error)
