@@ -7,11 +7,11 @@ let repository: Repository | null = null;
 
 const eventSchema = new Schema('events', {
     title: {
-        type: 'string',
+        type: 'text',
         indexed: true
     },
     description: {
-        type: 'string',
+        type: 'text',
         indexed: true
     },
     locationValue: {
@@ -51,6 +51,15 @@ export async function geoSearch(lat: number, lon: number, radius: number) {
     const result = await repo.search().where('location').inRadius((circle: Circle) =>
         circle.latitude(Number(lat)).longitude(Number(lon)).radius(radius).kilometers
     ).return.all()
+    return result;
+}
+
+export async function textSearch(query: string) {
+    const repo = await getRepository()
+    const result = await repo.search()
+        .where('title').matches(query)
+        .or("description").matches(query)
+        .return.all()
     return result;
 }
 

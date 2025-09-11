@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import { addEvent } from "@/queues/createEventQueue"
 import { logger } from "@/config/loggerConfig";
-import { getRepository, geoSearch } from "@/schemas/redis/Event"
+import { getRepository, geoSearch, textSearch } from "@/schemas/redis/Event"
 import type { IEvent } from "@/models/Event";
 import { CoordinatesSchema } from "@/schemas/http/Event";
 
@@ -44,5 +44,12 @@ export async function geosearch(req: Request, res: Response) {
 }
 
 export async function search(req: Request, res: Response) {
-    res.status(200).json({ success: true, data: "TBC" })
+    const { q } = req.query
+    if (!q || typeof (q) != 'string' || q.length < 2) {
+        res.status(400).json({ success: false, message: "Query is required" })
+        return
+    }
+    const result = await textSearch(q);
+
+    res.status(200).json({ success: true, data: result })
 }
