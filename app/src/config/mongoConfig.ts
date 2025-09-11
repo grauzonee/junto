@@ -11,3 +11,9 @@ export const connectToMongo = () => {
         process.exit(1)
     })
 }
+
+export async function disconnectFromMongo() {
+    if (mongoose.connection.readyState !== 0) {
+        await mongoose.disconnect();
+    }
+}

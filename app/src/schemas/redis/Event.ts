@@ -33,11 +33,9 @@ const eventSchema = new Schema('events', {
 
 export async function getRepository(): Promise<Repository> {
     const client = await getClient()
-    console.log(client)
     if (!repository) {
         repository = new Repository(eventSchema, client as unknown as RedisConnection)
     }
-    console.log(repository)
     try {
         await repository.createIndex()
         logger.debug("Event index created")
