@@ -1,8 +1,9 @@
 import { Request, Response } from "express"
 import { addEvent } from "@/queues/createEventQueue"
 import { logger } from "@/config/loggerConfig";
-import { getRepository } from "@/schemas/redis/Event"
+import { getRepository, geoSearch } from "@/schemas/redis/Event"
 import type { IEvent } from "@/models/Event";
+import { CoordinatesSchema } from "@/schemas/http/Event";
 
 export async function create(req: Request, res: Response) {
     const repo = await getRepository()
@@ -29,4 +30,19 @@ export async function list(req: Request, res: Response) {
     const repo = await getRepository()
     const data = await repo.search().return.all()
     res.status(200).json({ success: true, data: data })
+}
+
+export async function geosearch(req: Request, res: Response) {
+    const { error, value } = CoordinatesSchema.validate(req.query)
+    if (error) {
+        res.status(400).json({ success: false, message: error })
+        return
+    }
+    const result = await geoSearch(value.lat, value.lon, value.radius);
+
+    res.status(200).json({ success: true, data: result })
+}
+
+export async function search(req: Request, res: Response) {
+    res.status(200).json({ success: true, data: "TBC" })
 }

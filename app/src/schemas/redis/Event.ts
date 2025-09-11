@@ -1,6 +1,7 @@
 import { Schema, Repository, RedisConnection } from "redis-om"
 import { getClient } from "@/config/redisConfig";
 import { logger } from "@/config/loggerConfig";
+import { Circle } from "redis-om";
 
 let repository: Repository | null = null;
 
@@ -43,5 +44,13 @@ export async function getRepository(): Promise<Repository> {
         logger.error("Error creating index", error)
     }
     return repository;
+}
+
+export async function geoSearch(lat: number, lon: number, radius: number) {
+    const repo = await getRepository()
+    const result = await repo.search().where('location').inRadius((circle: Circle) =>
+        circle.latitude(Number(lat)).longitude(Number(lon)).radius(radius).kilometers
+    ).return.all()
+    return result;
 }
 
