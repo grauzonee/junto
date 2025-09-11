@@ -6,9 +6,10 @@ let client: RedisClientType | null = null;
 
 export async function getClient() {
     if (client != null) return client;
+    const port = Number(process.env.REDIS_PORT ?? 6379)
     client = createClient({
-        url: `redis://${getConfigValue('REDIS_HOST')}:6379`,
-        password: getConfigValue('REDIS_PASS')
+        url: `redis://${getConfigValue('REDIS_HOST')}:${port}`,
+        password: getConfigValue('REDIS_PASS'),
     })
     client.on("error", (err) => logger.error("CLIENT Redis connection error", err));
     await client.connect();

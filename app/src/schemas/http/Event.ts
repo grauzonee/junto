@@ -1,5 +1,11 @@
 import Joi from "joi"
 
+export const CoordinatesSchema: Joi.Schema = Joi.object().keys({
+    lat: Joi.number().required().min(-90).max(90),
+    lon: Joi.number().required().min(-180).max(180),
+    radius: Joi.number().default(3).min(1).max(15)
+})
+
 export const CreateEventSchema: Joi.Schema = Joi.object().keys({
     title: Joi.string().required(),
     description: Joi.string().required(),
@@ -12,9 +18,8 @@ export const CreateEventSchema: Joi.Schema = Joi.object().keys({
     }, "Future date validation"),
     location: Joi.object().keys({
         value: Joi.string().required(),
-        coordinates: Joi.object().keys({
-            lat: Joi.number().required(),
-            lon: Joi.number().required(),
-        })
+        coordinates: CoordinatesSchema
     })
 })
+
+
