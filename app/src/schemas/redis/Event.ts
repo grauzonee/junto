@@ -46,20 +46,20 @@ export async function getRepository(): Promise<Repository> {
     return repository;
 }
 
-export async function geoSearch(lat: number, lon: number, radius: number) {
+export async function geoSearch(lat: number, lon: number, radius: number, offset = 0, limit = 20) {
     const repo = await getRepository()
     const result = await repo.search().where('location').inRadius((circle: Circle) =>
         circle.latitude(Number(lat)).longitude(Number(lon)).radius(radius).kilometers
-    ).return.all()
+    ).return.page(offset, limit)
     return result;
 }
 
-export async function textSearch(query: string) {
+export async function textSearch(query: string, offset = 0, limit = 20) {
     const repo = await getRepository()
     const result = await repo.search()
         .where('title').matches(query)
         .or("description").matches(query)
-        .return.all()
+        .return.page(offset, limit)
     return result;
 }
 
