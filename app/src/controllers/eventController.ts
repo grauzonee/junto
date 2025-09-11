@@ -28,7 +28,7 @@ export async function create(req: Request, res: Response) {
 
 export async function list(req: Request, res: Response) {
     const repo = await getRepository()
-    const data = await repo.search().return.all()
+    const data = await repo.search().return.page(req.offset ?? 0, req.limit ?? 20)
     res.status(200).json({ success: true, data: data })
 }
 
@@ -38,7 +38,7 @@ export async function geosearch(req: Request, res: Response) {
         res.status(400).json({ success: false, message: error })
         return
     }
-    const result = await geoSearch(value.lat, value.lon, value.radius);
+    const result = await geoSearch(value.lat, value.lon, value.radius, req.offset, req.limit);
 
     res.status(200).json({ success: true, data: result })
 }
@@ -49,7 +49,7 @@ export async function search(req: Request, res: Response) {
         res.status(400).json({ success: false, message: "Query is required" })
         return
     }
-    const result = await textSearch(q);
+    const result = await textSearch(q, req.offset, req.limit);
 
     res.status(200).json({ success: true, data: result })
 }
