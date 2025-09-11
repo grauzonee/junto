@@ -1,5 +1,5 @@
 .env
-.env.test
+.env
 node_modules/
 logs/
 uploads/
