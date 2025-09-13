@@ -8,6 +8,7 @@ import { CoordinatesSchema } from "@/schemas/http/Event";
 export async function create(req: Request, res: Response) {
     const repo = await getRepository()
     const event: IEvent = req.body
+    event.author = req.user?.id;
     const redisEvent = {
         ...event,
         locationValue: event.location.value,
