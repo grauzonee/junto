@@ -7,7 +7,8 @@ export interface IEvent {
     date: Date;
     location: Location;
     imageUrl: string;
-    author: Types.ObjectId
+    author: Types.ObjectId,
+    attendees: [Types.ObjectId]
 }
 
 export type EventDocument = IEvent & Document;
@@ -41,7 +42,14 @@ export const EventSchema = new Schema({
         type: SchemaTypes.ObjectId,
         required: true,
         ref: 'User'
-    }
+    },
+    attendees: [
+        {
+            type: SchemaTypes.ObjectId,
+            ref: 'User',
+            required: true
+        }
+    ]
 }, { timestamps: true })
 
 export const Event = mongoose.model("Event", EventSchema)

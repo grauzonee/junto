@@ -2,7 +2,7 @@ import { Request, Response } from "express"
 import { addEvent } from "@/queues/createEventQueue"
 import { logger } from "@/config/loggerConfig";
 import { getRepository, geoSearch, textSearch } from "@/schemas/redis/Event"
-import type { IEvent } from "@/models/Event";
+import { type IEvent, Event } from "@/models/Event";
 import { CoordinatesSchema } from "@/schemas/http/Event";
 
 export async function create(req: Request, res: Response) {
@@ -53,4 +53,22 @@ export async function search(req: Request, res: Response) {
     const result = await textSearch(q, req.offset, req.limit);
 
     res.status(200).json({ success: true, data: result })
+}
+
+export async function attend(req: Request, res: Response) {
+    const { eventId } = req.params;
+    const eventFound = await Event.findOne({ _id: eventId });
+    if (!eventFound) {
+        res.status(404).json({ success: false, message: "Event not found" })
+        return
+    }
+    if (eventFound.attendees.includes(req.user?.id)) {
+
+        res.status(400).json({ success: false, message: "Event is already attended by this user" })
+        return
+    }
+    eventFound.attendees.push(req.user?.id);
+    await eventFound.save()
+
+    res.status(200).json({ success: true, data: eventFound })
 }
