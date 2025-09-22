@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
+import { checkImage } from "@/helpers/mediaHelper";
 import bcrypt from 'bcrypt';
 
 interface IUserMethods {
@@ -63,6 +64,21 @@ UserSchema.set('toJSON', {
         return ret;
     }
 });
+
+export type UpdateUserData = Partial<Pick<IUser, 'username' | 'avatarUrl' | 'interests'>>
+UserSchema.methods.updateProfile = async function(this: UserDocument, data: UpdateUserData): Promise<IUser> {
+    if (typeof (data.avatarUrl) === 'string') {
+        if (!checkImage(data.avatarUrl)) {
+            throw new Error("Invalid avatar, image doesn't exist")
+        }
+        this.avatarUrl = data.avatarUrl
+    }
+    if (data.username !== undefined) this.username = data.username;
+    if (data.interests !== undefined) this.interests = data.interests;
+
+    await this.save();
+    return this;
+}
 
 UserSchema.methods.matchPassword = async function(this: IUser, enteredPassword: string): Promise<boolean> {
     return await bcrypt.compare(enteredPassword, this.password);
