@@ -29,7 +29,7 @@ export async function create(req: Request, res: Response) {
 
 export async function list(req: Request, res: Response) {
     const repo = await getRepository()
-    const data = await repo.search().return.page(req.offset ?? 0, req.limit ?? 20)
+    const data = await repo.search().return.all()
     res.status(200).json({ success: true, data: data })
 }
 

@@ -9,7 +9,11 @@ export const passwordRule = Joi.string()
 export const RegisterSchema: Joi.Schema = Joi.object().keys({
     username: Joi.string().required(),
     email: Joi.string().required(),
-    password: passwordRule
+    password: passwordRule,
+    repeatPassword: Joi.string()
+        .valid(Joi.ref('password'))
+        .required()
+        .messages({ 'any.only': 'Passwords must match' }),
 });
 
 export const LoginSchema: Joi.Schema = Joi.object().keys({
