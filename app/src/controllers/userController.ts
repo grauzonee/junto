@@ -14,6 +14,9 @@ export async function updateUser(req: Request, res: Response) {
     }
 
     try {
+        if (requestData.avatarUrl) {
+            requestData.avatarUrl = requestData.avatarUrl.replace(/^\/+/, "").trim()
+        }
         const user = await req.user?.updateProfile(requestData);
         return res.status(200).json({ success: true, data: user ? user.toJSON() : null });
     } catch (error) {
