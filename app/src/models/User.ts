@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
 import { checkImage } from "@/helpers/mediaHelper";
 import bcrypt from 'bcrypt';
+import { getConfigValue } from "@/helpers/configHelper";
 
 interface IUserMethods {
     matchPassword(enteredPassword: string): Promise<boolean>;
@@ -60,6 +61,7 @@ UserSchema.set('toJSON', {
         delete ret._id;
         //delete ret.__v;
         delete ret.password;
+        ret.avatarUrl = getConfigValue('HOST') + '/' + ret.avatarUrl
 
         return ret;
     }

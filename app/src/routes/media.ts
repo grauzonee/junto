@@ -5,6 +5,6 @@ export const router = Router()
 
 router.put(
     '/', upload.single('media'), async (req: Request, res: Response) => {
-        res.json({ success: true, data: req.file })
+        res.status(201).json({ success: true, data: req.file })
     }
 )
