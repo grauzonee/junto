@@ -5,12 +5,11 @@ import { User } from "@/models/User";
 export async function updateUser(req: Request, res: Response) {
     const requestData = req.body;
     if (!requestData) {
-        return res.status(401).json({ success: false, message: "Empty body is not allowed" });
+        return res.status(401).json({ success: false, data: { message: "Empty body is not allowed", field: 'root' } });
     }
-    try {
-        await validateUpdateData(req);
-    } catch (error) {
-        return res.status(400).json({ success: false, message: error instanceof Error ? error.message : error });
+    const { error, field } = await validateUpdateData(req);
+    if (error) {
+        return res.status(400).json({ success: false, data: { message: error, field } });
     }
 
     try {
@@ -46,20 +45,21 @@ export async function updatePassword(req: Request, res: Response) {
     }
 }
 
-async function validateUpdateData(req: Request) {
+async function validateUpdateData(req: Request): Promise<{ error?: string | null; field?: string | null }> {
     const requestData = req.body;
     if (requestData.username) {
         const username = requestData.username;
         const userExistsUsername = await User.findOne({ username });
         if (userExistsUsername && userExistsUsername.id != req.user?.id) {
-            throw Error("Username already in use!");
+            return { error: "Username already in use!", field: 'username' };
         }
     }
     if (requestData.email) {
         const email = requestData.email;
         const userExistsEmail = await User.findOne({ email });
         if (userExistsEmail && userExistsEmail.id != req.user?.id) {
-            throw Error("Email already in use!");
+            return { error: "Email already in use!", field: 'email' };
         }
     }
+    return { error: null, field: null };
 }

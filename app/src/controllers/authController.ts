@@ -22,11 +22,11 @@ export async function register(req: Request, res: Response) {
     const { username, email, password } = req.body
     const userExistsEmail = await User.findOne({ email });
     if (userExistsEmail) {
-        return res.status(400).json({ success: false, data: { message: "Email already in use", fields: ['email'] } });
+        return res.status(400).json({ success: false, data: { message: "Email already in use", field: 'email' } });
     }
     const userExistsUsername = await User.findOne({ username });
     if (userExistsUsername) {
-        return res.status(400).json({ success: false, data: { message: "Username already in use", fields: ['username'] } });
+        return res.status(400).json({ success: false, data: { message: "Username already in use", field: 'username' } });
     }
     const user: UserDocument = await User.create({ username, email, password });
 
@@ -38,6 +38,6 @@ export async function register(req: Request, res: Response) {
             { success: true, data: responseData }
         );
     } else {
-        return res.status(400).json({ success: false, data: { message: "Invalid user data", fields: [] } });
+        return res.status(400).json({ success: false, data: { message: "Invalid user data", field: 'root' } });
     }
 }
