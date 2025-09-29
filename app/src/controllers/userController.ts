@@ -44,7 +44,7 @@ export async function updatePassword(req: Request, res: Response) {
         await req.user?.updatePassword(requestData);
         return res.status(200).json({ success: true, message: "Password has been updated" });
     } catch (error) {
-        return res.status(401).json({ success: false, message: error instanceof Error ? error.message : error });
+        return res.status(400).json({ success: false, message: error instanceof Error ? error.message : error });
     }
 }
 
