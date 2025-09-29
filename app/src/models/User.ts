@@ -86,4 +86,23 @@ UserSchema.methods.matchPassword = async function(this: IUser, enteredPassword: 
     return await bcrypt.compare(enteredPassword, this.password);
 }
 
+export interface UpdatePasswordData {
+    oldPassword: string,
+    newPassword: string
+}
+
+UserSchema.methods.updatePassword = async function(this: UserDocument, data: UpdatePasswordData): Promise<void> {
+    if (data.newPassword === data.oldPassword) {
+        throw new Error("Passwords are equal!");
+    }
+    const isPassCorrect = await this.matchPassword(data.oldPassword);
+    if (!isPassCorrect) {
+        throw new Error("Old password is not correct!");
+    }
+    this.password = data.newPassword;
+
+
+    await this.save();
+}
+
 export const User = mongoose.model("User", UserSchema)

@@ -89,7 +89,7 @@ describe("Auth Controller", () => {
             expect(res.status).toHaveBeenCalledWith(400);
             expect(res.json).toHaveBeenCalledWith({
                 success: false,
-                data: { message: "Email already in use", fields: ["email"] },
+                data: { message: "Email already in use", field: "email" },
             });
         });
 
@@ -104,7 +104,7 @@ describe("Auth Controller", () => {
             expect(res.status).toHaveBeenCalledWith(400);
             expect(res.json).toHaveBeenCalledWith({
                 success: false,
-                data: { message: "Username already in use", fields: ["username"] },
+                data: { message: "Username already in use", field: "username" },
             });
         });
 
@@ -136,7 +136,7 @@ describe("Auth Controller", () => {
             expect(res.status).toHaveBeenCalledWith(400);
             expect(res.json).toHaveBeenCalledWith({
                 success: false,
-                data: { message: "Invalid user data", fields: [] },
+                data: { message: "Invalid user data", field: 'root' },
             });
         });
     });
