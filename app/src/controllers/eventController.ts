@@ -14,7 +14,7 @@ export async function create(req: Request, res: Response) {
         locationValue: event.location.value,
         location: {
             latitude: event.location.coordinates.lat,
-            longitude: event.location.coordinates.lon,
+            longitude: event.location.coordinates.lng,
         }
     }
     try {
@@ -39,7 +39,7 @@ export async function geosearch(req: Request, res: Response) {
         res.status(400).json({ success: false, message: error })
         return
     }
-    const result = await geoSearch(value.lat, value.lon, value.radius, req.offset, req.limit);
+    const result = await geoSearch(value.lat, value.lng, value.radius, req.offset, req.limit);
 
     res.status(200).json({ success: true, data: result })
 }
