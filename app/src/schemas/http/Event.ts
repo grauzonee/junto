@@ -2,7 +2,7 @@ import Joi from "joi"
 
 export const CoordinatesSchema: Joi.Schema = Joi.object().keys({
     lat: Joi.number().required().min(-90).max(90),
-    lon: Joi.number().required().min(-180).max(180),
+    lng: Joi.number().required().min(-180).max(180),
     radius: Joi.number().default(3).min(1).max(15)
 })
 
@@ -19,7 +19,8 @@ export const CreateEventSchema: Joi.Schema = Joi.object().keys({
     location: Joi.object().keys({
         value: Joi.string().required(),
         coordinates: CoordinatesSchema
-    })
+    }),
+    topics: Joi.array()
 })
 
 

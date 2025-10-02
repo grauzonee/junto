@@ -4,7 +4,7 @@ export interface Location {
     value: string,
     coordinates: {
         lat: number;
-        lon: number;
+        lng: number;
     }
 }
 
@@ -18,7 +18,7 @@ export const LocationSchema = new Schema({
             type: Number,
             required: true
         },
-        lon: {
+        lng: {
             type: Number,
             required: true
         }
