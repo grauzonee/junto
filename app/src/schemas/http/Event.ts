@@ -19,7 +19,8 @@ export const CreateEventSchema: Joi.Schema = Joi.object().keys({
     location: Joi.object().keys({
         value: Joi.string().required(),
         coordinates: CoordinatesSchema
-    })
+    }),
+    topics: Joi.array()
 })
 
 

@@ -29,6 +29,10 @@ const eventSchema = new Schema('events', {
     imageUrl: {
         type: 'string',
         indexed: false
+    },
+    topics: {
+        type: 'string[]',
+        indexed: false
     }
 }, { dataStructure: 'HASH' })
 

@@ -8,7 +8,8 @@ export interface IEvent {
     location: Location;
     imageUrl: string;
     author: Types.ObjectId,
-    attendees: [Types.ObjectId]
+    attendees: [Types.ObjectId],
+    topics: string[]
 }
 
 export type EventDocument = IEvent & Document;
@@ -37,6 +38,11 @@ export const EventSchema = new Schema({
     imageUrl: {
         type: String,
         required: true
+    },
+    topics: {
+        type: [String],
+        required: false,
+        default: []
     },
     author: {
         type: SchemaTypes.ObjectId,
