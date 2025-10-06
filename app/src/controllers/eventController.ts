@@ -4,6 +4,7 @@ import { logger } from "@/config/loggerConfig";
 import { getRepository, geoSearch, textSearch } from "@/schemas/redis/Event"
 import { type IEvent, Event } from "@/models/Event";
 import { CoordinatesSchema } from "@/schemas/http/Event";
+import { applyFiltersRedis, getMongoFilter } from "@/helpers/filterHelper";
 
 export async function create(req: Request, res: Response) {
     const repo = await getRepository()
@@ -29,8 +30,18 @@ export async function create(req: Request, res: Response) {
 
 export async function list(req: Request, res: Response) {
     const repo = await getRepository()
-    const data = await repo.search().return.all()
+    let search = repo.search();
+
+    search = applyFiltersRedis(search, req);
+    const data = await search.return.all()
     res.status(200).json({ success: true, data: data })
+}
+
+export async function filter(req: Request, res: Response) {
+    const filters = getMongoFilter(req)
+    const results = await Event.find(filters)
+
+    res.status(200).json({ success: true, data: results })
 }
 
 export async function geosearch(req: Request, res: Response) {

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { create, list, geosearch, search, attend } from "@/controllers/eventController"
+import { create, list, geosearch, search, attend, filter } from "@/controllers/eventController"
 import { requestSchemaValidate } from "@/middlewares/requestSchemaValidate";
 import { CreateEventSchema } from "@/schemas/http/Event";
 import { paginateMiddleware } from "@/middlewares/paginateMiddleware";
@@ -11,4 +11,5 @@ router.post('/', [authMiddleware, requestSchemaValidate(CreateEventSchema)], cre
 router.get('/', [authMiddleware, paginateMiddleware], list)
 router.get('/geosearch', [authMiddleware, paginateMiddleware], geosearch)
 router.get('/search', paginateMiddleware, search)
+router.get('/filter', filter)
 router.put('/attend/:eventId', authMiddleware, attend)
