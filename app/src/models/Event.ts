@@ -1,5 +1,6 @@
 import { type Location, LocationSchema } from "@/models/Location"
-import mongoose, { Document, Schema, Types, SchemaTypes } from "mongoose";
+import mongoose, { Document, Schema, Types, SchemaTypes, Model } from "mongoose";
+import { type Filterable } from "@/types/Filter";
 
 export interface IEvent {
     title: string;
@@ -13,6 +14,8 @@ export interface IEvent {
 }
 
 export type EventDocument = IEvent & Document;
+
+interface EventModel extends Model<EventDocument>, Filterable { }
 
 export const EventSchema = new Schema({
     id: {
@@ -58,7 +61,10 @@ export const EventSchema = new Schema({
     ]
 }, { timestamps: true })
 
-export const Event = mongoose.model("Event", EventSchema)
+EventSchema.statics.getFilterableFields = function(): string[] {
+    return ['author']
+}
+export const Event = mongoose.model<EventDocument, EventModel>("Event", EventSchema)
 
 
 
