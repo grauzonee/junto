@@ -20,8 +20,12 @@ app.listen(PORT, () => {
 });
 
 async function gracefulShutdown() {
-    await disconnectFromMongo();
-    process.exit(0);
+    try {
+        await disconnectFromMongo();
+        process.exit(0);
+    } catch (error) {
+        logger.error('There was an error disconnecting from Mongo', error)
+    }
 }
 
 process.on("SIGINT", gracefulShutdown);
