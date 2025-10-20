@@ -16,9 +16,10 @@ export const CreateEventSchema: Joi.Schema = Joi.object().keys({
         }
         return value;
     }, "Future date validation"),
+    fullAddress: Joi.string(),
     location: Joi.object().keys({
-        value: Joi.string().required(),
-        coordinates: CoordinatesSchema
+        type: Joi.string(),
+        coordinates: Joi.array()
     }),
     topics: Joi.array()
 })

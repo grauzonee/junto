@@ -14,7 +14,7 @@ const eventSchema = new Schema('events', {
         type: 'text',
         indexed: true
     },
-    locationValue: {
+    fullAddress: {
         type: 'string',
         indexed: true
     },

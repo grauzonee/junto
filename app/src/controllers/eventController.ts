@@ -1,30 +1,16 @@
 import { Request, Response } from "express"
-import { addEvent } from "@/queues/createEventQueue"
-import { logger } from "@/config/loggerConfig";
 import { getRepository, geoSearch, textSearch } from "@/schemas/redis/Event"
-import { type IEvent, Event } from "@/models/Event";
+import { Event } from "@/models/Event";
 import { CoordinatesSchema } from "@/schemas/http/Event";
+import { insertEvent } from "@/services/eventService";
 
 export async function create(req: Request, res: Response) {
-    const repo = await getRepository()
-    const event: IEvent = req.body
-    event.author = req.user?.id;
-    const redisEvent = {
-        ...event,
-        locationValue: event.location.value,
-        location: {
-            latitude: event.location.coordinates.lat,
-            longitude: event.location.coordinates.lng,
-        }
-    }
-    try {
-        repo.save(redisEvent)
-        await addEvent(event)
+    const event = await insertEvent(req);
+    if (event) {
         res.status(200).json({ success: true })
-    } catch (err) {
-        res.status(500).json({ success: false, message: "Error creating event in Redis, try again later" })
-        logger.error("Error creating event in redis", err)
+        return;
     }
+    res.status(500).json({ success: false, message: "Error creating event, try again later" })
 }
 
 export async function list(req: Request, res: Response) {
