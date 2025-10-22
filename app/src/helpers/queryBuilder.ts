@@ -1,3 +1,4 @@
+import { EventDocument } from '@/models/Event'
 import { type FilterPrefix, type Filter, type FilterValue } from '@/types/Filter'
 import { type FilterQuery } from "mongoose"
 
@@ -12,6 +13,20 @@ const MongoFilterMap: Record<FilterPrefix, string> = {
     contains: '$regex',
 }
 
+export function buildGeosearchQuery(lat: float, lng: float, radius: ): FilterQuery<EventDocument> {
+    return {
+        location:
+        {
+            $near:
+            {
+                $geometry:
+                    { type: "Point", coordinates: [value.lat, value.lng] },
+                $minDistance: 0,
+                $maxDistance: value.radius
+            }
+        }
+    }
+}
 export function buildMongoQuery<T>(dbFilter: Filter[]): FilterQuery<T> {
     const query: Record<string, Record<string, FilterValue>> = {}
     dbFilter.forEach(filter => {

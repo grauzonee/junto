@@ -1,4 +1,5 @@
 import * as Joi from "joi"
+import 'joi-extract-type';
 
 export const CoordinatesSchema: Joi.Schema = Joi.object().keys({
     lat: Joi.number().required().min(-90).max(90),
@@ -6,7 +7,7 @@ export const CoordinatesSchema: Joi.Schema = Joi.object().keys({
     radius: Joi.number().default(3).min(1).max(15)
 })
 
-//export type CoordinatesInput = Joi.extractType<typeof CoordinatesSchema>
+export type CoordinatesInput = Joi.extractType<typeof CoordinatesSchema>
 
 export const CreateEventSchema: Joi.Schema = Joi.object().keys({
     title: Joi.string().required(),
@@ -25,5 +26,4 @@ export const CreateEventSchema: Joi.Schema = Joi.object().keys({
     }),
     topics: Joi.array()
 })
-
 

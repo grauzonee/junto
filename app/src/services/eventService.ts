@@ -27,18 +27,7 @@ export async function geoSearch(req: Request): Promise<EventDocument[] | undefin
         throw error
     }
     // TODO: Move to queryBuilder
-    const query = {
-        location:
-        {
-            $near:
-            {
-                $geometry:
-                    { type: "Point", coordinates: [value.lat, value.lng] },
-                $minDistance: 0,
-                $maxDistance: value.radius
-            }
-        }
-    }
+
 
     try {
         const result = await Event.find(query);
