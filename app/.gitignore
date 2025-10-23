@@ -4,3 +4,5 @@ node_modules/
 logs/
 uploads/
 .DS_Store
+docs/
+coverage

@@ -1,19 +1,36 @@
-import { type Location, LocationSchema } from "@/models/Location"
-import mongoose, { Document, Schema, Types, SchemaTypes } from "mongoose";
+import { BadInputError } from "@/types/errors/InputError";
+import mongoose, { Document, Schema, Types, SchemaTypes, Model } from "mongoose";
+import { type PaginateQueryHelpers, paginate } from "@/helpers/queryHelper";
+import { type Filterable, type FilterableField, FilterValue } from "@/types/Filter";
 
+export interface EventMethods {
+    attend(userId: Types.ObjectId): Promise<EventDocument>
+}
 export interface IEvent {
     title: string;
     description: string;
     date: Date;
-    location: Location;
+    fullAddress: string;
+    location: {
+        type: "Point";
+        coordinates: number[];
+    }
     imageUrl: string;
     author: Types.ObjectId,
-    attendees: [Types.ObjectId]
+    attendees: Types.ObjectId[],
+    topics: string[]
 }
 
-export type EventDocument = IEvent & Document;
+export type EventDocument = IEvent & Document & EventMethods;
 
-export const EventSchema = new Schema({
+interface EventModel extends Model<EventDocument, PaginateQueryHelpers<EventDocument>>, Filterable { }
+
+export const EventSchema = new Schema<
+    EventDocument,
+    EventModel,
+    object,
+    PaginateQueryHelpers<EventDocument>
+>({
     id: {
         type: String,
     },
@@ -30,13 +47,29 @@ export const EventSchema = new Schema({
         set: (v: number) => new Date(v * 1000),
         required: true
     },
-    location: {
-        type: LocationSchema,
+    fullAddress: {
+        type: String,
         required: true
+    },
+    location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            required: true
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
     },
     imageUrl: {
         type: String,
         required: true
+    },
+    topics: {
+        type: [String],
+        required: false,
+        default: []
     },
     author: {
         type: SchemaTypes.ObjectId,
@@ -47,12 +80,52 @@ export const EventSchema = new Schema({
         {
             type: SchemaTypes.ObjectId,
             ref: 'User',
-            required: true
+            default: []
         }
     ]
 }, { timestamps: true })
 
-export const Event = mongoose.model("Event", EventSchema)
+EventSchema.statics.getFilterableFields = function(): FilterableField[] {
+    return [{ field: 'date', preprocess: (value: FilterValue) => new Date(value as string) }, { field: 'topics', options: 'i' }]
+}
 
+EventSchema.index({ location: "2dsphere" })
+
+EventSchema.set('toJSON', {
+    transform: (doc, ret: Partial<EventDocument>) => {
+        ret.id = ret._id;
+        delete ret._id;
+        if ('__v' in ret) {
+            delete ret.__v;
+        }
+        if ('updatedAt' in ret) {
+            delete ret.updatedAt;
+        }
+
+        return ret;
+    }
+})
+
+EventSchema.methods.attend = async function(this: EventDocument, userId: Types.ObjectId) {
+    if (this.attendees.some(id => id.equals(userId))) {
+        throw new BadInputError("User already attending this event");
+    }
+
+    this.attendees.push(userId);
+    await this.save();
+    return this;
+}
+
+//Author is always attending the event
+EventSchema.pre("save", function(next) {
+    if (this.attendees.length === 0) {
+        this.attendees = [this.author]
+    }
+    next();
+})
+
+EventSchema.query.paginate = paginate
+
+export const Event = mongoose.model<EventDocument, EventModel>("Event", EventSchema)
 
 

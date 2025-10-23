@@ -1,22 +1,23 @@
-import * as Joi from 'joi';
+import * as z from 'zod';
 
-export const passwordRule = Joi.string()
-    .min(5)
-    .max(30)
-    .pattern(/^(?=.*[A-Z])(?=.*\d).+$/, 'at least 1 uppercase letter and 1 number')
-    .required();
+export const passwordRule = z.string()
+    .min(5, { message: "Password must be at least 5 characters long" })
+    .max(30, { message: "Password must be at most 30 characters long" })
+    .regex(/^(?=.*[A-Z])(?=.*\d).+$/, {
+        message: "Password must contain at least one uppercase letter and one number",
+    });
 
-export const RegisterSchema: Joi.Schema = Joi.object().keys({
-    username: Joi.string().required(),
-    email: Joi.string().required(),
+export const RegisterSchema: z.Schema = z.object({
+    username: z.string(),
+    email: z.string(),
     password: passwordRule,
-    repeatPassword: Joi.string()
-        .valid(Joi.ref('password'))
-        .required()
-        .messages({ 'any.only': 'Passwords must match' }),
+    repeatPassword: z.string(),
+}).refine((data) => data.password === data.repeatPassword, {
+    message: "Passwords must match",
+    path: ["repeatPassword"],
 });
 
-export const LoginSchema: Joi.Schema = Joi.object().keys({
-    email: Joi.string().required(),
-    password: Joi.string().required()
+export const LoginSchema: z.Schema = z.object({
+    email: z.string(),
+    password: z.string()
 });

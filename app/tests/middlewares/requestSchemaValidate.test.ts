@@ -1,5 +1,5 @@
 import { requestSchemaValidate } from "@/middlewares/requestSchemaValidate";
-import Joi from "joi";
+import * as z from "zod"
 import { Request, Response, NextFunction } from "express";
 
 describe("requestSchemaValidate middleware", () => {
@@ -19,8 +19,8 @@ describe("requestSchemaValidate middleware", () => {
     });
 
     it("calls next() if validation passes", () => {
-        const schema = Joi.object({
-            name: Joi.string().required(),
+        const schema = z.object({
+            name: z.string(),
         });
 
         req.body = { name: "John" };
@@ -34,8 +34,8 @@ describe("requestSchemaValidate middleware", () => {
     });
 
     it("returns 400 with error message if validation fails", () => {
-        const schema = Joi.object({
-            name: Joi.string().required(),
+        const schema = z.object({
+            name: z.string(),
         });
 
         req.body = {};
@@ -46,14 +46,19 @@ describe("requestSchemaValidate middleware", () => {
         expect(statusMock).toHaveBeenCalledWith(400);
         expect(jsonMock).toHaveBeenCalledWith({
             success: false,
-            message: '"name" is required',
+            data: {
+                formErrors: [],
+                fieldErrors: {
+                    name: ['Invalid input: expected string, received undefined']
+                }
+            }
         });
     });
 
     it("concatenates multiple validation errors", () => {
-        const schema = Joi.object({
-            name: Joi.string().required(),
-            age: Joi.number().required(),
+        const schema = z.object({
+            name: z.string(),
+            age: z.number(),
         });
 
         req.body = {};
@@ -64,7 +69,13 @@ describe("requestSchemaValidate middleware", () => {
         expect(statusMock).toHaveBeenCalledWith(400);
         expect(jsonMock).toHaveBeenCalledWith({
             success: false,
-            message: '"name" is required,"age" is required',
+            data: {
+                formErrors: [],
+                fieldErrors: {
+                    name: ['Invalid input: expected string, received undefined'],
+                    age: ['Invalid input: expected number, received undefined']
+                }
+            }
         });
     });
 });

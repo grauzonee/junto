@@ -1,74 +1,55 @@
 import { Request, Response } from "express"
-import { addEvent } from "@/queues/createEventQueue"
-import { logger } from "@/config/loggerConfig";
-import { getRepository, geoSearch, textSearch } from "@/schemas/redis/Event"
-import { type IEvent, Event } from "@/models/Event";
-import { CoordinatesSchema } from "@/schemas/http/Event";
+import { insertEvent, geoSearch, attendEvent, listEvents } from "@/services/eventService";
+import { ZodError } from "zod";
+import * as z from "zod"
+import { BadInputError, NotFoundError } from "@/types/errors/InputError";
 
 export async function create(req: Request, res: Response) {
-    const repo = await getRepository()
-    const event: IEvent = req.body
-    event.author = req.user?.id;
-    const redisEvent = {
-        ...event,
-        locationValue: event.location.value,
-        location: {
-            latitude: event.location.coordinates.lat,
-            longitude: event.location.coordinates.lon,
-        }
+    const event = await insertEvent(req);
+    if (event) {
+        res.status(200).json({ success: true, data: event.toJSON() })
+        return;
     }
-    try {
-        repo.save(redisEvent)
-        await addEvent(event)
-        res.status(200).json({ success: true })
-    } catch (err) {
-        res.status(500).json({ success: false, message: "Error creating event in Redis, try again later" })
-        logger.error("Error creating event in redis", err)
-    }
+    res.status(500).json({ success: false, message: "Error creating event, try again later" })
 }
 
 export async function list(req: Request, res: Response) {
-    const repo = await getRepository()
-    const data = await repo.search().return.all()
-    res.status(200).json({ success: true, data: data })
+    const events = await listEvents(req);
+    res.status(200).json({ success: true, data: events.map(event => event.toJSON()) })
 }
 
 export async function geosearch(req: Request, res: Response) {
-    const { error, value } = CoordinatesSchema.validate(req.query)
-    if (error) {
-        res.status(400).json({ success: false, message: error })
-        return
+
+    try {
+        const result = await geoSearch(req);
+        const jsonResult = result?.map(event => event.toJSON())
+        res.status(200).json({ success: true, data: jsonResult })
+    } catch (error) {
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, data: z.flattenError(error) })
+            return;
+        }
+        res.status(500).json({ success: false, message: "Server error, try again later" })
     }
-    const result = await geoSearch(value.lat, value.lon, value.radius, req.offset, req.limit);
-
-    res.status(200).json({ success: true, data: result })
-}
-
-export async function search(req: Request, res: Response) {
-    const { q } = req.query
-    if (!q || typeof (q) != 'string' || q.length < 2) {
-        res.status(400).json({ success: false, message: "Query is required" })
-        return
-    }
-    const result = await textSearch(q, req.offset, req.limit);
-
-    res.status(200).json({ success: true, data: result })
 }
 
 export async function attend(req: Request, res: Response) {
-    const { eventId } = req.params;
-    const eventFound = await Event.findOne({ _id: eventId });
-    if (!eventFound) {
-        res.status(404).json({ success: false, message: "Event not found" })
-        return
-    }
-    if (eventFound.attendees.includes(req.user?.id)) {
+    try {
+        const eventFound = await attendEvent(req)
+        res.status(200).json({ success: true, data: eventFound.toJSON() })
+    } catch (error) {
+        let status = 500;
+        let message = "Server error, try again later"
+        if (error instanceof NotFoundError) {
+            status = 404;
+            message = error.message;
+        }
+        if (error instanceof BadInputError) {
+            status = 400;
+            message = error.message;
+        }
+        res.status(status).json({ success: false, message: message })
 
-        res.status(400).json({ success: false, message: "Event is already attended by this user" })
-        return
     }
-    eventFound.attendees.push(req.user?.id);
-    await eventFound.save()
 
-    res.status(200).json({ success: true, data: eventFound })
 }
