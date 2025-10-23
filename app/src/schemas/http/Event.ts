@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-export const CoordinatesSchema: z.Schema = z.object({
+export const CoordinatesSchema = z.object({
     lat: z.number().min(-90).max(90),
     lng: z.number().min(-180).max(180),
     radius: z.number().min(1).max(15).default(3)
@@ -23,5 +23,4 @@ export const CreateEventSchema: z.Schema = z.object({
     }),
     topics: z.array(z.string())
 })
-
 

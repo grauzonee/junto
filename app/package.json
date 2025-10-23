@@ -23,6 +23,7 @@
     "@types/node": "^24.3.1",
     "@types/supertest": "^6.0.3",
     "depcheck": "^1.4.7",
+    "joi-extract-type": "^15.0.8",
     "mongodb-memory-server": "^10.2.3",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.1",
