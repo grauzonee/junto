@@ -5,7 +5,7 @@ import { createFakeEvent } from "./generator"
 import { Event, type EventDocument } from "@/models/Event"
 import { insertEvent, listEvents, geoSearch, attendEvent } from "@/services/eventService"
 import { BadInputError, NotFoundError } from "@/types/errors/InputError"
-import { ValidationError } from "joi"
+import { ZodError } from "zod"
 
 let mongoServer: MongoMemoryServer
 let req: Partial<Request>
@@ -84,9 +84,9 @@ describe("geosearch events tests SUCCESS", () => {
     it("Should return events near", async () => {
         req = {
             query: {
-                lat: '48.21649',
-                lng: '16.40087',
-                radius: '1',
+                lat: 48.21649,
+                lng: 16.40087,
+                radius: 1,
             },
         } as unknown as Request;
         const result = await geoSearch(req as Request)
@@ -98,9 +98,9 @@ describe("geosearch events tests SUCCESS", () => {
     it("Should return empty array when there are no events", async () => {
         req = {
             query: {
-                lat: '68.21649',
-                lng: '16.40087',
-                radius: '1',
+                lat: 68.21649,
+                lng: 16.40087,
+                radius: 1,
             },
         } as unknown as Request;
         const result = await geoSearch(req as Request)
@@ -110,15 +110,15 @@ describe("geosearch events tests SUCCESS", () => {
     it("Should throw an exception on invalid coordinates", async () => {
         req = {
             query: {
-                lat: '168.21649',
-                lng: '16.40087',
-                radius: '1',
+                lat: 168.21649,
+                lng: 16.40087,
+                radius: 1,
             },
         } as unknown as Request;
         try {
             const result = await geoSearch(req as Request)
         } catch (error) {
-            expect(error).toBeInstanceOf(ValidationError)
+            expect(error).toBeInstanceOf(ZodError)
         }
     })
 })
