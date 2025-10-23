@@ -2,6 +2,7 @@ import { EventDocument } from '@/models/Event'
 import { type FilterPrefix, type Filter, type FilterValue } from '@/types/Filter'
 import { type FilterQuery } from "mongoose"
 import { type CoordinatesInput } from '@/schemas/http/Event'
+import { SortInput } from '@/types/Sort'
 
 const MongoFilterMap: Record<FilterPrefix, string> = {
     eq: '$eq',
@@ -28,7 +29,7 @@ export function buildGeosearchQuery(value: CoordinatesInput): FilterQuery<EventD
         }
     }
 }
-export function buildMongoQuery<T>(dbFilter: Filter[] | undefined): FilterQuery<T> {
+export function buildFilterQuery<T>(dbFilter: Filter[] | undefined): FilterQuery<T> {
     const query: Record<string, Record<string, FilterValue>> = {}
     if (!dbFilter) return query;
     dbFilter.forEach(filter => {
@@ -41,4 +42,15 @@ export function buildMongoQuery<T>(dbFilter: Filter[] | undefined): FilterQuery<
         query[filter.field] = definition
     })
     return query;
+}
+
+export function buildSortQuery(sort: SortInput | undefined): Record<string, 1 | -1> {
+    if (!sort) return {}
+    if (sort.sortByAsc) {
+        return { [sort.sortByAsc]: - 1 }
+    }
+    if (sort.sortByDesc) {
+        return { [sort.sortByDesc]: 1 }
+    }
+    return {}
 }

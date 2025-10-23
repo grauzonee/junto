@@ -15,7 +15,7 @@ export interface Filter {
     value: FilterValue,
     options?: string
 }
-export const SKIP_WORDS = ['page', 'limit']
+export const SKIP_WORDS = ['page', 'limit', 'sortByAsc', 'sortByDesc']
 export const ARRAY_PREFIXES = ['in', 'nin']
 export const FILTER_PREFIXES = [...ARRAY_PREFIXES, 'eq', 'max', 'min', 'contains', 'before', 'after'] as const;
 export type FilterPrefix = typeof FILTER_PREFIXES[number];
