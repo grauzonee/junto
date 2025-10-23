@@ -15,8 +15,6 @@ let next: NextFunction
 
 
 beforeAll(() => {
-    jest.spyOn(Event, "getFilterableFields").mockReturnValue(['author'])
-
     res = {
         status: jest.fn().mockReturnThis(),
         json: jest.fn()
@@ -25,6 +23,7 @@ beforeAll(() => {
 
 })
 beforeEach(() => {
+    jest.spyOn(Event, "getFilterableFields").mockReturnValue([{ field: 'author' }])
     req.dbFilter = undefined
     jest.clearAllMocks();
 })
@@ -50,6 +49,24 @@ describe("FilterMiddleware tests SUCCESS", () => {
         middleware(req as Request, res as Response, next)
         expect(next).toHaveBeenCalledTimes(1)
         expect(req.dbFilter).toEqual([{ prefix: 'in', value: ['34', '123'], field: 'author' }])
+    })
+    it("should populate DATE request.dbFilter parameter", () => {
+        const inputDate = "2026-09-21";
+        jest.spyOn(Event, "getFilterableFields").mockReturnValue([{ field: 'date', preprocess: (value: FilterValue) => new Date(value as string) }])
+        req.query = { 'date_before': inputDate }
+        const middleware = filterMiddleware(Event)
+        middleware(req as Request, res as Response, next)
+        expect(next).toHaveBeenCalledTimes(1)
+        expect(req.dbFilter).toEqual([{ prefix: 'before', value: new Date(inputDate), field: 'date' }])
+    })
+    it("should populate OPTIONS request.dbFilter parameter", () => {
+        const inputTopic = "meet";
+        jest.spyOn(Event, "getFilterableFields").mockReturnValue([{ field: 'topics', options: 'i' }])
+        req.query = { 'topics_contains': inputTopic }
+        const middleware = filterMiddleware(Event)
+        middleware(req as Request, res as Response, next)
+        expect(next).toHaveBeenCalledTimes(1)
+        expect(req.dbFilter).toEqual([{ prefix: 'contains', value: inputTopic, field: 'topics', options: 'i' }])
     })
 })
 

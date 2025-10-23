@@ -1,6 +1,7 @@
 import { buildMongoQuery, buildGeosearchQuery } from "@/helpers/queryBuilder"
 import { CoordinatesInput } from "@/schemas/http/Event"
 import type { Filter } from "@/types/Filter"
+import { Event } from "@/models/Event"
 
 describe("buildMongoQuery tests SUCCESS", () => {
     it("Should return FilterQuery object", () => {
@@ -8,6 +9,13 @@ describe("buildMongoQuery tests SUCCESS", () => {
         const query = buildMongoQuery<Event>(dbFilter)
         expect(query).toEqual({
             author: { $eq: "123" }
+        })
+    })
+    it("Should return FilterQuery object with options", () => {
+        const dbFilter: Filter[] = [{ prefix: 'contains', value: "meet", field: 'topics', options: 'i' }]
+        const query = buildMongoQuery<Event>(dbFilter)
+        expect(query).toEqual({
+            topics: { $regex: "meet", $options: 'i' }
         })
     })
 })

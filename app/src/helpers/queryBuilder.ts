@@ -6,9 +6,9 @@ import { type CoordinatesInput } from '@/schemas/http/Event'
 const MongoFilterMap: Record<FilterPrefix, string> = {
     eq: '$eq',
     min: '$gte',
-    before: '$gte',
+    before: '$lte',
     max: '$lte',
-    after: '$lte',
+    after: '$gte',
     in: '$in',
     nin: '$nin',
     contains: '$regex',
@@ -28,11 +28,17 @@ export function buildGeosearchQuery(value: CoordinatesInput): FilterQuery<EventD
         }
     }
 }
-export function buildMongoQuery<T>(dbFilter: Filter[]): FilterQuery<T> {
+export function buildMongoQuery<T>(dbFilter: Filter[] | undefined): FilterQuery<T> {
     const query: Record<string, Record<string, FilterValue>> = {}
+    if (!dbFilter) return query;
     dbFilter.forEach(filter => {
         const operator = MongoFilterMap[filter.prefix]
-        query[filter.field] = { [operator]: filter.value }
+        let definition = { [operator]: filter.value };
+        if (filter.options) {
+            definition = { ...definition, $options: filter.options }
+        }
+
+        query[filter.field] = definition
     })
     return query;
 }

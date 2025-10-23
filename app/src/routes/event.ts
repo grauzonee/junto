@@ -9,7 +9,7 @@ import { Event } from "@/models/Event";
 export const router = Router()
 
 router.post('/', [authMiddleware, requestSchemaValidate(CreateEventSchema)], create)
-router.get('/', [authMiddleware, paginateMiddleware, filterMiddleware(Event)], list)
-router.get('/geosearch', [authMiddleware, paginateMiddleware], geosearch)
+router.get('/', [paginateMiddleware, filterMiddleware(Event)], list)
+router.get('/geosearch', [paginateMiddleware], geosearch)
 //router.get('/search', paginateMiddleware, search)
 router.put('/attend/:eventId', authMiddleware, attend)

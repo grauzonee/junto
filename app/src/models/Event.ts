@@ -1,6 +1,7 @@
 import { BadInputError } from "@/types/errors/InputError";
 import mongoose, { Document, Schema, Types, SchemaTypes, Model } from "mongoose";
 import { type PaginateQueryHelpers, paginate } from "@/helpers/queryHelper";
+import { type Filterable, type FilterableField, FilterValue } from "@/types/Filter";
 
 export interface EventMethods {
     attend(userId: Types.ObjectId): Promise<EventDocument>
@@ -22,11 +23,11 @@ export interface IEvent {
 
 export type EventDocument = IEvent & Document & EventMethods;
 
-type EventModelType = Model<EventDocument, PaginateQueryHelpers<EventDocument>>;
+interface EventModel extends Model<EventDocument, PaginateQueryHelpers<EventDocument>>, Filterable { }
 
 export const EventSchema = new Schema<
     EventDocument,
-    EventModelType,
+    EventModel,
     object,
     PaginateQueryHelpers<EventDocument>
 >({
@@ -84,8 +85,8 @@ export const EventSchema = new Schema<
     ]
 }, { timestamps: true })
 
-EventSchema.statics.getFilterableFields = function(): string[] {
-    return ['author']
+EventSchema.statics.getFilterableFields = function(): FilterableField[] {
+    return [{ field: 'date', preprocess: (value: FilterValue) => new Date(value as string) }, { field: 'topics', options: 'i' }]
 }
 
 EventSchema.index({ location: "2dsphere" })
@@ -125,6 +126,6 @@ EventSchema.pre("save", function(next) {
 
 EventSchema.query.paginate = paginate
 
-export const Event = mongoose.model<EventDocument, EventModelType>("Event", EventSchema)
+export const Event = mongoose.model<EventDocument, EventModel>("Event", EventSchema)
 
 
