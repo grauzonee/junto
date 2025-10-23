@@ -1,29 +1,26 @@
-import * as Joi from "joi"
-import 'joi-extract-type';
+import * as z from "zod";
 
-export const CoordinatesSchema: Joi.Schema = Joi.object().keys({
-    lat: Joi.number().required().min(-90).max(90),
-    lng: Joi.number().required().min(-180).max(180),
-    radius: Joi.number().default(3).min(1).max(15)
+export const CoordinatesSchema: z.Schema = z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+    radius: z.number().min(1).max(15).default(3)
 })
 
-export type CoordinatesInput = Joi.extractType<typeof CoordinatesSchema>
+export type CoordinatesInput = z.infer<typeof CoordinatesSchema>
 
-export const CreateEventSchema: Joi.Schema = Joi.object().keys({
-    title: Joi.string().required(),
-    description: Joi.string().required(),
-    imageUrl: Joi.string().required(),
-    date: Joi.number().required().custom((value, helpers) => {
-        if (value < Math.ceil(Date.now() / 1000)) {
-            return helpers.error("any.invalid", { message: "Date cannot be in the past" });
-        }
-        return value;
-    }, "Future date validation"),
-    fullAddress: Joi.string(),
-    location: Joi.object().keys({
-        type: Joi.string(),
-        coordinates: Joi.array()
+export const CreateEventSchema: z.Schema = z.object({
+    title: z.string(),
+    description: z.string(),
+    imageUrl: z.string(),
+    date: z.number().refine(
+        (value) => value >= Math.ceil(Date.now() / 1000),
+        { message: "Date cannot be in the past" }
+    ),
+    fullAddress: z.string(),
+    location: z.object({
+        type: z.string(),
+        coordinates: z.array(z.float64())
     }),
-    topics: Joi.array()
+    topics: z.array(z.string())
 })
 
