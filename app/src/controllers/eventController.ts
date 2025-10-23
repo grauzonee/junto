@@ -1,6 +1,7 @@
 import { Request, Response } from "express"
 import { insertEvent, geoSearch, attendEvent, listEvents } from "@/services/eventService";
-import { ValidationError } from "joi";
+import { ZodError } from "zod";
+import * as z from "zod"
 import { BadInputError, NotFoundError } from "@/types/errors/InputError";
 
 export async function create(req: Request, res: Response) {
@@ -24,8 +25,8 @@ export async function geosearch(req: Request, res: Response) {
         const jsonResult = result?.map(event => event.toJSON())
         res.status(200).json({ success: true, data: jsonResult })
     } catch (error) {
-        if (error instanceof ValidationError) {
-            res.status(400).json({ success: false, message: error.message })
+        if (error instanceof ZodError) {
+            res.status(400).json({ success: false, data: z.flattenError(error) })
             return;
         }
         res.status(500).json({ success: false, message: "Server error, try again later" })
