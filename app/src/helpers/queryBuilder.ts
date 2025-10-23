@@ -1,6 +1,7 @@
 import { EventDocument } from '@/models/Event'
 import { type FilterPrefix, type Filter, type FilterValue } from '@/types/Filter'
 import { type FilterQuery } from "mongoose"
+import { type CoordinatesInput } from '@/schemas/http/Event'
 
 const MongoFilterMap: Record<FilterPrefix, string> = {
     eq: '$eq',
@@ -13,7 +14,7 @@ const MongoFilterMap: Record<FilterPrefix, string> = {
     contains: '$regex',
 }
 
-export function buildGeosearchQuery(lat: float, lng: float, radius: ): FilterQuery<EventDocument> {
+export function buildGeosearchQuery(value: CoordinatesInput): FilterQuery<EventDocument> {
     return {
         location:
         {
