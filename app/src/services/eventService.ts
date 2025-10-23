@@ -22,10 +22,9 @@ export async function insertEvent(req: Request): Promise<EventDocument | undefin
 }
 
 export async function geoSearch(req: Request): Promise<EventDocument[] | undefined> {
-    const { error, value } = CoordinatesSchema.validate(req.query)
-    if (error) {
-        throw error
-    }
+    const value = req.query
+    CoordinatesSchema.parse(value)
+
     // TODO: Move to queryBuilder
 
 
