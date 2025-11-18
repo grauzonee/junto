@@ -16,3 +16,5 @@ log_app:
 	docker logs junto_app
 log_mongo:
 	docker logs junto_mongo
+rebuild_app:
+	docker compose up --build app
