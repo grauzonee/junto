@@ -7,7 +7,7 @@ import { connectToMongo, disconnectFromMongo } from "@/config/mongoConfig";
 
 async function bootstrap() {
     checkAllRequiredVars()
-    connectToMongo();
+    await connectToMongo();
 }
 
 bootstrap().catch(err => {
