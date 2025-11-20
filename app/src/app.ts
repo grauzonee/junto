@@ -14,4 +14,5 @@ app.get("/status", (req: Request, res: Response) => {
 });
 app.use('/api', router)
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+app.use('/docs', express.static(path.join(__dirname, '..', 'docs')));
 export default app
