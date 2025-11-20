@@ -1,9 +1,23 @@
+/**
+ * Entry point of the application.
+ *
+ * Responsibilities:
+ * - Load environment variables
+ * - Initialize configuration checks
+ * - Connect to MongoDB
+ * - Start the Express server
+ * - Handle graceful shutdown on termination signals
+ * 
+ * @packageDocumentation
+ */
+
 import 'dotenv/config';
 import app from '@/app';
-const PORT = process.env.PORT || 3000;
 import { logger } from "@/config/loggerConfig";
 import { checkAllRequiredVars } from "@/helpers/configHelper";
 import { connectToMongo, disconnectFromMongo } from "@/config/mongoConfig";
+
+const PORT = process.env.PORT || 3000;
 
 async function bootstrap() {
     checkAllRequiredVars()

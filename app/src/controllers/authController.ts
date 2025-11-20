@@ -2,6 +2,11 @@ import { Request, Response } from "express"
 import { User, UserDocument } from "@/models/User"
 import { generateToken } from "@/helpers/jwtHelper";
 
+/**
+ * Login user 
+ * @param {Request} req 
+ * @param {Response} res 
+ */
 export async function login(req: Request, res: Response) {
     const { email, password } = req.body
     const userFound = await User.findOne({ email });
@@ -18,6 +23,11 @@ export async function login(req: Request, res: Response) {
     res.status(200).json({ success: true, data: { token, ...userFound.toJSON() } })
 }
 
+/**
+ * Register user
+ * @param {Request} req 
+ * @param {Response} res 
+ */
 export async function register(req: Request, res: Response) {
     const { username, email, password } = req.body
     const userExistsEmail = await User.findOne({ email });
