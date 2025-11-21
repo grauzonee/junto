@@ -3,7 +3,7 @@ import { MongoMemoryServer } from "mongodb-memory-server"
 import { Request } from "express"
 import { createFakeEvent } from "./generator"
 import { Event, type EventDocument } from "@/models/Event"
-import { insertEvent, listEvents, geoSearch, attendEvent } from "@/services/eventService"
+import { insertEvent, listEvents, geoSearch, attendEvent, editEvent } from "@/services/eventService"
 import { BadInputError, NotFoundError } from "@/types/errors/InputError"
 import { ZodError } from "zod"
 
@@ -32,7 +32,6 @@ describe("create event tests SUCCESS", () => {
             body: event
         } as Request
         const result = await insertEvent(req as Request)
-        console.log(result)
         expect(result).not.toBe(undefined)
         expect(result!._id).not.toBe(undefined)
         expect(result!.author).toBe(userId)
@@ -181,6 +180,100 @@ describe("attendEvent tests SUCCESS", () => {
             if (error instanceof Error) {
                 expect(error.message).toBe("Event not found")
             }
+        }
+    })
+})
+
+describe("Edit event SUCCESS", () => {
+    let savedEvent: EventDocument;
+    const event = createFakeEvent()
+    const userId = new mongoose.Types.ObjectId()
+    beforeEach(async () => {
+        await Event.deleteMany({})
+        event.author = userId;
+        savedEvent = await Event.create(event)
+        req = {
+            params: {
+                eventId: savedEvent._id
+            },
+            user: {
+                id: userId
+            },
+        } as unknown as Request
+    })
+
+    const title = "New title"
+    const description = "New description"
+    const now = new Date();
+    now.setMonth(now.getMonth() + 1);
+    const date = Math.floor(now.getTime() / 1000);
+
+    it("Should edit event with PUT payload and return updated object", async () => {
+        req.user.id = userId;
+        req.body = {
+            ...savedEvent.toJSON(),
+            title,
+            description,
+            date
+        }
+        const result = await editEvent(req as Request)
+        expect(result.title).toBe(title)
+        expect(result.description).toBe(description)
+    })
+    it("Should edit event with PATCH payload and return updated object", async () => {
+        req.body = {
+            title,
+            description
+        }
+
+        const result = await editEvent(req as Request)
+        expect(result.title).toBe(title)
+        expect(result.description).toBe(description)
+    })
+})
+describe("Edit event FAIL", () => {
+    let savedEvent: EventDocument;
+    const event = createFakeEvent()
+    const userId = new mongoose.Types.ObjectId()
+    beforeEach(async () => {
+        await Event.deleteMany({})
+        event.author = userId;
+        savedEvent = await Event.create(event)
+        req = {
+            params: {
+                eventId: savedEvent._id
+            },
+            user: {
+                id: userId
+            },
+        } as unknown as Request
+    })
+    it("Should NOT edit event of another user", async () => {
+        const title = "New title";
+        req.user.id = new mongoose.Types.ObjectId();
+        req.body = {
+            ...savedEvent.toJSON(),
+            title,
+        }
+        try {
+            const result = await editEvent(req as Request)
+        } catch (error) {
+            expect(error).toBeInstanceOf(NotFoundError)
+        }
+    })
+    it("Should NOT edit not active event", async () => {
+        savedEvent.active = false;
+        await savedEvent.save();
+        const title = "New title";
+        req.user.id = new mongoose.Types.ObjectId();
+        req.body = {
+            ...savedEvent.toJSON(),
+            title,
+        }
+        try {
+            const result = await editEvent(req as Request)
+        } catch (error) {
+            expect(error).toBeInstanceOf(NotFoundError)
         }
     })
 })

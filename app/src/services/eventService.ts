@@ -44,3 +44,18 @@ export async function attendEvent(req: Request): Promise<EventDocument> {
     await eventFound.attend(req.user?.id)
     return eventFound;
 }
+
+export async function editEvent(req: Request): Promise<EventDocument> {
+    const { eventId } = req.params
+    const userId = req.user?.id
+    try {
+        const event = await Event.findOneAndUpdate({ _id: eventId, author: userId, active: true }, req.body, { new: true })
+        if (!event) {
+            throw new NotFoundError("Event not found")
+        }
+        return event;
+    } catch (error) {
+        logger.error(`Error while updating event ${eventId}:`, error)
+        throw error
+    }
+}

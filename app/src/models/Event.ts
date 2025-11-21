@@ -2,6 +2,8 @@ import { BadInputError } from "@/types/errors/InputError";
 import mongoose, { Document, Schema, Types, SchemaTypes, Model } from "mongoose";
 import { type PaginateQueryHelpers, paginate } from "@/helpers/queryHelper";
 import { type Filterable, type FilterableField, FilterValue } from "@/types/Filter";
+import { type CurrencyCode } from "currency-codes-ts/dist/types";
+import { getConfigValue } from "@/helpers/configHelper";
 
 export interface EventMethods {
     attend(userId: Types.ObjectId): Promise<EventDocument>
@@ -18,7 +20,14 @@ export interface IEvent {
     imageUrl: string;
     author: Types.ObjectId,
     attendees: Types.ObjectId[],
-    topics: string[]
+    topics: string[],
+    maxAttendees: number,
+    fee: {
+        amount: number,
+        currence: CurrencyCode
+    },
+    active: boolean,
+    deletedAt?: Date
 }
 
 export type EventDocument = IEvent & Document & EventMethods;
@@ -82,7 +91,32 @@ export const EventSchema = new Schema<
             ref: 'User',
             default: []
         }
-    ]
+    ],
+    maxAttendees: {
+        type: Number,
+        required: false,
+        default: -1
+    },
+    fee: {
+        amount: {
+            type: Number,
+            required: false,
+            default: 0
+        },
+        currency: {
+            type: String,
+            required: false,
+            default: 'EUR'
+        }
+    },
+    active: {
+        type: Boolean,
+        default: true
+    },
+    deletedAt: {
+        type: Date,
+        required: false
+    }
 }, { timestamps: true })
 
 EventSchema.statics.getFilterableFields = function(): FilterableField[] {
@@ -101,6 +135,8 @@ EventSchema.set('toJSON', {
         if ('updatedAt' in ret) {
             delete ret.updatedAt;
         }
+        ret.imageUrl = getConfigValue('HOST') + '/' + ret.imageUrl
+        //ret.date = ret.date?.toISOString()
 
         return ret;
     }
