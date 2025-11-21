@@ -2,7 +2,7 @@ import multer from "multer"
 import path from 'path';
 import { Request } from 'express';
 import fs from 'fs';
-import crypto from "crypto"
+import crypto from "node:crypto"
 
 export const getImageUploadPath = (req: Request): string => {
     const userId = req.user?.id;

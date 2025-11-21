@@ -37,7 +37,6 @@
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "currency-codes-ts": "^3.0.0",
-    "crypto": "^1.0.1",
     "dotenv": "^17.2.2",
     "eslint": "^9.35.0",
     "express": "^5.1.0",
