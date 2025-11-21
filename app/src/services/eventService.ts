@@ -3,10 +3,10 @@ import { Event, EventDocument } from "@/models/Event"
 import { Request } from "express";
 import { CoordinatesSchema } from "@/schemas/http/Event";
 import { NotFoundError } from "@/types/errors/InputError";
-import { buildGeosearchQuery, buildMongoQuery } from "@/helpers/queryBuilder";
+import { buildGeosearchQuery, buildFilterQuery, buildSortQuery } from "@/helpers/queryBuilder";
 
 export async function listEvents(req: Request): Promise<EventDocument[]> {
-    const result = await Event.find(buildMongoQuery(req.dbFilter)).paginate(req.offset, req.limit)
+    const result = await Event.find(buildFilterQuery(req.dbFilter)).sort(buildSortQuery(req.sort)).paginate(req.offset, req.limit)
     return result;
 }
 
@@ -27,7 +27,7 @@ export async function geoSearch(req: Request): Promise<EventDocument[] | undefin
     const query = buildGeosearchQuery(value)
 
     try {
-        const result = await Event.find(query).paginate(req.offset, req.limit);
+        const result = await Event.find(query).sort(buildSortQuery(req.sort)).paginate(req.offset, req.limit);
         return result;
     } catch (error) {
         logger.error("Error performing geosearch on events: " + error)

@@ -4,6 +4,7 @@ import { type PaginateQueryHelpers, paginate } from "@/helpers/queryHelper";
 import { type Filterable, type FilterableField, FilterValue } from "@/types/Filter";
 import { type CurrencyCode } from "currency-codes-ts/dist/types";
 import { getConfigValue } from "@/helpers/configHelper";
+import { type Sortable } from "@/types/Sort";
 
 export interface EventMethods {
     attend(userId: Types.ObjectId): Promise<EventDocument>
@@ -32,7 +33,7 @@ export interface IEvent {
 
 export type EventDocument = IEvent & Document & EventMethods;
 
-interface EventModel extends Model<EventDocument, PaginateQueryHelpers<EventDocument>>, Filterable { }
+interface EventModel extends Model<EventDocument, PaginateQueryHelpers<EventDocument>>, Filterable, Sortable { }
 
 export const EventSchema = new Schema<
     EventDocument,
@@ -123,6 +124,10 @@ EventSchema.statics.getFilterableFields = function(): FilterableField[] {
     return [{ field: 'date', preprocess: (value: FilterValue) => new Date(value as string) }, { field: 'topics', options: 'i' }]
 }
 
+EventSchema.statics.getSortableFields = function(): string[] {
+    return ['date']
+}
+
 EventSchema.index({ location: "2dsphere" })
 
 EventSchema.set('toJSON', {
@@ -136,7 +141,6 @@ EventSchema.set('toJSON', {
             delete ret.updatedAt;
         }
         ret.imageUrl = getConfigValue('HOST') + '/' + ret.imageUrl
-        //ret.date = ret.date?.toISOString()
 
         return ret;
     }
