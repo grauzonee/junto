@@ -1,8 +1,22 @@
+/**
+ * Module for MongoDB configuration and connection management.
+ *
+ * Responsibilities:
+ * - Connect to MongoDB using Mongoose
+ * - Disconnect from MongoDB
+ * 
+ * @packageDocumentation
+ */
+
 import mongoose from "mongoose";
 import { getConfigValue } from "@/helpers/configHelper";
 import { logger } from "@/config/loggerConfig";
 
 const mongoString = getConfigValue('MONGO_CONN_STRING')
+
+/**
+ * Establishes a connection to the MongoDB database.
+ */
 export const connectToMongo = () => {
     mongoose.connect(mongoString).then(() => {
         logger.info("Connection to Mongo successfull!")
@@ -12,6 +26,9 @@ export const connectToMongo = () => {
     })
 }
 
+/**
+ * Disconnects from the MongoDB database.
+ */
 export async function disconnectFromMongo() {
     if (mongoose.connection.readyState !== 0) {
         await mongoose.connection.close();

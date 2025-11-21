@@ -1,3 +1,9 @@
+/**
+ * Helper functions for building database query filters and sorts.
+ * 
+ * @packageDocumentation
+ */
+
 import { EventDocument } from '@/models/Event'
 import { type FilterPrefix, type Filter, type FilterValue } from '@/types/Filter'
 import { type FilterQuery } from "mongoose"
@@ -15,6 +21,11 @@ const MongoFilterMap: Record<FilterPrefix, string> = {
     contains: '$regex',
 }
 
+/**
+ * Builds a geospatial search query for events based on coordinates and radius.
+ * @param {CoordinatesInput} value 
+ * @returns {FilterQuery<EventDocument>} @see {@link https://www.mongodb.com/docs/manual/geospatial-queries/}
+ */
 export function buildGeosearchQuery(value: CoordinatesInput): FilterQuery<EventDocument> {
     return {
         location:
@@ -29,6 +40,12 @@ export function buildGeosearchQuery(value: CoordinatesInput): FilterQuery<EventD
         }
     }
 }
+
+/**
+ * Builds a filter query for the database based on provided filters.
+ * @param {Filter[]} dbFilter 
+ * @returns {FilterQuery<T>}
+ */
 export function buildFilterQuery<T>(dbFilter: Filter[] | undefined): FilterQuery<T> {
     const query: Record<string, Record<string, FilterValue>> = {}
     if (!dbFilter) return query;
@@ -44,6 +61,11 @@ export function buildFilterQuery<T>(dbFilter: Filter[] | undefined): FilterQuery
     return query;
 }
 
+/**
+ * Builds a sort query for the database based on provided sort input.
+ * @param {SortInput | undefined} sort 
+ * @returns {Record<string, 1 | -1>}
+ */
 export function buildSortQuery(sort: SortInput | undefined): Record<string, 1 | -1> {
     if (!sort) return {}
     if (sort.sortByAsc) {

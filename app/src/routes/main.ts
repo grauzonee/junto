@@ -10,4 +10,3 @@ router.use('/media', mediaRouter)
 router.use('/event', eventRouter)
 router.use('/auth', authRouter)
 router.use('/user', userRouter)
-
