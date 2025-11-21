@@ -61,7 +61,7 @@ UserSchema.set('toJSON', {
         delete ret._id;
         //delete ret.__v;
         delete ret.password;
-        ret.avatarUrl = getConfigValue('HOST') + '/' + ret.avatarUrl
+        ret.avatarUrl = ret.avatarUrl ? getConfigValue('HOST') + '/' + ret.avatarUrl : undefined
 
         return ret;
     }

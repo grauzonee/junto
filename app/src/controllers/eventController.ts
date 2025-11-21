@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { insertEvent, geoSearch, attendEvent, listEvents } from "@/services/eventService";
+import { insertEvent, geoSearch, attendEvent, listEvents, editEvent } from "@/services/eventService";
 import { ZodError } from "zod";
 import * as z from "zod"
 import { BadInputError, NotFoundError } from "@/types/errors/InputError";
@@ -51,5 +51,17 @@ export async function attend(req: Request, res: Response) {
         res.status(status).json({ success: false, message: message })
 
     }
+}
 
+export async function update(req: Request, res: Response) {
+    try {
+        const event = await editEvent(req);
+        res.status(200).json({ success: true, data: event?.toJSON() })
+    } catch (error) {
+        if (error instanceof NotFoundError) {
+            res.status(404).json({ success: false, data: { mesage: error.message } })
+            return;
+        }
+        res.status(500).json({ success: false, data: { mesage: "Internal error" } })
+    }
 }
