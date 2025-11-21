@@ -1,3 +1,9 @@
+/**
+ * Logger configuration module using Winston with daily rotating file transports.
+ * 
+ * @packageDocumentation
+ */
+
 import { createLogger, format, transports } from "winston";
 import DailyRotateFile from 'winston-daily-rotate-file';
 
@@ -28,6 +34,10 @@ const transportError = new DailyRotateFile({
     maxFiles: '14d'
 })
 
+/**
+ * Configured Winston logger instance.
+ * Logs to daily rotating files for debug, info, and error levels.
+ */
 export const logger = createLogger({
     level: 'info',
     format: format.json(),

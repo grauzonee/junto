@@ -10,7 +10,8 @@
     "fix": "eslint --fix src --ext .ts",
     "start": "ts-node -r tsconfig-paths/register src/index.ts",
     "test": "jest",
-    "seed": "npx tsx src/seeders/runner.ts"
+    "seed": "npx tsx src/seeders/runner.ts",
+    "docs": "npx typedoc --entryPointStrategy Expand src"
   },
   "keywords": [],
   "author": "",
@@ -37,6 +38,7 @@
     "@types/redis": "^4.0.10",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
+    "currency-codes-ts": "^3.0.0",
     "dotenv": "^17.2.2",
     "eslint": "^9.35.0",
     "express": "^5.1.0",

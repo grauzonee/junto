@@ -8,7 +8,7 @@ export const CoordinatesSchema = z.object({
 
 export type CoordinatesInput = z.infer<typeof CoordinatesSchema>
 
-export const CreateEventSchema: z.Schema = z.object({
+export const CreateEventSchema = z.object({
     title: z.string(),
     description: z.string(),
     imageUrl: z.string(),
@@ -21,6 +21,13 @@ export const CreateEventSchema: z.Schema = z.object({
         type: z.string(),
         coordinates: z.array(z.float64())
     }),
-    topics: z.array(z.string())
-})
+    topics: z.array(z.string()),
+    fee: z.object({
+        amount: z.number(),
+        currency: z.string()
+    }).optional(),
+    maxAttendees: z.number().optional()
+}).strict()
 
+//What about maxAttendies?
+export const EditEventSchema = CreateEventSchema.partial().strict();
