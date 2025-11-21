@@ -18,3 +18,5 @@ log_mongo:
 	docker logs junto_mongo
 rebuild_app:
 	docker compose up --build app
+seed-%:
+	docker exec -it junto_app sh -c "npm run seed $*"

@@ -21,7 +21,7 @@ const PORT = process.env.PORT || 3000;
 
 async function bootstrap() {
     checkAllRequiredVars()
-    connectToMongo();
+    await connectToMongo();
 }
 
 bootstrap().catch(err => {

@@ -17,14 +17,15 @@ const mongoString = getConfigValue('MONGO_CONN_STRING')
 /**
  * Establishes a connection to the MongoDB database.
  */
-export const connectToMongo = () => {
-    mongoose.connect(mongoString).then(() => {
-        logger.info("Connection to Mongo successfull!")
-    }).catch(err => {
-        logger.error("Connection to Mongo failed: " + err)
-        process.exit(1)
-    })
-}
+export const connectToMongo = async () => {
+    try {
+        await mongoose.connect(mongoString);
+        logger.info("Connection to Mongo successful!");
+    } catch (err) {
+        logger.error("Connection to Mongo failed:", err);
+        process.exit(1);
+    }
+};
 
 /**
  * Disconnects from the MongoDB database.

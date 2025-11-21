@@ -10,6 +10,7 @@
     "fix": "eslint --fix src --ext .ts",
     "start": "ts-node -r tsconfig-paths/register src/index.ts",
     "test": "jest",
+    "seed": "npx tsx src/seeders/runner.ts",
     "docs": "npx typedoc --entryPointStrategy Expand src"
   },
   "keywords": [],
