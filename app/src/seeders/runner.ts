@@ -13,8 +13,8 @@ async function run() {
   }
 
   try {
-    const { seedInterests } = await import(`./${seederName}.seeder`);
-    await seedInterests();
+    const { seed } = await import(`./${seederName}.seeder`);
+    await seed();
   } catch (err) {
     // eslint-disable-next-line
     console.error("Seeder not found or failed:", err);

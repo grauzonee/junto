@@ -1,8 +1,8 @@
 import mongoose from "mongoose"
 import { MongoMemoryServer } from "mongodb-memory-server"
-import { list } from "@/services/interestService"
+import { list } from "@/services/categoryService"
 import { Request } from "express"
-import { seed as seedInterests } from "@/seeders/interests.seeder"
+import { seed as seedCategories } from "@/seeders/categories.seeder"
 
 let mongoServer: MongoMemoryServer
 let req: Partial<Request>
@@ -12,7 +12,7 @@ beforeAll(async () => {
   const uri = mongoServer.getUri();
 
   await mongoose.connect(uri);
-  await seedInterests();
+  await seedCategories();
 })
 
 afterAll(async () => {
@@ -20,30 +20,30 @@ afterAll(async () => {
   await mongoServer.stop();
 });
 
-describe("List interests tests SUCCESS", () => {
-  it("Should return exactly 3 interests when limit parameter specified", async () => {
+describe("List categories tests SUCCESS", () => {
+  it("Should return exactly 3 categories when limit parameter specified", async () => {
     req = {
       offset: 0,
       limit: 3
     }
     const result = await list(req as Request);
     expect(result.length).toBe(3);
-    result.forEach((interest) => {
-      expect(typeof interest.title).toBe("string")
+    result.forEach((category) => {
+      expect(typeof category.title).toBe("string")
     })
   })
-  it("Should return filtered interests", async () => {
+  it("Should return filtered categories", async () => {
     req = {
       dbFilter: [{
         prefix: "eq",
         field: "title",
-        value: "art",
+        value: "social",
       }]
     }
     const result = await list(req as Request);
     expect(result.length).toBe(1);
-    result.forEach((interest) => {
-      expect(interest.title).toBe("Art")
+    result.forEach((category) => {
+      expect(category.title).toBe("Social")
     })
   })
 })

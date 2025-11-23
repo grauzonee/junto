@@ -1,6 +1,6 @@
 import { Interest } from "@/models/Interest";
 
-export async function seedInterests() {
+export async function seed() {
   const interests = [
     { title: "Technology" },
     { title: "Art" },
