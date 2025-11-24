@@ -1,46 +1,42 @@
-import mongoose, { Schema, Model, Document } from "mongoose";
-import { type PaginateQueryHelpers, paginate } from "@/helpers/queryHelper";
+import mongoose, { Schema, Model, HydratedDocument } from "mongoose";
 import { type Filterable, type FilterableField } from "@/types/Filter";
+import { PaginateQueryHelper, paginatePlugin } from "@/models/plugins/paginate";
 
 export interface IInterest {
     title: string;
 }
 
-export type InterestDocument = IInterest & Document;
-
-interface InterestModel
-    extends Model<InterestDocument, PaginateQueryHelpers<InterestDocument>>,
-    Filterable { }
+export type HydratedInterestDoc = HydratedDocument<IInterest>;
+export interface InterestModelType extends Model<IInterest, PaginateQueryHelper<IInterest>>, Filterable { }
 
 export const InterestSchema = new Schema<
-    InterestDocument,
-    InterestModel,
+    IInterest,
+    InterestModelType,
     object,
-    PaginateQueryHelpers<InterestDocument>
->({
-    title: String,
-},
+    PaginateQueryHelper<IInterest>
+>(
     {
-        collation: { locale: 'en', strength: 2 }
-    });
+        title: String,
+    },
+    {
+        collation: { locale: 'en', strength: 2 },
+        statics: {
+            getFilterableFields(): FilterableField[] {
+                return [{ field: "title", options: "i" }];
+            }
+        }
+    }
+);
 
 InterestSchema.set("toJSON", {
-    transform: (_doc, ret: Partial<InterestDocument>) => {
-        ret.id = ret._id;
-        delete ret._id;
-        if ("__v" in ret) {
-            delete ret.__v;
-        }
-    },
+    virtuals: false,
+    getters: true,
+    versionKey: false
 });
 
-InterestSchema.statics.getFilterableFields = function(): FilterableField[] {
-    return [{ field: "title", options: "i" }];
-};
+InterestSchema.plugin(paginatePlugin<IInterest>);
 
-InterestSchema.query.paginate = paginate;
-
-export const Interest = mongoose.model<InterestDocument, InterestModel>(
+export const Interest = mongoose.model<IInterest, InterestModelType>(
     "Interest",
     InterestSchema
 );

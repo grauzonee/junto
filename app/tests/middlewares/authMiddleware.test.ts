@@ -1,7 +1,7 @@
 import { authMiddleware } from "@/middlewares/authMiddleware";
 import { getUserByToken } from "@/helpers/jwtHelper";
 import { Request, Response, NextFunction } from "express";
-import { UserDocument } from "@/models/User";
+import { HydratedUserDoc } from "@/models/User";
 
 jest.mock("@/helpers/jwtHelper", () => ({
     getUserByToken: jest.fn(),
@@ -34,7 +34,7 @@ describe("authMiddleware", () => {
     });
 
     it("should attach user to request and call next if token is valid", async () => {
-        const mockUser = { id: "123", email: "test@test.com" } as UserDocument;
+        const mockUser = { id: "123", email: "test@test.com" } as HydratedUserDoc;
         (getUserByToken as jest.Mock).mockResolvedValue(mockUser);
 
         req.headers = { authorization: "Bearer validtoken" };

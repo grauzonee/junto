@@ -4,7 +4,7 @@
  * @packageDocumentation
  */
 
-import { EventDocument } from '@/models/Event'
+import { Event } from '@/models/Event'
 import { type FilterPrefix, type Filter, type FilterValue } from '@/types/Filter'
 import { type FilterQuery } from "mongoose"
 import { type CoordinatesInput } from '@/schemas/http/Event'
@@ -24,9 +24,9 @@ const MongoFilterMap: Record<FilterPrefix, string> = {
 /**
  * Builds a geospatial search query for events based on coordinates and radius.
  * @param {CoordinatesInput} value 
- * @returns {FilterQuery<EventDocument>} @see {@link https://www.mongodb.com/docs/manual/geospatial-queries/}
+ * @returns {FilterQuery<Event>} @see {@link https://www.mongodb.com/docs/manual/geospatial-queries/}
  */
-export function buildGeosearchQuery(value: CoordinatesInput): FilterQuery<EventDocument> {
+export function buildGeosearchQuery(value: CoordinatesInput): FilterQuery<Event> {
     return {
         location:
         {
