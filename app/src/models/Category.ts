@@ -1,54 +1,47 @@
-import mongoose, { Schema, Model, Document, Types, SchemaTypes } from "mongoose";
-import { type PaginateQueryHelpers, paginate } from "@/helpers/queryHelper";
+import mongoose, { Schema, Model, Types, SchemaTypes } from "mongoose";
 import { type Filterable, type FilterableField } from "@/types/Filter";
+import { paginatePlugin, PaginateQueryHelper } from "@/models/plugins/paginate";
 
 export interface ICategory {
-  title: string;
-  parent?: Types.ObjectId
+    title: string;
+    parent?: Types.ObjectId
 }
 
-export type CategoryDocument = ICategory & Document;
-
-interface CategoryModel
-  extends Model<CategoryDocument, PaginateQueryHelpers<CategoryDocument>>,
-  Filterable { }
+export interface CategoryModelType extends Model<ICategory, PaginateQueryHelper<ICategory>>, Filterable { }
 
 export const CategorySchema = new Schema<
-  CategoryDocument,
-  CategoryModel,
-  object,
-  PaginateQueryHelpers<CategoryDocument>
->({
-  title: String,
-  parent: {
-    type: SchemaTypes.ObjectId,
-    required: false,
-    ref: 'Category'
-
-  }
-},
-  {
-    collation: { locale: 'en', strength: 2 }
-  },
+    ICategory,
+    CategoryModelType,
+    object,
+    PaginateQueryHelper<ICategory>
+>(
+    {
+        title: String,
+        parent: {
+            type: SchemaTypes.ObjectId,
+            required: false,
+            ref: 'Category'
+        }
+    },
+    {
+        collation: { locale: 'en', strength: 2 },
+        statics: {
+            getFilterableFields(): FilterableField[] {
+                return [{ field: "title", options: "i" }, { field: "parent" }];
+            }
+        }
+    },
 );
 
 CategorySchema.set("toJSON", {
-  transform: (_doc, ret: Partial<CategoryDocument>) => {
-    ret.id = ret._id;
-    delete ret._id;
-    if ("__v" in ret) {
-      delete ret.__v;
-    }
-  },
+    getters: true,
+    virtuals: false,
+    versionKey: false
 });
 
-CategorySchema.statics.getFilterableFields = function(): FilterableField[] {
-  return [{ field: "title", options: "i" }, { field: "parent" }];
-};
+CategorySchema.plugin(paginatePlugin<ICategory>);
 
-CategorySchema.query.paginate = paginate;
-
-export const Category = mongoose.model<CategoryDocument, CategoryModel>(
-  "Category",
-  CategorySchema
+export const Category = mongoose.model<ICategory, CategoryModelType>(
+    "Category",
+    CategorySchema
 );
