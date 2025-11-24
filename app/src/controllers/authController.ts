@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { User, UserDocument } from "@/models/User"
+import { User } from "@/models/User"
 import { generateToken } from "@/helpers/jwtHelper";
 
 /**
@@ -38,10 +38,10 @@ export async function register(req: Request, res: Response) {
     if (userExistsUsername) {
         return res.status(400).json({ success: false, data: { message: "Username already in use", field: 'username' } });
     }
-    const user: UserDocument = await User.create({ username, email, password });
+    const user = await User.create({ username, email, password });
 
     if (user) {
-        const token = generateToken(user._id);
+        const token = generateToken(user.id);
         const userJSON = user.toJSON();
         const responseData = { ...userJSON, token };
         return res.status(201).json(

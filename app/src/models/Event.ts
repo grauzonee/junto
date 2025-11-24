@@ -1,15 +1,13 @@
 import { BadInputError } from "@/types/errors/InputError";
-import mongoose, { Document, Schema, Types, SchemaTypes, Model } from "mongoose";
-import { type PaginateQueryHelpers, paginate } from "@/helpers/queryHelper";
+import mongoose, { HydratedDocument, Schema, Types, SchemaTypes, Model } from "mongoose";
 import { type Filterable, type FilterableField, FilterValue } from "@/types/Filter";
 import { type CurrencyCode } from "currency-codes-ts/dist/types";
 import { getConfigValue } from "@/helpers/configHelper";
 import { type Sortable } from "@/types/Sort";
+import { paginatePlugin, type PaginateQueryHelper } from "@/models/plugins/paginate";
 
-export interface EventMethods {
-    attend(userId: Types.ObjectId): Promise<EventDocument>
-}
 export interface IEvent {
+    _id: Types.ObjectId;
     title: string;
     description: string;
     date: Date;
@@ -31,112 +29,131 @@ export interface IEvent {
     deletedAt?: Date
 }
 
-export type EventDocument = IEvent & Document & EventMethods;
+export type HydratedEvent = HydratedDocument<IEvent>;
 
-interface EventModel extends Model<EventDocument, PaginateQueryHelpers<EventDocument>>, Filterable, Sortable { }
+export interface EventMethods {
+    attend(userId: Types.ObjectId): Promise<HydratedEvent>
+}
 
-export const EventSchema = new Schema<
-    EventDocument,
-    EventModel,
-    object,
-    PaginateQueryHelpers<EventDocument>
->({
-    id: {
-        type: String,
-    },
-    title: {
-        type: String,
-        required: true
-    },
-    description: {
-        type: String,
-        required: true
-    },
-    date: {
-        type: Date,
-        set: (v: number) => new Date(v * 1000),
-        required: true
-    },
-    fullAddress: {
-        type: String,
-        required: true
-    },
-    location: {
-        type: {
+interface EventModelType extends Model<IEvent, PaginateQueryHelper<IEvent>, EventMethods>, Filterable, Sortable { }
+
+export const EventSchema = new Schema<IEvent, Model<IEvent>, EventMethods, PaginateQueryHelper<IEvent>>(
+    {
+        title: {
             type: String,
-            enum: ['Point'],
             required: true
         },
-        coordinates: {
-            type: [Number],
+        description: {
+            type: String,
             required: true
-        }
-    },
-    imageUrl: {
-        type: String,
-        required: true
-    },
-    topics: {
-        type: [String],
-        required: false,
-        default: []
-    },
-    author: {
-        type: SchemaTypes.ObjectId,
-        required: true,
-        ref: 'User'
-    },
-    attendees: [
-        {
-            type: SchemaTypes.ObjectId,
-            ref: 'User',
+        },
+        date: {
+            type: Date,
+            set: (v: number) => new Date(v * 1000),
+            required: true
+        },
+        fullAddress: {
+            type: String,
+            required: true
+        },
+        location: {
+            type: {
+                type: String,
+                enum: ['Point'],
+                required: true
+            },
+            coordinates: {
+                type: [Number],
+                required: true
+            }
+        },
+        imageUrl: {
+            type: String,
+            required: true
+        },
+        topics: {
+            type: [String],
+            required: false,
             default: []
-        }
-    ],
-    maxAttendees: {
-        type: Number,
-        required: false,
-        default: -1
-    },
-    fee: {
-        amount: {
+        },
+        author: {
+            type: SchemaTypes.ObjectId,
+            required: true,
+            ref: 'User'
+        },
+        attendees: [
+            {
+                type: SchemaTypes.ObjectId,
+                ref: 'User',
+                default: []
+            }
+        ],
+        maxAttendees: {
             type: Number,
             required: false,
-            default: 0
+            default: -1
         },
-        currency: {
-            type: String,
-            required: false,
-            default: 'EUR'
+        fee: {
+            amount: {
+                type: Number,
+                required: false,
+                default: 0
+            },
+            currency: {
+                type: String,
+                required: false,
+                default: 'EUR'
+            }
+        },
+        active: {
+            type: Boolean,
+            default: true
+        },
+        deletedAt: {
+            type: Date,
+            required: false
         }
     },
-    active: {
-        type: Boolean,
-        default: true
-    },
-    deletedAt: {
-        type: Date,
-        required: false
+    {
+        timestamps: true,
+        statics: {
+            getFilterableFields(): FilterableField[] {
+                return [
+                    {
+                        field: 'date',
+                        preprocess: (value: FilterValue) => new Date(value as string)
+                    },
+                    {
+                        field: 'topics',
+                        options: 'i'
+                    }
+                ]
+            },
+            getSortableFields(): string[] {
+                return ['date'];
+            }
+        },
+        methods: {
+            async attend(this: HydratedDocument<IEvent>, userId: Types.ObjectId) {
+                if (this.attendees.some(id => id.equals(userId))) {
+                    throw new BadInputError("User already attending this event");
+                }
+
+                this.attendees.push(userId);
+                await this.save();
+                return this;
+            }
+        }
     }
-}, { timestamps: true })
-
-EventSchema.statics.getFilterableFields = function(): FilterableField[] {
-    return [{ field: 'date', preprocess: (value: FilterValue) => new Date(value as string) }, { field: 'topics', options: 'i' }]
-}
-
-EventSchema.statics.getSortableFields = function(): string[] {
-    return ['date']
-}
+);
 
 EventSchema.index({ location: "2dsphere" })
 
 EventSchema.set('toJSON', {
-    transform: (doc, ret: Partial<EventDocument>) => {
-        ret.id = ret._id;
-        delete ret._id;
-        if ('__v' in ret) {
-            delete ret.__v;
-        }
+    getters: true,
+    virtuals: false,
+    versionKey: false,
+    transform: (_, ret) => {
         if ('updatedAt' in ret) {
             delete ret.updatedAt;
         }
@@ -146,16 +163,6 @@ EventSchema.set('toJSON', {
     }
 })
 
-EventSchema.methods.attend = async function(this: EventDocument, userId: Types.ObjectId) {
-    if (this.attendees.some(id => id.equals(userId))) {
-        throw new BadInputError("User already attending this event");
-    }
-
-    this.attendees.push(userId);
-    await this.save();
-    return this;
-}
-
 //Author is always attending the event
 EventSchema.pre("save", function(next) {
     if (this.attendees.length === 0) {
@@ -164,8 +171,8 @@ EventSchema.pre("save", function(next) {
     next();
 })
 
-EventSchema.query.paginate = paginate
+EventSchema.plugin(paginatePlugin<IEvent>);
 
-export const Event = mongoose.model<EventDocument, EventModel>("Event", EventSchema)
+export const Event = mongoose.model<IEvent, EventModelType>("Event", EventSchema)
 
 
