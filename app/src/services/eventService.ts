@@ -1,16 +1,16 @@
 import { logger } from "@/config/loggerConfig";
-import { Event, EventDocument } from "@/models/Event"
+import { Event } from "@/models/Event"
 import { Request } from "express";
 import { CoordinatesSchema } from "@/schemas/http/Event";
 import { NotFoundError } from "@/types/errors/InputError";
 import { buildGeosearchQuery, buildFilterQuery, buildSortQuery } from "@/helpers/queryBuilder";
 
-export async function listEvents(req: Request): Promise<EventDocument[]> {
+export async function listEvents(req: Request) {
     const result = await Event.find(buildFilterQuery(req.dbFilter)).sort(buildSortQuery(req.sort)).paginate(req.offset, req.limit)
     return result;
 }
 
-export async function insertEvent(req: Request): Promise<EventDocument | undefined> {
+export async function insertEvent(req: Request) {
     try {
         const event = req.body
         event.author = req.user?.id;
@@ -22,7 +22,7 @@ export async function insertEvent(req: Request): Promise<EventDocument | undefin
     }
 }
 
-export async function geoSearch(req: Request): Promise<EventDocument[] | undefined> {
+export async function geoSearch(req: Request) {
     const value = CoordinatesSchema.parse(req.query)
     const query = buildGeosearchQuery(value)
 
@@ -35,7 +35,7 @@ export async function geoSearch(req: Request): Promise<EventDocument[] | undefin
     }
 }
 
-export async function attendEvent(req: Request): Promise<EventDocument> {
+export async function attendEvent(req: Request) {
     const { eventId } = req.params;
     const eventFound = await Event.findOne({ _id: eventId });
     if (!eventFound) {
@@ -45,7 +45,7 @@ export async function attendEvent(req: Request): Promise<EventDocument> {
     return eventFound;
 }
 
-export async function editEvent(req: Request): Promise<EventDocument> {
+export async function editEvent(req: Request) {
     const { eventId } = req.params
     const userId = req.user?.id
     try {

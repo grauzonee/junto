@@ -1,8 +1,8 @@
-import mongoose from "mongoose"
+import mongoose, { Document, HydratedDocument } from "mongoose"
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { Request } from "express"
 import { createFakeEvent } from "./generator"
-import { Event, type EventDocument } from "@/models/Event"
+import { Event, type IEvent } from "@/models/Event"
 import { insertEvent, listEvents, geoSearch, attendEvent, editEvent } from "@/services/eventService"
 import { BadInputError, NotFoundError } from "@/types/errors/InputError"
 import { ZodError } from "zod"
@@ -115,7 +115,7 @@ describe("geosearch events tests SUCCESS", () => {
             },
         } as unknown as Request;
         try {
-            const result = await geoSearch(req as Request)
+            await geoSearch(req as Request)
         } catch (error) {
             expect(error).toBeInstanceOf(ZodError)
         }
@@ -123,7 +123,7 @@ describe("geosearch events tests SUCCESS", () => {
 })
 
 describe("attendEvent tests SUCCESS", () => {
-    let savedEvent: EventDocument;
+    let savedEvent: Document;
     const event = createFakeEvent()
     const userId = new mongoose.Types.ObjectId()
     beforeAll(async () => {
@@ -154,7 +154,7 @@ describe("attendEvent tests SUCCESS", () => {
             }
         } as unknown as Request;
         try {
-            const result = await attendEvent(req as Request);
+            await attendEvent(req as Request);
         } catch (error) {
 
             expect(error).toBeInstanceOf(BadInputError)
@@ -166,16 +166,15 @@ describe("attendEvent tests SUCCESS", () => {
     it("Should throw an exception if event not found", async () => {
         req = {
             params: {
-                eventId: savedEvent.id
+                eventId: new mongoose.Types.ObjectId()
             },
             user: {
                 id: userId
             }
         } as unknown as Request;
         try {
-            const result = await attendEvent(req as Request);
+            await attendEvent(req as Request);
         } catch (error) {
-
             expect(error).toBeInstanceOf(NotFoundError)
             if (error instanceof Error) {
                 expect(error.message).toBe("Event not found")
@@ -185,7 +184,7 @@ describe("attendEvent tests SUCCESS", () => {
 })
 
 describe("Edit event SUCCESS", () => {
-    let savedEvent: EventDocument;
+    let savedEvent: Document;
     const event = createFakeEvent()
     const userId = new mongoose.Types.ObjectId()
     beforeEach(async () => {
@@ -232,7 +231,7 @@ describe("Edit event SUCCESS", () => {
     })
 })
 describe("Edit event FAIL", () => {
-    let savedEvent: EventDocument;
+    let savedEvent: HydratedDocument<IEvent>;
     const event = createFakeEvent()
     const userId = new mongoose.Types.ObjectId()
     beforeEach(async () => {
@@ -256,7 +255,7 @@ describe("Edit event FAIL", () => {
             title,
         }
         try {
-            const result = await editEvent(req as Request)
+            await editEvent(req as Request)
         } catch (error) {
             expect(error).toBeInstanceOf(NotFoundError)
         }
@@ -271,7 +270,7 @@ describe("Edit event FAIL", () => {
             title,
         }
         try {
-            const result = await editEvent(req as Request)
+            await editEvent(req as Request)
         } catch (error) {
             expect(error).toBeInstanceOf(NotFoundError)
         }
