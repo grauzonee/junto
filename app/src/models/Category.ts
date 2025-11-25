@@ -1,5 +1,4 @@
 import mongoose, { Schema, Model, Types, SchemaTypes, QueryWithHelpers, HydratedDocument } from "mongoose";
-import { type Filterable, type FilterableField } from "@/types/Filter";
 import { paginatePlugin, PaginateQueryHelper } from "@/models/plugins/paginate";
 
 export interface ICategory {
@@ -13,7 +12,9 @@ interface CategoryQueryHelpers extends PaginateQueryHelper<ICategory> {
     getRoots(): QueryWithHelpers<HydratedCategoryDoc[], HydratedCategoryDoc, CategoryQueryHelpers>;
     getSubcategories(parentId: Types.ObjectId): QueryWithHelpers<HydratedCategoryDoc[], HydratedCategoryDoc, CategoryQueryHelpers>;
 }
-export interface CategoryModelType extends Model<ICategory, CategoryQueryHelpers>, Filterable { }
+export interface CategoryModelType extends Model<ICategory, CategoryQueryHelpers> {
+    getTree(offset?: number, limit?: number): Promise<(ICategory & { _id: Types.ObjectId; subcategories: ICategory[] })[]>
+}
 
 export const CategorySchema = new Schema<
     ICategory,
@@ -32,8 +33,28 @@ export const CategorySchema = new Schema<
     {
         collation: { locale: 'en', strength: 2 },
         statics: {
-            getFilterableFields(): FilterableField[] {
-                return [{ field: "title", options: "i" }, { field: "parent" }];
+            async getTree(offset = 0, limit = Number.MAX_SAFE_INTEGER) {
+                const result = await this.aggregate([
+                    { $match: { parent: null } },
+                    { $skip: offset },
+                    { $limit: limit },
+                    {
+                        $graphLookup: {
+                            from: "categories",
+                            startWith: "$_id",
+                            connectFromField: "_id",
+                            connectToField: "parent",
+                            as: "subcategories"
+                        }
+                    },
+                    {
+                        $project: {
+                            __v: 0,
+                            "subcategories.__v": 0,
+                        }
+                    }
+                ])
+                return result;
             }
         },
     },

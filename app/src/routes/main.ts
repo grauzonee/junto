@@ -4,6 +4,7 @@ import { router as eventRouter } from '@/routes/event'
 import { router as authRouter } from '@/routes/auth'
 import { router as userRouter } from '@/routes/user'
 import { router as interestRouter } from '@/routes/interest';
+import { router as categoryRouter } from '@/routes/categories';
 
 export const router = Router()
 
@@ -12,3 +13,4 @@ router.use('/event', eventRouter)
 router.use('/auth', authRouter)
 router.use('/user', userRouter)
 router.use('/interests', interestRouter)
+router.use('/categories', categoryRouter)
