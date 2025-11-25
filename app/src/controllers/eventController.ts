@@ -3,14 +3,19 @@ import { insertEvent, geoSearch, attendEvent, listEvents, editEvent } from "@/se
 import { ZodError } from "zod";
 import * as z from "zod"
 import { BadInputError, NotFoundError } from "@/types/errors/InputError";
+import mongoose from "mongoose";
 
 export async function create(req: Request, res: Response) {
-    const event = await insertEvent(req);
-    if (event) {
+    try {
+        const event = await insertEvent(req);
         res.status(200).json({ success: true, data: event.toJSON() })
         return;
+    } catch (error) {
+        if (error instanceof mongoose.Error.ValidationError) {
+            res.status(422).json({ success: false, message: "Error creating event, " + error.message })
+        }
+        res.status(500).json({ success: false, message: "Error creating event, try again later" })
     }
-    res.status(500).json({ success: false, message: "Error creating event, try again later" })
 }
 
 export async function list(req: Request, res: Response) {
@@ -19,7 +24,6 @@ export async function list(req: Request, res: Response) {
 }
 
 export async function geosearch(req: Request, res: Response) {
-
     try {
         const result = await geoSearch(req);
         const jsonResult = result?.map(event => event.toJSON())

@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { Types } from "mongoose"
 
 export const CoordinatesSchema = z.object({
     lat: z.number().min(-90).max(90),
@@ -21,7 +22,17 @@ export const CreateEventSchema = z.object({
         type: z.string(),
         coordinates: z.array(z.float64())
     }),
-    topics: z.array(z.string()),
+    categories: z.array(z.string()).refine(
+        items => new Set(items).size === items.length,
+        {
+            message: "Categories field must contain unique values"
+        }
+    ).refine(
+        items => items.every(item => Types.ObjectId.isValid(item)),
+        {
+            message: "Categories field must contain valid ids"
+        }
+    ),
     fee: z.object({
         amount: z.number(),
         currency: z.string()

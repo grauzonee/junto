@@ -1,21 +1,5 @@
-import mongoose, { Types } from "mongoose"
+import { Types } from "mongoose"
 import { Category } from "@/models/Category";
-import { MongoMemoryServer } from "mongodb-memory-server"
-import { seed as seedCategories } from "@/seeders/categories.seeder"
-let mongoServer: MongoMemoryServer
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-
-    await mongoose.connect(uri);
-    await seedCategories();
-})
-
-afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-});
 
 describe("Category query methods", () => {
     it("getRoots(): Should return only root categories", async () => {

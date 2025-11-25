@@ -18,7 +18,7 @@ export async function insertEvent(req: Request) {
         return createdEvent;
     } catch (error) {
         logger.error("Error saving event to MongoDB", error)
-        return undefined;
+        throw error;
     }
 }
 

@@ -5,6 +5,7 @@ import { type CurrencyCode } from "currency-codes-ts/dist/types";
 import { getConfigValue } from "@/helpers/configHelper";
 import { type Sortable } from "@/types/Sort";
 import { paginatePlugin, type PaginateQueryHelper } from "@/models/plugins/paginate";
+import { Category } from "./Category";
 
 export interface IEvent {
     _id: Types.ObjectId;
@@ -17,16 +18,16 @@ export interface IEvent {
         coordinates: number[];
     }
     imageUrl: string;
-    author: Types.ObjectId,
-    attendees: Types.ObjectId[],
-    topics: string[],
-    maxAttendees: number,
+    author: Types.ObjectId;
+    attendees: Types.ObjectId[];
+    maxAttendees: number;
     fee: {
         amount: number,
         currence: CurrencyCode
-    },
-    active: boolean,
-    deletedAt?: Date
+    };
+    active: boolean;
+    categories: Types.ObjectId[];
+    deletedAt?: Date;
 }
 
 export type HydratedEvent = HydratedDocument<IEvent>;
@@ -71,11 +72,13 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, EventMethods, Pagin
             type: String,
             required: true
         },
-        topics: {
-            type: [String],
-            required: false,
-            default: []
-        },
+        categories: [
+            {
+                type: SchemaTypes.ObjectId,
+                required: false,
+                ref: 'Category'
+            }
+        ],
         author: {
             type: SchemaTypes.ObjectId,
             required: true,
@@ -162,6 +165,15 @@ EventSchema.set('toJSON', {
         return ret;
     }
 })
+
+EventSchema.path("categories").validate({
+    validator: async function(value: Types.ObjectId[]) {
+        if (!value || value.length === 0) return true;
+        const count = await Category.countDocuments({ _id: { $in: value } });
+        return count === value.length;
+    },
+    message: "One or more categories do not exist!"
+});
 
 //Author is always attending the event
 EventSchema.pre("save", function(next) {

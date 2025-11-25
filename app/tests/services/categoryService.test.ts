@@ -1,25 +1,9 @@
-import mongoose, { Types } from "mongoose"
-import { MongoMemoryServer } from "mongodb-memory-server"
+import { Types } from "mongoose"
 import { list } from "@/services/categoryService"
 import { Request } from "express"
-import { seed as seedCategories } from "@/seeders/categories.seeder"
 import { Category } from "@/models/Category"
 
-let mongoServer: MongoMemoryServer
 let req: Partial<Request>
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-
-    await mongoose.connect(uri);
-    await seedCategories();
-})
-
-afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-});
 
 describe("List categories tests SUCCESS", () => {
     it("Should call getTree method on Category and pass pagination params", async () => {

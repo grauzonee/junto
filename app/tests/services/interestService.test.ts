@@ -1,24 +1,7 @@
-import mongoose from "mongoose"
-import { MongoMemoryServer } from "mongodb-memory-server"
 import { list } from "@/services/interestService"
 import { Request } from "express"
-import { seed as seedInterests } from "@/seeders/interests.seeder"
 
-let mongoServer: MongoMemoryServer
 let req: Partial<Request>
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-
-    await mongoose.connect(uri);
-    await seedInterests();
-})
-
-afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-});
 
 describe("List interests tests SUCCESS", () => {
     it("Should return exactly 3 interests when limit parameter specified", async () => {

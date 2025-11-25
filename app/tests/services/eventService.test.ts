@@ -1,5 +1,4 @@
 import mongoose, { Document, HydratedDocument } from "mongoose"
-import { MongoMemoryServer } from "mongodb-memory-server"
 import { Request } from "express"
 import { createFakeEvent } from "./generator"
 import { Event, type IEvent } from "@/models/Event"
@@ -7,19 +6,7 @@ import { insertEvent, listEvents, geoSearch, attendEvent, editEvent } from "@/se
 import { BadInputError, NotFoundError } from "@/types/errors/InputError"
 import { ZodError } from "zod"
 
-let mongoServer: MongoMemoryServer
 let req: Partial<Request>
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-
-    await mongoose.connect(uri);
-})
-afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-});
 
 describe("create event tests SUCCESS", () => {
     it("Should create event when all input data are correct", async () => {
@@ -46,8 +33,11 @@ describe("create event tests FAIL", () => {
         req = {
             body: event
         } as Request
-        const result = await insertEvent(req as Request)
-        expect(result).toBe(undefined)
+        try {
+            await insertEvent(req as Request)
+        } catch (error) {
+            expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
+        }
     })
 })
 describe("list events tests SUCCESS", () => {
