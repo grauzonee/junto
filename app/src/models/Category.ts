@@ -1,4 +1,4 @@
-import mongoose, { Schema, Model, Types, SchemaTypes } from "mongoose";
+import mongoose, { Schema, Model, Types, SchemaTypes, QueryWithHelpers, HydratedDocument } from "mongoose";
 import { type Filterable, type FilterableField } from "@/types/Filter";
 import { paginatePlugin, PaginateQueryHelper } from "@/models/plugins/paginate";
 
@@ -7,13 +7,19 @@ export interface ICategory {
     parent?: Types.ObjectId
 }
 
-export interface CategoryModelType extends Model<ICategory, PaginateQueryHelper<ICategory>>, Filterable { }
+export type HydratedCategoryDoc = HydratedDocument<ICategory>;
+
+interface CategoryQueryHelpers extends PaginateQueryHelper<ICategory> {
+    getRoots(): QueryWithHelpers<HydratedCategoryDoc[], HydratedCategoryDoc, CategoryQueryHelpers>;
+    getSubcategories(parentId: Types.ObjectId): QueryWithHelpers<HydratedCategoryDoc[], HydratedCategoryDoc, CategoryQueryHelpers>;
+}
+export interface CategoryModelType extends Model<ICategory, CategoryQueryHelpers>, Filterable { }
 
 export const CategorySchema = new Schema<
     ICategory,
     CategoryModelType,
     object,
-    PaginateQueryHelper<ICategory>
+    CategoryQueryHelpers
 >(
     {
         title: String,
@@ -29,9 +35,16 @@ export const CategorySchema = new Schema<
             getFilterableFields(): FilterableField[] {
                 return [{ field: "title", options: "i" }, { field: "parent" }];
             }
-        }
+        },
     },
 );
+
+CategorySchema.query.getRoots = function getRoots(this: QueryWithHelpers<HydratedCategoryDoc[], HydratedCategoryDoc, CategoryQueryHelpers>) {
+    return this.find({ parent: null })
+};
+CategorySchema.query.getSubcategories = function getSubcategories(this: QueryWithHelpers<HydratedCategoryDoc[], HydratedCategoryDoc, CategoryQueryHelpers>, parentId: Types.ObjectId) {
+    return this.find({ parent: parentId })
+};
 
 CategorySchema.set("toJSON", {
     getters: true,
