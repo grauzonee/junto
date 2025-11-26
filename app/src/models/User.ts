@@ -1,7 +1,8 @@
-import mongoose, { Schema, Model, HydratedDocument } from "mongoose";
+import mongoose, { Schema, Model, HydratedDocument, Types } from "mongoose";
 import { checkImage } from "@/helpers/mediaHelper";
 import bcrypt from 'bcrypt';
 import { getConfigValue } from "@/helpers/configHelper";
+import { Interest } from "@/models//Interest";
 
 interface UserMethods {
     updateProfile(data: UpdateUserData): Promise<IUser>;
@@ -14,7 +15,7 @@ export interface IUser {
     email: string;
     password: string;
     avatarUrl: string | undefined;
-    interests: string[];
+    interests: Types.ObjectId[];
 }
 export type UpdateUserData = Partial<Pick<IUser, 'username' | 'avatarUrl' | 'interests'>>
 export type HydratedUserDoc = HydratedDocument<IUser>;
@@ -47,11 +48,13 @@ export const UserSchema = new Schema<IUser, UserModelType, UserMethods>(
             required: false,
             default: null
         },
-        interests: {
-            type: [String],
-            required: false,
-            default: []
-        }
+        interests: [
+            {
+                type: Schema.ObjectId,
+                required: false,
+                ref: 'Interest'
+            }
+        ]
     },
     {
         timestamps: true,
@@ -110,4 +113,14 @@ UserSchema.set('toJSON', {
         return ret;
     }
 });
+
+UserSchema.path("interests").validate({
+    validator: async function(value: Types.ObjectId[]) {
+        if (!value || value.length === 0) return true;
+        const count = await Interest.countDocuments({ _id: { $in: value } });
+        return count === value.length;
+    },
+    message: "One or more interests do not exist!"
+});
+
 export const User = mongoose.model<IUser, UserModelType>("User", UserSchema)

@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express"
 import { filterMiddleware } from "@/middlewares/filterMiddleware"
 import { type FilterValue } from "@/types/Filter"
 
-let req: Partial<Request> = {
+const req: Partial<Request> = {
     query: {
         "author_eq": "123"
     },
@@ -75,7 +75,6 @@ describe("FilterMiddleware tests FAIL", () => {
         req.query = { 'author_eqv': "123" }
         const middleware = filterMiddleware(Event)
         middleware(req as Request, res as Response, next)
-        console.log(req.dbFilter)
         expect(next).toHaveBeenCalledTimes(0)
         expect(req.dbFilter).toBe(undefined)
         expect(res.status).toHaveBeenCalledWith(400)

@@ -3,10 +3,16 @@ import { Event } from "@/models/Event"
 import { Request } from "express";
 import { CoordinatesSchema } from "@/schemas/http/Event";
 import { NotFoundError } from "@/types/errors/InputError";
+import { EventType } from "@/models/EventType";
 import { buildGeosearchQuery, buildFilterQuery, buildSortQuery } from "@/helpers/queryBuilder";
 
 export async function listEvents(req: Request) {
     const result = await Event.find(buildFilterQuery(req.dbFilter)).sort(buildSortQuery(req.sort)).paginate(req.offset, req.limit)
+    return result;
+}
+
+export async function listEventTypes(req: Request) {
+    const result = await EventType.find(buildFilterQuery(req.dbFilter)).sort(buildSortQuery(req.sort)).paginate(req.offset, req.limit)
     return result;
 }
 
@@ -18,7 +24,7 @@ export async function insertEvent(req: Request) {
         return createdEvent;
     } catch (error) {
         logger.error("Error saving event to MongoDB", error)
-        return undefined;
+        throw error;
     }
 }
 

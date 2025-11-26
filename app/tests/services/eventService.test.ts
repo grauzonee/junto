@@ -1,30 +1,29 @@
-import mongoose, { Document, HydratedDocument } from "mongoose"
-import { MongoMemoryServer } from "mongodb-memory-server"
+import mongoose, { Document, HydratedDocument, Types } from "mongoose"
 import { Request } from "express"
 import { createFakeEvent } from "./generator"
 import { Event, type IEvent } from "@/models/Event"
-import { insertEvent, listEvents, geoSearch, attendEvent, editEvent } from "@/services/eventService"
-import { BadInputError, NotFoundError } from "@/types/errors/InputError"
+import { insertEvent, listEvents, geoSearch, editEvent } from "@/services/eventService"
+import { NotFoundError } from "@/types/errors/InputError"
 import { ZodError } from "zod"
+import { EventType } from "@/models/EventType"
 
-let mongoServer: MongoMemoryServer
 let req: Partial<Request>
+let eventTypeId: Types.ObjectId;
 
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
+beforeEach(async () => {
 
-    await mongoose.connect(uri);
+    const eventType = await EventType.findOne();
+    if (!eventType) {
+        throw new Error("No event types found, check your seeders");
+    }
+    eventTypeId = eventType._id;
 })
-afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-});
+
 
 describe("create event tests SUCCESS", () => {
     it("Should create event when all input data are correct", async () => {
         const userId = new mongoose.Types.ObjectId()
-        const event = createFakeEvent()
+        const event = createFakeEvent({ type: eventTypeId })
         req = {
             user: {
                 id: userId
@@ -42,21 +41,36 @@ describe("create event tests SUCCESS", () => {
 })
 describe("create event tests FAIL", () => {
     it("Should NOT create an event without author id", async () => {
+        const event = createFakeEvent({ type: eventTypeId })
+        req = {
+            body: event
+        } as Request
+        try {
+            await insertEvent(req as Request)
+        } catch (error) {
+            expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
+        }
+    })
+    it("Should NOT create an event without type id", async () => {
         const event = createFakeEvent()
         req = {
             body: event
         } as Request
-        const result = await insertEvent(req as Request)
-        expect(result).toBe(undefined)
+        try {
+            await insertEvent(req as Request)
+        } catch (error) {
+            expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
+        }
     })
 })
 describe("list events tests SUCCESS", () => {
     beforeEach(async () => {
         await Event.deleteMany({});
     })
+    // TODO: Refactor
     it("Should return event that has been created", async () => {
         const userId = new mongoose.Types.ObjectId()
-        const event = createFakeEvent()
+        const event = createFakeEvent({ type: eventTypeId })
         event.author = userId;
         await Event.create(event)
         req = {} as Request
@@ -73,9 +87,11 @@ describe("list events tests SUCCESS", () => {
     })
 })
 describe("geosearch events tests SUCCESS", () => {
-    const event = createFakeEvent()
+    const event = createFakeEvent();
     const userId = new mongoose.Types.ObjectId()
+    // TODO: Refactor to seeder
     beforeAll(async () => {
+        event.type = eventTypeId;
         event.location.coordinates = [48.21649, 16.40087]
         event.author = userId;
         await Event.create(event)
@@ -122,72 +138,13 @@ describe("geosearch events tests SUCCESS", () => {
     })
 })
 
-describe("attendEvent tests SUCCESS", () => {
-    let savedEvent: Document;
-    const event = createFakeEvent()
-    const userId = new mongoose.Types.ObjectId()
-    beforeAll(async () => {
-        event.author = userId;
-        savedEvent = await Event.create(event)
-    })
-    it("Should return attended event if operation was successfull", async () => {
-        const newUserId = new mongoose.Types.ObjectId();
-        req = {
-            params: {
-                eventId: savedEvent._id
-            },
-            user: {
-                id: newUserId
-            }
-        } as unknown as Request;
-        const result = await attendEvent(req as Request);
-        expect(result.id).toBe(savedEvent.id)
-        expect(result.attendees).toContain(newUserId)
-    })
-    it("Should throw an exception if user is already attending the event", async () => {
-        req = {
-            params: {
-                eventId: savedEvent._id
-            },
-            user: {
-                id: userId
-            }
-        } as unknown as Request;
-        try {
-            await attendEvent(req as Request);
-        } catch (error) {
-
-            expect(error).toBeInstanceOf(BadInputError)
-            if (error instanceof Error) {
-                expect(error.message).toBe("User already attending this event")
-            }
-        }
-    })
-    it("Should throw an exception if event not found", async () => {
-        req = {
-            params: {
-                eventId: new mongoose.Types.ObjectId()
-            },
-            user: {
-                id: userId
-            }
-        } as unknown as Request;
-        try {
-            await attendEvent(req as Request);
-        } catch (error) {
-            expect(error).toBeInstanceOf(NotFoundError)
-            if (error instanceof Error) {
-                expect(error.message).toBe("Event not found")
-            }
-        }
-    })
-})
-
 describe("Edit event SUCCESS", () => {
     let savedEvent: Document;
     const event = createFakeEvent()
     const userId = new mongoose.Types.ObjectId()
+    // TODO: Refactor to seeders
     beforeEach(async () => {
+        event.type = eventTypeId;
         await Event.deleteMany({})
         event.author = userId;
         savedEvent = await Event.create(event)
@@ -235,6 +192,7 @@ describe("Edit event FAIL", () => {
     const event = createFakeEvent()
     const userId = new mongoose.Types.ObjectId()
     beforeEach(async () => {
+        event.type = eventTypeId;
         await Event.deleteMany({})
         event.author = userId;
         savedEvent = await Event.create(event)

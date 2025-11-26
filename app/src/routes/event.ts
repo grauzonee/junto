@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { create, list, geosearch, attend, update } from "@/controllers/eventController"
+import { getEventTypes } from "@/requests/event/getEventTypes";
 import { requestSchemaValidate } from "@/middlewares/requestSchemaValidate";
 import { CreateEventSchema, EditEventSchema } from "@/schemas/http/Event";
 import { paginateMiddleware } from "@/middlewares/paginateMiddleware";
@@ -11,6 +12,7 @@ export const router = Router()
 
 router.post('/', [authMiddleware, requestSchemaValidate(CreateEventSchema)], create)
 router.get('/', [paginateMiddleware, filterMiddleware(Event)], list)
+router.get('/types', [paginateMiddleware, filterMiddleware(Event)], getEventTypes)
 router.put('/:id', [authMiddleware, requestSchemaValidate(CreateEventSchema)], update)
 router.patch('/:id', [authMiddleware, requestSchemaValidate(EditEventSchema)], update)
 router.get('/', [paginateMiddleware, sortMiddleware(Event), filterMiddleware(Event)], list)

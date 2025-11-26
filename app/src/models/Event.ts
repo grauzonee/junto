@@ -5,6 +5,8 @@ import { type CurrencyCode } from "currency-codes-ts/dist/types";
 import { getConfigValue } from "@/helpers/configHelper";
 import { type Sortable } from "@/types/Sort";
 import { paginatePlugin, type PaginateQueryHelper } from "@/models/plugins/paginate";
+import { Category } from "@/models/Category";
+import { EventType } from "@/models/EventType";
 
 export interface IEvent {
     _id: Types.ObjectId;
@@ -17,16 +19,17 @@ export interface IEvent {
         coordinates: number[];
     }
     imageUrl: string;
-    author: Types.ObjectId,
-    attendees: Types.ObjectId[],
-    topics: string[],
-    maxAttendees: number,
+    author: Types.ObjectId;
+    attendees: Types.ObjectId[];
+    maxAttendees: number;
     fee: {
         amount: number,
         currence: CurrencyCode
-    },
-    active: boolean,
-    deletedAt?: Date
+    };
+    active: boolean;
+    categories: Types.ObjectId[];
+    type: Types.ObjectId;
+    deletedAt?: Date;
 }
 
 export type HydratedEvent = HydratedDocument<IEvent>;
@@ -71,11 +74,13 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, EventMethods, Pagin
             type: String,
             required: true
         },
-        topics: {
-            type: [String],
-            required: false,
-            default: []
-        },
+        categories: [
+            {
+                type: SchemaTypes.ObjectId,
+                required: false,
+                ref: 'Category'
+            }
+        ],
         author: {
             type: SchemaTypes.ObjectId,
             required: true,
@@ -109,6 +114,11 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, EventMethods, Pagin
             type: Boolean,
             default: true
         },
+        type: {
+            type: Schema.ObjectId,
+            required: true,
+            ref: 'EventType'
+        },
         deletedAt: {
             type: Date,
             required: false
@@ -124,8 +134,10 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, EventMethods, Pagin
                         preprocess: (value: FilterValue) => new Date(value as string)
                     },
                     {
-                        field: 'topics',
-                        options: 'i'
+                        field: 'categories'
+                    },
+                    {
+                        field: 'type'
                     }
                 ]
             },
@@ -162,6 +174,23 @@ EventSchema.set('toJSON', {
         return ret;
     }
 })
+
+EventSchema.path("categories").validate({
+    validator: async function(value: Types.ObjectId[]) {
+        if (!value || value.length === 0) return true;
+        const count = await Category.countDocuments({ _id: { $in: value } });
+        return count === value.length;
+    },
+    message: "One or more categories do not exist!"
+});
+
+EventSchema.path("type").validate({
+    validator: async function(value: Types.ObjectId) {
+        const typeExists = await EventType.exists({ _id: value });
+        return typeExists;
+    },
+    message: "Provided event type does not exist!"
+});
 
 //Author is always attending the event
 EventSchema.pre("save", function(next) {
