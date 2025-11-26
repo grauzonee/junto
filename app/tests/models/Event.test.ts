@@ -33,4 +33,16 @@ describe("Validation", () => {
             expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
         }
     })
+    it("Categories: Should update categories if categories array is valid", async () => {
+        const event = createFakeEvent();
+        const categories = await Category.find().limit(2);
+        if (!categories) {
+            throw new Error("No categories in MongoMemory server, check your seeders!");
+        }
+        event.categories = categories.map(i => i._id);
+        const newEvent = await Event.create(event);
+        const foundDocNum = await Event.findById(newEvent._id);
+        expect(foundDocNum).toHaveProperty("categories");
+        expect(foundDocNum!.categories).toEqual(event.categories);
+    })
 })

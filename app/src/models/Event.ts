@@ -127,8 +127,7 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, EventMethods, Pagin
                         preprocess: (value: FilterValue) => new Date(value as string)
                     },
                     {
-                        field: 'topics',
-                        options: 'i'
+                        field: 'categories'
                     }
                 ]
             },
