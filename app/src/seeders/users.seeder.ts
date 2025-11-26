@@ -27,6 +27,7 @@ export async function seed() {
     for (const user of users) {
         const newUser = await register(user.username, user.email, user.password);
         if (newUser) {
+            // eslint-disable-next-line
             console.log(`Created user: ${user.username}`);
         }
     }
