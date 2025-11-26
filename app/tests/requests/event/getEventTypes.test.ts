@@ -2,7 +2,7 @@ import { getEventTypes } from "@/requests/event/getEventTypes";
 import { Request, Response } from "express";
 import { Types } from "mongoose"
 
-const req = { body: {}, limit: 0, dbFilter: {} };
+const req = { body: {}, limit: 0 };
 const res: Partial<Response> = {
     status: jest.fn().mockReturnThis(),
     json: jest.fn(),

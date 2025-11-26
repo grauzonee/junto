@@ -33,6 +33,12 @@ export const CreateEventSchema = z.object({
             message: "Categories field must contain valid ids"
         }
     ),
+    type: z.string().refine(
+        type => Types.ObjectId.isValid(type),
+        {
+            message: "Type field must contain a valid id"
+        }
+    ),
     fee: z.object({
         amount: z.number(),
         currency: z.string()

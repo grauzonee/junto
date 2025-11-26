@@ -60,8 +60,10 @@ export async function seed() {
     ];
     await createCategories(categories);
 
-    // eslint-disable-next-line
-    console.log("Categories seeding done.");
+    if (!process.env.JEST_WORKER_ID) {
+        // eslint-disable-next-line
+        console.log("Categories seeding done.");
+    }
 }
 
 async function createCategories(categories: SeedCategory[]) {
@@ -76,8 +78,10 @@ async function createCategories(categories: SeedCategory[]) {
                 await createCategories(item.subcategories);
             }
 
-            // eslint-disable-next-line
-            console.log(`Created: ${item.title}`);
+            if (!process.env.JEST_WORKER_ID) {
+                // eslint-disable-next-line
+                console.log(`Created: ${item.title}`);
+            }
         }
     }
 }

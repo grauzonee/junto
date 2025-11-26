@@ -5,7 +5,8 @@ import { type CurrencyCode } from "currency-codes-ts/dist/types";
 import { getConfigValue } from "@/helpers/configHelper";
 import { type Sortable } from "@/types/Sort";
 import { paginatePlugin, type PaginateQueryHelper } from "@/models/plugins/paginate";
-import { Category } from "./Category";
+import { Category } from "@/models/Category";
+import { EventType } from "@/models/EventType";
 
 export interface IEvent {
     _id: Types.ObjectId;
@@ -27,6 +28,7 @@ export interface IEvent {
     };
     active: boolean;
     categories: Types.ObjectId[];
+    type: Types.ObjectId;
     deletedAt?: Date;
 }
 
@@ -112,6 +114,11 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, EventMethods, Pagin
             type: Boolean,
             default: true
         },
+        type: {
+            type: Schema.ObjectId,
+            required: true,
+            ref: 'EventType'
+        },
         deletedAt: {
             type: Date,
             required: false
@@ -128,6 +135,9 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, EventMethods, Pagin
                     },
                     {
                         field: 'categories'
+                    },
+                    {
+                        field: 'type'
                     }
                 ]
             },
@@ -172,6 +182,14 @@ EventSchema.path("categories").validate({
         return count === value.length;
     },
     message: "One or more categories do not exist!"
+});
+
+EventSchema.path("type").validate({
+    validator: async function(value: Types.ObjectId) {
+        const typeExists = await EventType.exists({ _id: value });
+        return typeExists;
+    },
+    message: "Provided event type does not exist!"
 });
 
 //Author is always attending the event

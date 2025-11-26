@@ -1,7 +1,6 @@
 import { buildFilterQuery, buildGeosearchQuery } from "@/helpers/queryBuilder"
 import { CoordinatesInput } from "@/schemas/http/Event"
 import type { Filter } from "@/types/Filter"
-import { Event } from "@/models/Event"
 
 describe("buildMongoQuery tests SUCCESS", () => {
     it("Should return FilterQuery object", () => {
