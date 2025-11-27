@@ -147,9 +147,10 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, EventMethods, Pagin
             }
         },
         methods: {
+            // This whole logic will be refactored
             async attend(this: HydratedDocument<IEvent>, userId: Types.ObjectId) {
                 if (this.attendees.some(id => id.equals(userId))) {
-                    throw new BadInputError("User already attending this event");
+                    throw new BadInputError("test", "User already attending this event");
                 }
 
                 this.attendees.push(userId);

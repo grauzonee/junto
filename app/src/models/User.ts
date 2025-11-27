@@ -80,15 +80,13 @@ export const UserSchema = new Schema<IUser, UserModelType, UserMethods>(
 
             async updatePassword(data: UpdatePasswordData): Promise<void> {
                 if (data.newPassword === data.oldPassword) {
-                    throw new BadInputError(messages.validation.PASSWORDS_EQUAL);
+                    throw new BadInputError("password", messages.validation.PASSWORDS_EQUAL);
                 }
                 const isPassCorrect = await this.matchPassword(data.oldPassword);
                 if (!isPassCorrect) {
-                    throw new BadInputError(messages.validation.NOT_CORRECT("Old password"));
+                    throw new BadInputError("Old password", messages.validation.NOT_CORRECT("Old password"));
                 }
                 this.password = data.newPassword;
-
-
                 await this.save();
             }
         }
