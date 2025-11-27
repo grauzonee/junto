@@ -1,6 +1,7 @@
 import * as z from "zod"
 import { passwordRule } from '@/schemas/http/Auth';
 import { Types } from "mongoose";
+import messages from "@/constants/errorMessages";
 
 export const UpdateProfileSchema: z.Schema = z.object({
     username: z.string(),
@@ -8,12 +9,12 @@ export const UpdateProfileSchema: z.Schema = z.object({
     interests: z.array(z.string()).refine(
         interests => new Set(interests).size === interests.length,
         {
-            message: "Interests field must contain unique values"
+            message: messages.http.UNIQUE_VALUES("Interests")
         }
     ).refine(
         interests => interests.every(interest => Types.ObjectId.isValid(interest),
             {
-                message: "Interests field must contain valid ids"
+                message: messages.http.INVALID_ID("Interests")
             }
         )
     )
@@ -22,7 +23,7 @@ export const UpdateProfileSchema: z.Schema = z.object({
         Object.values(data).some((value) =>
             Array.isArray(value) ? value.length > 0 : Boolean(value)
         ),
-    { message: "At least one field must be provided for update" }
+    { message: messages.http.NO_FIELDS }
 );
 
 

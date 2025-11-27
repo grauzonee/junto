@@ -7,6 +7,7 @@ import { type Sortable } from "@/types/Sort";
 import { paginatePlugin, type PaginateQueryHelper } from "@/models/plugins/paginate";
 import { Category } from "@/models/Category";
 import { EventType } from "@/models/EventType";
+import messages from "@/constants/errorMessages";
 
 export interface IEvent {
     _id: Types.ObjectId;
@@ -181,7 +182,7 @@ EventSchema.path("categories").validate({
         const count = await Category.countDocuments({ _id: { $in: value } });
         return count === value.length;
     },
-    message: "One or more categories do not exist!"
+    message: messages.validation.NOT_EXISTS_MUL("categories")
 });
 
 EventSchema.path("type").validate({
@@ -189,7 +190,7 @@ EventSchema.path("type").validate({
         const typeExists = await EventType.exists({ _id: value });
         return typeExists;
     },
-    message: "Provided event type does not exist!"
+    message: messages.validation.NOT_EXISTS("event type")
 });
 
 //Author is always attending the event
