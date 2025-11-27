@@ -2,6 +2,7 @@ import { login, register } from "@/controllers/authController";
 import { User } from "@/models/User";
 import { generateToken } from "@/helpers/jwtHelper";
 import { Request, Response } from "express";
+import messages from "@/constants/errorMessages"
 
 jest.mock("@/models/User");
 jest.mock("@/helpers/jwtHelper");
@@ -38,7 +39,10 @@ describe("Auth Controller", () => {
             expect(res.status).toHaveBeenCalledWith(404);
             expect(res.json).toHaveBeenCalledWith({
                 success: false,
-                message: "User not found",
+                data: {
+                    formErrors: ["User not found"],
+                    fieldErrors: {}
+                }
             });
         });
 
@@ -52,7 +56,10 @@ describe("Auth Controller", () => {
             expect(res.status).toHaveBeenCalledWith(400);
             expect(res.json).toHaveBeenCalledWith({
                 success: false,
-                message: "Wrong password",
+                data: {
+                    formErrors: [],
+                    fieldErrors: { password: messages.response.INVALID("password") }
+                }
             });
         });
 
@@ -89,7 +96,10 @@ describe("Auth Controller", () => {
             expect(res.status).toHaveBeenCalledWith(400);
             expect(res.json).toHaveBeenCalledWith({
                 success: false,
-                data: { message: "Email already in use", field: "email" },
+                data: {
+                    formErrors: [],
+                    fieldErrors: { email: messages.response.IN_USE("email") }
+                }
             });
         });
 
@@ -104,7 +114,10 @@ describe("Auth Controller", () => {
             expect(res.status).toHaveBeenCalledWith(400);
             expect(res.json).toHaveBeenCalledWith({
                 success: false,
-                data: { message: "Username already in use", field: "username" },
+                data: {
+                    formErrors: [],
+                    fieldErrors: { username: messages.response.IN_USE("username") }
+                }
             });
         });
 
@@ -136,7 +149,10 @@ describe("Auth Controller", () => {
             expect(res.status).toHaveBeenCalledWith(400);
             expect(res.json).toHaveBeenCalledWith({
                 success: false,
-                data: { message: "Invalid user data", field: 'root' },
+                data: {
+                    formErrors: [messages.response.INVALID("user data")],
+                    fieldErrors: {}
+                }
             });
         });
     });

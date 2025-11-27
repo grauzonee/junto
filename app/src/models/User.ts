@@ -3,6 +3,8 @@ import { checkImage } from "@/helpers/mediaHelper";
 import bcrypt from 'bcrypt';
 import { getConfigValue } from "@/helpers/configHelper";
 import { Interest } from "@/models//Interest";
+import messages from "@/constants/errorMessages"
+import { BadInputError } from "@/types/errors/InputError";
 
 interface UserMethods {
     updateProfile(data: UpdateUserData): Promise<IUser>;
@@ -62,7 +64,7 @@ export const UserSchema = new Schema<IUser, UserModelType, UserMethods>(
             async updateProfile(data: UpdateUserData): Promise<IUser> {
                 if (typeof (data.avatarUrl) === 'string') {
                     if (!checkImage(data.avatarUrl)) {
-                        throw new Error("Invalid avatar, image doesn't exist")
+                        throw new Error(messages.validation.IMAGE_NOT_EXISTS("avatar"))
                     }
                     this.avatarUrl = data.avatarUrl
                 }
@@ -78,11 +80,11 @@ export const UserSchema = new Schema<IUser, UserModelType, UserMethods>(
 
             async updatePassword(data: UpdatePasswordData): Promise<void> {
                 if (data.newPassword === data.oldPassword) {
-                    throw new Error("Passwords are equal!");
+                    throw new BadInputError(messages.validation.PASSWORDS_EQUAL);
                 }
                 const isPassCorrect = await this.matchPassword(data.oldPassword);
                 if (!isPassCorrect) {
-                    throw new Error("Old password is not correct!");
+                    throw new BadInputError(messages.validation.NOT_CORRECT("Old password"));
                 }
                 this.password = data.newPassword;
 
@@ -120,7 +122,7 @@ UserSchema.path("interests").validate({
         const count = await Interest.countDocuments({ _id: { $in: value } });
         return count === value.length;
     },
-    message: "One or more interests do not exist!"
+    message: messages.validation.NOT_EXISTS_MUL("interests")
 });
 
 export const User = mongoose.model<IUser, UserModelType>("User", UserSchema)

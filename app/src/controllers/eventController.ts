@@ -4,36 +4,43 @@ import { ZodError } from "zod";
 import * as z from "zod"
 import { BadInputError, NotFoundError } from "@/types/errors/InputError";
 import mongoose from "mongoose";
+import messages from "@/constants/errorMessages"
+import { parseMongooseValidationError, setErrorResponse, setSuccessResponse } from "@/helpers/requestHelper";
 
 export async function create(req: Request, res: Response) {
     try {
         const event = await insertEvent(req);
-        res.status(200).json({ success: true, data: event.toJSON() })
+        setSuccessResponse(res, event.toJSON(), 201);
         return;
     } catch (error) {
         if (error instanceof mongoose.Error.ValidationError) {
-            res.status(422).json({ success: false, message: "Error creating event, " + error.message })
+            const fieldErrors = parseMongooseValidationError(error);
+            setErrorResponse(res, 422, fieldErrors);
+            return;
         }
-        res.status(500).json({ success: false, message: "Error creating event, try again later" })
+        setErrorResponse(
+            res, 500, [],
+            [messages.response.SERVER_ERROR("creating event")]
+        );
     }
 }
 
 export async function list(req: Request, res: Response) {
     const events = await listEvents(req);
-    res.status(200).json({ success: true, data: events.map(event => event.toJSON()) })
+    setSuccessResponse(res, events.map(event => event.toJSON()));
 }
 
 export async function geosearch(req: Request, res: Response) {
     try {
         const result = await geoSearch(req);
-        const jsonResult = result?.map(event => event.toJSON())
-        res.status(200).json({ success: true, data: jsonResult })
+        setSuccessResponse(res, result.map(event => event.toJSON()));
     } catch (error) {
         if (error instanceof ZodError) {
-            res.status(400).json({ success: false, data: z.flattenError(error) })
+            const flattenedError = z.flattenError(error);
+            setErrorResponse(res, 400, flattenedError.fieldErrors, flattenedError.formErrors);
             return;
         }
-        res.status(500).json({ success: false, message: "Server error, try again later" })
+        setErrorResponse(res, 500, {}, [messages.response.SERVER_ERROR()]);
     }
 }
 
@@ -43,7 +50,7 @@ export async function attend(req: Request, res: Response) {
         res.status(200).json({ success: true, data: eventFound.toJSON() })
     } catch (error) {
         let status = 500;
-        let message = "Server error, try again later"
+        let message = messages.response.SERVER_ERROR();
         if (error instanceof NotFoundError) {
             status = 404;
             message = error.message;
@@ -60,12 +67,17 @@ export async function attend(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         const event = await editEvent(req);
-        res.status(200).json({ success: true, data: event?.toJSON() })
+        setSuccessResponse(res, event.toJSON());
     } catch (error) {
         if (error instanceof NotFoundError) {
-            res.status(404).json({ success: false, data: { mesage: error.message } })
+            setErrorResponse(res, 404, {}, [error.message]);
             return;
         }
-        res.status(500).json({ success: false, data: { mesage: "Internal error" } })
+        if (error instanceof mongoose.Error.ValidationError) {
+            const fieldErrors = parseMongooseValidationError(error);
+            setErrorResponse(res, 422, fieldErrors);
+            return;
+        }
+        setErrorResponse(res, 500, {}, [messages.response.SERVER_ERROR("updating event")]);
     }
 }

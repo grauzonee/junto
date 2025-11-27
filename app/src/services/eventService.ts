@@ -5,6 +5,7 @@ import { CoordinatesSchema } from "@/schemas/http/Event";
 import { NotFoundError } from "@/types/errors/InputError";
 import { EventType } from "@/models/EventType";
 import { buildGeosearchQuery, buildFilterQuery, buildSortQuery } from "@/helpers/queryBuilder";
+import messages from "@/constants/errorMessages"
 
 export async function listEvents(req: Request) {
     const result = await Event.find(buildFilterQuery(req.dbFilter)).sort(buildSortQuery(req.sort)).paginate(req.offset, req.limit)
@@ -45,7 +46,7 @@ export async function attendEvent(req: Request) {
     const { eventId } = req.params;
     const eventFound = await Event.findOne({ _id: eventId });
     if (!eventFound) {
-        throw new NotFoundError("Event not found")
+        throw new NotFoundError(messages.response.NOT_FOUND("Event"))
     }
     await eventFound.attend(req.user?.id)
     return eventFound;
@@ -55,9 +56,9 @@ export async function editEvent(req: Request) {
     const { eventId } = req.params
     const userId = req.user?.id
     try {
-        const event = await Event.findOneAndUpdate({ _id: eventId, author: userId, active: true }, req.body, { new: true })
+        const event = await Event.findOneAndUpdate({ _id: eventId, author: userId, active: true }, req.body, { new: true, runValidators: true })
         if (!event) {
-            throw new NotFoundError("Event not found")
+            throw new NotFoundError(messages.response.NOT_FOUND("Event"))
         }
         return event;
     } catch (error) {

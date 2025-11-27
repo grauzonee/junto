@@ -1,15 +1,21 @@
 import { Request, Response } from "express"
 import { getUserByToken } from "@/helpers/jwtHelper";
 import { User } from "@/models/User";
+import messages from "@/constants/errorMessages"
+import { parseMongooseValidationError, setErrorResponse, setSuccessResponse } from "@/helpers/requestHelper";
+import mongoose from "mongoose";
+import { BadInputError } from "@/types/errors/InputError";
 
 export async function updateUser(req: Request, res: Response) {
     const requestData = req.body;
     if (!requestData) {
-        return res.status(401).json({ success: false, data: { message: "Empty body is not allowed", field: 'root' } });
+        setErrorResponse(res, 400, {}, [messages.response.EMPTY_BODY]);
+        return;
     }
     const { error, field } = await validateUpdateData(req);
-    if (error) {
-        return res.status(400).json({ success: false, data: { message: error, field } });
+    if (error && field) {
+        setErrorResponse(res, 400, { [field]: error });
+        return;
     }
 
     try {
@@ -17,9 +23,15 @@ export async function updateUser(req: Request, res: Response) {
             requestData.avatarUrl = requestData.avatarUrl.replace(/^\/+/, "").trim()
         }
         const user = await req.user?.updateProfile(requestData);
-        return res.status(200).json({ success: true, data: user ? user.toJSON() : null });
+        setSuccessResponse(res, user.toJSON());
+        return;
     } catch (error) {
-        return res.status(401).json({ success: false, message: error instanceof Error ? error.message : error });
+        if (error instanceof mongoose.Error.ValidationError) {
+            const fieldErrors = parseMongooseValidationError(error);
+            setErrorResponse(res, 400, fieldErrors);
+            return;
+        }
+        setErrorResponse(res, 400, {}, [messages.response.SERVER_ERROR()]);
     }
 }
 
@@ -28,13 +40,11 @@ export const getProfile = async (req: Request, res: Response) => {
         const id = req.params?.id;
         const user = id ? await User.findById(id) : await getUserByToken(req);
         if (!user) {
-            return res.status(404).json({ success: false, message: "User not found" });
+            setErrorResponse(res, 404, {}, [messages.response.NOT_FOUND("User")]);
         }
-        res.status(200).json(
-            { success: true, data: user }
-        );
-    } catch (error) {
-        return res.status(401).json({ success: false, message: error });
+        setSuccessResponse(res, user);
+    } catch {
+        setErrorResponse(res, 500, {}, [messages.response.SERVER_ERROR()]);
     }
 }
 
@@ -42,9 +52,14 @@ export async function updatePassword(req: Request, res: Response) {
     const requestData = req.body;
     try {
         await req.user?.updatePassword(requestData);
-        return res.status(200).json({ success: true, message: "Password has been updated" });
+        setSuccessResponse(res, { message: "Password has been updated" });
+        return;
     } catch (error) {
-        return res.status(400).json({ success: false, message: error instanceof Error ? error.message : error });
+        if (error instanceof BadInputError) {
+            setErrorResponse(res, 400, {}, [error.message]);
+            return;
+        }
+        setErrorResponse(res, 500, {}, [messages.response.SERVER_ERROR()]);
     }
 }
 
@@ -54,14 +69,14 @@ async function validateUpdateData(req: Request): Promise<{ error?: string | null
         const username = requestData.username;
         const userExistsUsername = await User.findOne({ username });
         if (userExistsUsername && userExistsUsername.id != req.user?.id) {
-            return { error: "Username already in use!", field: 'username' };
+            return { error: messages.response.IN_USE("Username"), field: 'username' };
         }
     }
     if (requestData.email) {
         const email = requestData.email;
         const userExistsEmail = await User.findOne({ email });
         if (userExistsEmail && userExistsEmail.id != req.user?.id) {
-            return { error: "Email already in use!", field: 'email' };
+            return { error: messages.response.IN_USE("Email"), field: 'email' };
         }
     }
     return { error: null, field: null };

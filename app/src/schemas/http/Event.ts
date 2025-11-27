@@ -3,8 +3,8 @@ import { Types } from "mongoose"
 import messages from "@/constants/errorMessages"
 
 export const CoordinatesSchema = z.object({
-    lat: z.number().min(-90).max(90),
-    lng: z.number().min(-180).max(180),
+    lat: z.coerce.number().min(-90).max(90),
+    lng: z.coerce.number().min(-180).max(180),
     radius: z.number().min(1).max(15).default(3)
 })
 
