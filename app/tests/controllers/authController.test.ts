@@ -1,4 +1,5 @@
-import { login, register } from "@/controllers/authController";
+import { login } from "@/requests/auth/login";
+import { register } from "@/requests/auth/register";
 import { User } from "@/models/User";
 import { generateToken } from "@/helpers/jwtHelper";
 import { Request, Response } from "express";
@@ -58,7 +59,7 @@ describe("Auth Controller", () => {
                 success: false,
                 data: {
                     formErrors: [],
-                    fieldErrors: { password: messages.response.INVALID("password") }
+                    fieldErrors: { password: [messages.response.INVALID("password")] }
                 }
             });
         });
@@ -139,18 +140,18 @@ describe("Auth Controller", () => {
             });
         });
 
-        it("should return 400 if user creation fails", async () => {
+        it("should return 500 if user creation fails", async () => {
             (User.findOne as jest.Mock).mockResolvedValue(null);
             (User.create as jest.Mock).mockResolvedValue(null);
 
             req.body = { username: "newuser", email: "new@example.com", password: "123456" };
             await register(req as Request, res as Response);
 
-            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.status).toHaveBeenCalledWith(500);
             expect(res.json).toHaveBeenCalledWith({
                 success: false,
                 data: {
-                    formErrors: [messages.response.INVALID("user data")],
+                    formErrors: [messages.response.SERVER_ERROR()],
                     fieldErrors: {}
                 }
             });

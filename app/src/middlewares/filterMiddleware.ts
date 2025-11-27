@@ -25,11 +25,11 @@ function parseFilterKey(filterKey: string, filterableFields: FilterableField[]):
     const [fieldKey, operator] = filterKey.split("_");
 
     if (!isFilterPrefix(operator)) {
-        throw new BadInputError("Invalid filter name " + filterKey + ", no such operator")
+        throw new BadInputError(filterKey, "Invalid filter name " + filterKey + ", no such operator")
     }
     const filterableField = filterableFields.find(f => f.field === fieldKey);
     if (!filterableField) {
-        throw new BadInputError("Invalid filter name " + filterKey + ", this field is not filterable")
+        throw new BadInputError(filterKey, "Invalid filter name " + filterKey + ", this field is not filterable")
     }
     return { filterableField, fieldKey, operator };
 }
