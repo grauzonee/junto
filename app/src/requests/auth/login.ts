@@ -20,9 +20,10 @@ export async function login(req: Request, res: Response) {
             return;
         }
         if (error instanceof BadInputError) {
-            setErrorResponse(res, 400, { [error.field]: [error.message] }, []);
+            setErrorResponse(res, 400, { [error.field]: error.message }, []);
             return;
         }
+        setErrorResponse(res, 500, {}, [messages.response.SERVER_ERROR()]);
     }
 
 }
