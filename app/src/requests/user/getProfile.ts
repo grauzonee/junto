@@ -10,6 +10,7 @@ export const getProfile = async (req: Request, res: Response) => {
         const user = id ? await User.findById(id) : await getUserByToken(req);
         if (!user) {
             setErrorResponse(res, 404, {}, [messages.response.NOT_FOUND("User")]);
+            return;
         }
         setSuccessResponse(res, user);
     } catch {

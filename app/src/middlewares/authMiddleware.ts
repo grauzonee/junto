@@ -12,7 +12,6 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { getUserByToken } from '@/helpers/jwtHelper';
-import { IUser } from '@/models/User';
 
 /**
  * 
@@ -27,7 +26,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
         return;
     }
     try {
-        const user: IUser = await getUserByToken(req);
+        const user = await getUserByToken(req);
         req.user = user;
         next();
     } catch {

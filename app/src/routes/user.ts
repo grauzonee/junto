@@ -6,6 +6,7 @@ import { getProfile } from "@/requests/user/getProfile";
 import { updatePassword } from "@/requests/user/updatePassword";
 import { updateProfile } from "@/requests/user/updateProfile";
 
+
 export const router = Router()
 router.get('/', authMiddleware, getProfile)
 router.put('/', [authMiddleware, requestSchemaValidate(UpdateProfileSchema)], updateProfile)

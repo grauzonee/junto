@@ -1,12 +1,12 @@
 import { Request, Response } from "express"
-import {validateUpdateData} from "@/requests/user/utils"
+import { validateUpdateData } from "@/requests/user/utils"
 import messages from "@/constants/errorMessages"
 import { parseMongooseValidationError, setErrorResponse, setSuccessResponse } from "@/helpers/requestHelper";
 import mongoose from "mongoose";
 
 export async function updateProfile(req: Request, res: Response) {
     const requestData = req.body;
-    if (!requestData) {
+    if (!requestData || Object.keys(requestData).length < 1) {
         setErrorResponse(res, 400, {}, [messages.response.EMPTY_BODY]);
         return;
     }
@@ -29,6 +29,6 @@ export async function updateProfile(req: Request, res: Response) {
             setErrorResponse(res, 400, fieldErrors);
             return;
         }
-        setErrorResponse(res, 400, {}, [messages.response.SERVER_ERROR()]);
+        setErrorResponse(res, 500, {}, [messages.response.SERVER_ERROR()]);
     }
 }
