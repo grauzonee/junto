@@ -1,6 +1,6 @@
 import mongoose, { Types } from "mongoose"
 import { Event } from "@/models/Event"
-import { createFakeEvent } from "../services/generator"
+import { createFakeEvent } from "../generators/event"
 import { Category } from "@/models/Category"
 import { EventType } from "@/models/EventType"
 

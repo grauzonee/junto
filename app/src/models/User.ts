@@ -7,7 +7,7 @@ import messages from "@/constants/errorMessages"
 import { BadInputError } from "@/types/errors/InputError";
 
 interface UserMethods {
-    updateProfile(data: UpdateUserData): Promise<IUser>;
+    updateProfile(data: UpdateUserData): Promise<HydratedUserDoc>;
     matchPassword(enteredPassword: string): Promise<boolean>;
     updatePassword(data: UpdatePasswordData): Promise<void>;
 }
@@ -20,7 +20,7 @@ export interface IUser {
     interests: Types.ObjectId[];
 }
 export type UpdateUserData = Partial<Pick<IUser, 'username' | 'avatarUrl' | 'interests'>>
-export type HydratedUserDoc = HydratedDocument<IUser>;
+export type HydratedUserDoc = HydratedDocument<IUser> & UserMethods;
 export interface UpdatePasswordData {
     oldPassword: string,
     newPassword: string
@@ -61,7 +61,7 @@ export const UserSchema = new Schema<IUser, UserModelType, UserMethods>(
     {
         timestamps: true,
         methods: {
-            async updateProfile(data: UpdateUserData): Promise<IUser> {
+            async updateProfile(data: UpdateUserData): Promise<HydratedUserDoc> {
                 if (typeof (data.avatarUrl) === 'string') {
                     if (!checkImage(data.avatarUrl)) {
                         throw new Error(messages.validation.IMAGE_NOT_EXISTS("avatar"))
@@ -80,15 +80,13 @@ export const UserSchema = new Schema<IUser, UserModelType, UserMethods>(
 
             async updatePassword(data: UpdatePasswordData): Promise<void> {
                 if (data.newPassword === data.oldPassword) {
-                    throw new BadInputError(messages.validation.PASSWORDS_EQUAL);
+                    throw new BadInputError("password", messages.validation.PASSWORDS_EQUAL);
                 }
                 const isPassCorrect = await this.matchPassword(data.oldPassword);
                 if (!isPassCorrect) {
-                    throw new BadInputError(messages.validation.NOT_CORRECT("Old password"));
+                    throw new BadInputError("Old password", messages.validation.NOT_CORRECT("Old password"));
                 }
                 this.password = data.newPassword;
-
-
                 await this.save();
             }
         }

@@ -1,12 +1,10 @@
 import { getEventTypes } from "@/requests/event/getEventTypes";
 import { Request, Response } from "express";
 import { Types } from "mongoose"
+import { getMockedRequest, getMockedResponse } from "../../utils";
 
-const req = { body: {}, limit: 0 };
-const res: Partial<Response> = {
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn(),
-};
+const req = getMockedRequest({}, {}, { limit: 0 });
+const res = getMockedResponse();
 
 describe("getEventTypes request handler tests", () => {
     it("Should return '_id' and 'title' fields", async () => {

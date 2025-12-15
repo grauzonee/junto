@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { create, list, geosearch, attend, update } from "@/controllers/eventController"
+import { create } from "@/requests/event/create";
+import { list } from "@/requests/event/list";
+import { geosearch } from "@/requests/event/geosearch";
+import { update } from "@/requests/event/update";
 import { getEventTypes } from "@/requests/event/getEventTypes";
 import { requestSchemaValidate } from "@/middlewares/requestSchemaValidate";
 import { CreateEventSchema, EditEventSchema } from "@/schemas/http/Event";
@@ -17,4 +20,3 @@ router.put('/:eventId', [authMiddleware, requestSchemaValidate(CreateEventSchema
 router.patch('/:eventId', [authMiddleware, requestSchemaValidate(EditEventSchema)], update)
 router.get('/', [paginateMiddleware, sortMiddleware(Event), filterMiddleware(Event)], list)
 router.get('/geosearch', [paginateMiddleware, sortMiddleware(Event)], geosearch)
-router.put('/attend/:eventId', authMiddleware, attend)

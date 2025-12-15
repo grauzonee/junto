@@ -1,6 +1,6 @@
 import mongoose, { Document, HydratedDocument, Types } from "mongoose"
 import { Request } from "express"
-import { createFakeEvent } from "./generator"
+import { createFakeEvent } from "../generators/event"
 import { Event, type IEvent } from "@/models/Event"
 import { insertEvent, listEvents, geoSearch, editEvent } from "@/services/eventService"
 import { NotFoundError } from "@/types/errors/InputError"
@@ -11,7 +11,6 @@ let req: Partial<Request>
 let eventTypeId: Types.ObjectId;
 
 beforeEach(async () => {
-
     const eventType = await EventType.findOne();
     if (!eventType) {
         throw new Error("No event types found, check your seeders");

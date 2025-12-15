@@ -6,7 +6,7 @@
 
 import jsonwebtoken, { JwtPayload } from 'jsonwebtoken';
 import { getConfigValue } from "@/helpers/configHelper";
-import { IUser, User } from "@/models/User";
+import { User } from "@/models/User";
 import { Request } from "express"
 
 /**
@@ -37,7 +37,7 @@ export const verifyToken = (token: string): JwtPayload => {
  * @param {Request} req 
  * @returns 
  */
-export const getUserByToken = async (req: Request): Promise<IUser> => {
+export const getUserByToken = async (req: Request) => {
     const token: string = req.headers.authorization?.replace('Bearer ', '') ?? '';
     const decoded = verifyToken(token);
     const user = await User.findById(decoded.id);
