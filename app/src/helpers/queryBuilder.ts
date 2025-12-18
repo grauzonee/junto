@@ -4,7 +4,6 @@
  * @packageDocumentation
  */
 
-import { Event } from '@/models/Event'
 import { type FilterPrefix, type Filter, type FilterValue } from '@/types/Filter'
 import { type FilterQuery } from "mongoose"
 import { type CoordinatesInput } from '@/schemas/http/Event'
