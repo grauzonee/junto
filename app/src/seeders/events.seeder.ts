@@ -1,7 +1,6 @@
 import { Event } from "@/models/Event";
 import { EventType } from "@/models/EventType";
 import { User } from "@/models/User";
-import mongoose from "mongoose";
 
 export async function seed() {
     const log = (...args: any[]) => {
@@ -10,36 +9,17 @@ export async function seed() {
             console.log(...args);
         }
     };
-
-    /* ------------------ EVENT TYPES ------------------ */
-
-    const eventTypesData = [
-        { title: "Workshop" },
-        { title: "Gathering" },
-        { title: "Lecture" },
-        { title: "Discussion" },
-        { title: "Club" },
-        { title: "Volunteering" },
-        { title: "Concert" },
-        { title: "Other" },
-    ];
-
-    await EventType.insertMany(eventTypesData, { ordered: false }).catch(() => { });
     const eventTypes = await EventType.find({}, { _id: 1 }).lean();
 
     if (!eventTypes.length) {
         throw new Error("No event types found");
     }
 
-    log(`Loaded ${eventTypes.length} event types`);
-
     const users = await User.find({}, { _id: 1 }).lean();
 
     if (!users.length) {
         throw new Error("No users found to assign as authors");
     }
-
-    log(`Loaded ${users.length} users`);
 
     const randomUserId = () =>
         users[Math.floor(Math.random() * users.length)]._id;
@@ -228,6 +208,8 @@ export async function seed() {
 
     await Event.insertMany(eventsToInsert);
 
-    log(`Created ${eventsToInsert.length} events`);
-    log("Seeding completed ✅");
+    if (!process.env.JEST_WORKER_ID) {
+        // eslint-disable-next-line
+        console.log("Events seeding done.");
+    }
 }
