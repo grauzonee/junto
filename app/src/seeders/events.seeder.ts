@@ -3,12 +3,6 @@ import { EventType } from "@/models/EventType";
 import { User } from "@/models/User";
 
 export async function seed() {
-    const log = (...args: any[]) => {
-        if (!process.env.JEST_WORKER_ID) {
-            // eslint-disable-next-line no-console
-            console.log(...args);
-        }
-    };
     const eventTypes = await EventType.find({}, { _id: 1 }).lean();
 
     if (!eventTypes.length) {
@@ -28,7 +22,7 @@ export async function seed() {
         eventTypes[Math.floor(Math.random() * eventTypes.length)]._id;
 
 
-    let events = [
+    const events = [
         {
             title: "Tech Startup Networking Night",
             description: "An evening for founders, developers, and investors to connect and share ideas.",
