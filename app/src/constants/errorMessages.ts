@@ -24,6 +24,7 @@ export default {
         NOT_FOUND: (entity: string) => uc_first(entity) + " not found",
         IN_USE: (field: string) => uc_first(field) + " already in use",
         INVALID: (field: string) => `Invalid ${field.toLowerCase()}`,
+        DUPLICATE_ATTEND: "The user is already attending the event",
         SERVER_ERROR: (action = "on our side", advice = "try again later") => `Error ${action.toLowerCase()}, ${advice.toLowerCase()}`
     }
 }

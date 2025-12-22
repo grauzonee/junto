@@ -105,9 +105,23 @@ describe("RSVP model", () => {
             throw new Error("RSVP was not created");
         }
         const result = await RSVP.isUserAttendingEvent(user?._id, event._id);
-        console.log(result)
+        if (!result) {
+            throw new Error("RSVP was not found");
+        }
+        expect(result).not.toBeNull();
         expect(result.user.toString()).toBe(user._id.toString())
         expect(result.event.toString()).toBe(event._id.toString())
         expect(result.status).toBe(STATUS_CONFIRMED);
+    })
+    it("Should return null if user is not attending an event", async () => {
+        await RSVP.deleteMany();
+        const event = await Event.findOne({ active: true });
+        const user = await User.findOne();
+        if (!user || !event) {
+            throw new Error("No user/event found, check your seeders");
+        }
+
+        const result = await RSVP.isUserAttendingEvent(user?._id, event._id);
+        expect(result).toBeNull();
     })
 })

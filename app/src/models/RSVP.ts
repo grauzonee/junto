@@ -28,7 +28,7 @@ function isRSVPStatus(status: string): status is RSVPStatus {
 
 export type HydratedRSVP = HydratedDocument<IRSVP>;
 export interface RSVPModelType extends Model<IRSVP> {
-    isUserAttendingEvent(user: Types.ObjectId, event: Types.ObjectId): Promise<HydratedRSVP>
+    isUserAttendingEvent(user: Types.ObjectId, event: Types.ObjectId): Promise<HydratedRSVP | null>
 }
 
 const RSVPSchema = new Schema(
