@@ -16,7 +16,13 @@ export default {
         MIN_LENGTH: (field: string, length: number) => uc_first(field) + ` must be at least ${length} characters long`,
         MAX_LENGTH: (field: string, length: number) => uc_first(field) + ` must be maximum ${length} characters long`,
         DATE_IN_PAST: "Date cannot be in the past",
-        NO_FIELDS: "At least one field must be provided"
+        NO_FIELDS: "At least one field must be provided",
+        MIN(field: string, min: number) {
+            return uc_first(field) + ` must be at least ${min}`;
+        },
+        MAX(field: string, max: number) {
+            return uc_first(field) + ` must be maximum ${max}`;
+        }
     },
     // Errors fro request handlers
     response: {

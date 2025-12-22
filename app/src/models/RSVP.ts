@@ -6,7 +6,7 @@ export const STATUS_CONFIRMED = 'confirmed' as const;
 export const STATUS_CANCELED = 'canceled' as const;
 export const STATUS_MAYBE = 'maybe' as const;
 
-const RSVP_STATUSES = [
+export const RSVP_STATUSES = [
     STATUS_CANCELED,
     STATUS_CONFIRMED,
     STATUS_MAYBE
