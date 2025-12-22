@@ -1,4 +1,4 @@
-import mongoose, { HydratedDocument, Schema, Types, SchemaTypes } from "mongoose";
+import mongoose, { HydratedDocument, Schema, Types, SchemaTypes, Model } from "mongoose";
 import messages from "@/constants/errorMessages"
 import { Event } from "@/models/Event";
 
@@ -18,7 +18,7 @@ export interface IRSVP {
     event: Types.ObjectId;
     user: Types.ObjectId;
     status: RSVPStatus;
-    additionalGuests: number;
+    additionalGuests?: number;
 }
 
 function isRSVPStatus(status: string): status is RSVPStatus {
@@ -27,6 +27,9 @@ function isRSVPStatus(status: string): status is RSVPStatus {
 
 
 export type HydratedRSVP = HydratedDocument<IRSVP>;
+export interface RSVPModelType extends Model<IRSVP> {
+    isUserAttendingEvent(user: Types.ObjectId, event: Types.ObjectId): Promise<HydratedRSVP>
+}
 
 const RSVPSchema = new Schema(
     {
@@ -50,7 +53,14 @@ const RSVPSchema = new Schema(
             default: 0
         }
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+        statics: {
+            async isUserAttendingEvent(user: Types.ObjectId, event: Types.ObjectId) {
+                return await this.findOne({ user, event });
+            }
+        }
+    }
 )
 
 RSVPSchema.path("status").validate({
@@ -66,4 +76,4 @@ RSVPSchema.path("event").validate({
     },
     message: messages.validation.NOT_CORRECT("event")
 });
-export const RSVP = mongoose.model<IRSVP>("RSVP", RSVPSchema);
+export const RSVP = mongoose.model<IRSVP, RSVPModelType>("RSVP", RSVPSchema);

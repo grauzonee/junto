@@ -1,4 +1,4 @@
-import { RSVP, STATUS_CANCELED } from "@/models/RSVP"
+import { RSVP, STATUS_CANCELED, STATUS_CONFIRMED } from "@/models/RSVP"
 import { User } from "@/models/User"
 import { Event } from "@/models/Event"
 import { EventType } from "@/models/EventType"
@@ -86,5 +86,28 @@ describe("RSVP model", () => {
             expect(parsedError).toHaveProperty('event')
             expect(parsedError.event).toEqual([messages.validation.NOT_CORRECT("event")])
         }
+    })
+
+    it("Should return an RSVP if user is attending an event", async () => {
+        const event = await Event.findOne({ active: true });
+        const user = await User.findOne();
+        if (!user || !event) {
+            throw new Error("No user/event found, check your seeders");
+        }
+        const newRsvp = {
+            user: user._id,
+            event: event._id,
+            status: STATUS_CONFIRMED,
+            additionalGuests: 0
+        };
+        const rsvp = await RSVP.create(newRsvp);
+        if (!rsvp) {
+            throw new Error("RSVP was not created");
+        }
+        const result = await RSVP.isUserAttendingEvent(user?._id, event._id);
+        console.log(result)
+        expect(result.user.toString()).toBe(user._id.toString())
+        expect(result.event.toString()).toBe(event._id.toString())
+        expect(result.status).toBe(STATUS_CONFIRMED);
     })
 })
