@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { NotFoundError } from "@/types/errors/InputError";
+import { EmptyBodyError, NotFoundError } from "@/types/errors/InputError";
 import mongoose from "mongoose";
 import messages from "@/constants/errorMessages"
 import { ZodError } from "zod";
@@ -8,8 +8,8 @@ import { BadInputError } from "@/types/errors/InputError";
 import { parseMongooseValidationError, setErrorResponse } from "@/helpers/requestHelper";
 
 export function errorHandler(err: Error, req: Request, res: Response) {
-    if (err instanceof BadInputError) {
-        setErrorResponse(res, 404, {}, [err.message]);
+    if (err instanceof EmptyBodyError) {
+        setErrorResponse(res, 400, {}, [err.message]);
         return;
     }
     if (err instanceof NotFoundError) {
