@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { EmptyBodyError, NotFoundError } from "@/types/errors/InputError";
 import { parseMongooseValidationError } from "@/helpers/requestHelper";
 import mongoose from "mongoose";
@@ -12,8 +12,9 @@ describe("errorHandler middleware", () => {
     it("Should return status 404 in NotFoundError", () => {
         const req = getMockedRequest();
         const res = getMockedResponse();
+        const next = jest.fn() as NextFunction;
         const err = new NotFoundError("resource");
-        errorHandler(err, req as Request, res as Response);
+        errorHandler(err, req as Request, res as Response, next);
         expect(res.status).toHaveBeenCalledWith(404);
         expect(res.json).toHaveBeenCalledWith({
             success: false,
@@ -27,8 +28,9 @@ describe("errorHandler middleware", () => {
     it("Should return status 400 in BadInputError", () => {
         const req = getMockedRequest();
         const res = getMockedResponse();
+        const next = jest.fn() as NextFunction;
         const err = new BadInputError("field", "Invalid field");
-        errorHandler(err, req as Request, res as Response);
+        errorHandler(err, req as Request, res as Response, next);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
             success: false,
@@ -42,6 +44,7 @@ describe("errorHandler middleware", () => {
     it("Should return status 400 in Mongoose ValidationError", () => {
         const req = getMockedRequest();
         const res = getMockedResponse();
+        const next = jest.fn() as NextFunction;
         const validationError = new mongoose.Error.ValidationError();
 
         validationError.addError(
@@ -53,7 +56,7 @@ describe("errorHandler middleware", () => {
             })
         );
         const parsedError = parseMongooseValidationError(validationError);
-        errorHandler(validationError, req as Request, res as Response);
+        errorHandler(validationError, req as Request, res as Response, next);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
             success: false,
@@ -67,13 +70,14 @@ describe("errorHandler middleware", () => {
     it("Should return status 400 in ZodError", () => {
         const req = getMockedRequest();
         const res = getMockedResponse();
+        const next = jest.fn() as NextFunction;
         const zodError = new ZodError([{
             code: "invalid_type",
             expected: "string",
             path: ["field"],
             message: "Invalid field"
         }]);
-        errorHandler(zodError, req as Request, res as Response);
+        errorHandler(zodError, req as Request, res as Response, next);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
             success: false,
@@ -87,8 +91,9 @@ describe("errorHandler middleware", () => {
     it("Should return status 500 in generic Error", () => {
         const req = getMockedRequest();
         const res = getMockedResponse();
+        const next = jest.fn() as NextFunction;
         const err = new Error("Server error");
-        errorHandler(err, req as Request, res as Response);
+        errorHandler(err, req as Request, res as Response, next);
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({
             success: false,
@@ -102,8 +107,9 @@ describe("errorHandler middleware", () => {
     it("Should return status 400 on EmptyBodyError", () => {
         const req = getMockedRequest();
         const res = getMockedResponse();
+        const next = jest.fn() as NextFunction;
         const err = new EmptyBodyError();
-        errorHandler(err, req as Request, res as Response);
+        errorHandler(err, req as Request, res as Response, next);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
             success: false,
