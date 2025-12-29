@@ -1,7 +1,7 @@
 import { getMockedRequest, getMockedResponse } from "../../utils";
 import { register } from "@/requests/auth/register";
 import messages from "@/constants/errorMessages";
-import { Request, Response } from "express"
+import { Request, Response, NextFunction } from "express"
 import { setSuccessResponse, setErrorResponse } from "@/helpers/requestHelper";
 import { register as serviceRegister } from "@/services/authService";
 import { BadInputError } from "@/types/errors/InputError";
@@ -14,7 +14,7 @@ const email = "email@email.com"
 const password = "SeCrEtPassWORD"
 
 const requestData = { username, email, password }
-
+const next = jest.fn() as NextFunction;
 beforeEach(() => {
     jest.resetAllMocks();
     res = getMockedResponse();
@@ -26,13 +26,13 @@ describe("register SUCCESS", () => {
     })
     it("Should call serviceRegister function", async () => {
         const req = getMockedRequest({ ...requestData })
-        await register(req as Request, res as Response);
+        await register(req as Request, res as Response, next);
         expect(serviceRegister).toHaveBeenCalledTimes(1)
         expect(serviceRegister).toHaveBeenCalledWith(requestData)
     })
     it("Should call setSuccessResponse function", async () => {
         const req = getMockedRequest({ ...requestData })
-        await register(req as Request, res as Response);
+        await register(req as Request, res as Response, next);
         expect(setSuccessResponse).toHaveBeenCalledTimes(1)
         expect(setSuccessResponse).toHaveBeenCalledWith(res, requestData, 201)
 
@@ -47,9 +47,9 @@ describe("register FAIL", () => {
             new BadInputError(errorField, errorMessage)
         );
         const req = getMockedRequest({ ...requestData })
-        await register(req as Request, res as Response);
-        expect(setErrorResponse).toHaveBeenCalledTimes(1)
-        expect(setErrorResponse).toHaveBeenCalledWith(res, 400, { [errorField]: errorMessage }, [])
+        await register(req as Request, res as Response, next);
+        expect(next).toHaveBeenCalledTimes(1)
+        expect(next).toHaveBeenCalledWith(new BadInputError(errorField, errorMessage))
 
     })
     it("Should return 500 on default error", async () => {
@@ -58,9 +58,9 @@ describe("register FAIL", () => {
             new Error("error")
         );
         const req = getMockedRequest({ ...requestData })
-        await register(req as Request, res as Response);
-        expect(setErrorResponse).toHaveBeenCalledTimes(1)
-        expect(setErrorResponse).toHaveBeenCalledWith(res, 500, {}, [messages.response.SERVER_ERROR()])
+        await register(req as Request, res as Response, next);
+        expect(next).toHaveBeenCalledTimes(1)
+        expect(next).toHaveBeenCalledWith(new Error("error"))
     })
 
 })
