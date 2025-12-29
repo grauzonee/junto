@@ -46,7 +46,7 @@ export async function attendEvent(req: Request) {
     const { eventId } = req.params;
     const eventFound = await Event.findOne({ _id: eventId });
     if (!eventFound) {
-        throw new NotFoundError(messages.response.NOT_FOUND("Event"))
+        throw new NotFoundError("event")
     }
     await eventFound.attend(req.user?.id)
     return eventFound;
@@ -58,7 +58,7 @@ export async function editEvent(req: Request) {
     try {
         const event = await Event.findOneAndUpdate({ _id: eventId, author: userId, active: true }, req.body, { new: true, runValidators: true })
         if (!event) {
-            throw new NotFoundError(messages.response.NOT_FOUND("Event"))
+            throw new NotFoundError("event")
         }
         return event;
     } catch (error) {

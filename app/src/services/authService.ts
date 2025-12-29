@@ -7,7 +7,7 @@ import { IUser } from "@/models/User";
 export async function login(data: Pick<IUser, "email" | "password">) {
     const userFound = await User.findOne({ email: data.email });
     if (!userFound) {
-        throw new NotFoundError();
+        throw new NotFoundError("user");
     }
     const passValid = await userFound.matchPassword(data.password);
     if (!passValid) {
