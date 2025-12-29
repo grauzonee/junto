@@ -5,7 +5,6 @@ import { CoordinatesSchema } from "@/schemas/http/Event";
 import { NotFoundError } from "@/types/errors/InputError";
 import { EventType } from "@/models/EventType";
 import { buildGeosearchQuery, buildFilterQuery, buildSortQuery } from "@/helpers/queryBuilder";
-import messages from "@/constants/errorMessages"
 
 export async function listEvents(req: Request) {
     const result = await Event.find(buildFilterQuery(req.dbFilter)).sort(buildSortQuery(req.sort)).paginate(req.offset, req.limit)

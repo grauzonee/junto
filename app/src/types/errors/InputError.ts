@@ -1,4 +1,13 @@
 import messages from "@/constants/errorMessages"
+export class EmptyBodyError extends Error {
+    constructor() {
+        const message = messages.response.EMPTY_BODY;
+        super(message);
+        this.name = "EmptyBodyError";
+        Object.setPrototypeOf(this, EmptyBodyError.prototype);
+    }
+}
+
 export class NotFoundError extends Error {
     entity: string;
 

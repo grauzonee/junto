@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { NotFoundError } from "@/types/errors/InputError";
 import mongoose from "mongoose";
 import messages from "@/constants/errorMessages"
@@ -7,7 +7,11 @@ import * as z from "zod"
 import { BadInputError } from "@/types/errors/InputError";
 import { parseMongooseValidationError, setErrorResponse } from "@/helpers/requestHelper";
 
-export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
+export function errorHandler(err: Error, req: Request, res: Response) {
+    if (err instanceof BadInputError) {
+        setErrorResponse(res, 404, {}, [err.message]);
+        return;
+    }
     if (err instanceof NotFoundError) {
         setErrorResponse(res, 404, {}, [err.message]);
         return;
