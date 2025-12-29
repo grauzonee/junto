@@ -1,23 +1,14 @@
 import { Request, Response } from "express";
-import { EmptyBodyError, NotFoundError } from "@/types/errors/InputError";
+import { HttpError } from "@/types/errors/InputError";
 import mongoose from "mongoose";
 import messages from "@/constants/errorMessages"
 import { ZodError } from "zod";
 import * as z from "zod"
-import { BadInputError } from "@/types/errors/InputError";
 import { parseMongooseValidationError, setErrorResponse } from "@/helpers/requestHelper";
 
 export function errorHandler(err: Error, req: Request, res: Response) {
-    if (err instanceof EmptyBodyError) {
-        setErrorResponse(res, 400, {}, [err.message]);
-        return;
-    }
-    if (err instanceof NotFoundError) {
-        setErrorResponse(res, 404, {}, [err.message]);
-        return;
-    }
-    if (err instanceof BadInputError) {
-        setErrorResponse(res, 400, { [err.field]: err.message }, []);
+    if (err instanceof HttpError) {
+        setErrorResponse(res, err.statusCode, err.fieldErrors || {}, err.formErrors || []);
         return;
     }
     if (err instanceof mongoose.Error.ValidationError) {
