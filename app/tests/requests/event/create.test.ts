@@ -1,6 +1,5 @@
 import { create } from "@/requests/event/create"
 import { getMockedRequest, getMockedResponse } from "../../utils"
-import messages from "@/constants/errorMessages"
 import { parseMongooseValidationError } from "@/helpers/requestHelper"
 import mongoose from "mongoose"
 import { NextFunction, Request, Response } from "express"

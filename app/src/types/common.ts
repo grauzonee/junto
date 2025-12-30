@@ -1,19 +1,19 @@
 import { Filter } from "./Filter";
 import { SortInput } from "./Sort";
 
-export type PaginationData = {
+export interface PaginationData {
     limit: number;
     offset: number;
 }
 
-export type DbFilterData = {
+export interface DbFilterData {
     dbFilter?: Filter[] | undefined;
 }
 
-export type SortData = {
+export interface SortData {
     sort?: SortInput | undefined;
 }
 
-export type RequestData = DbFilterData & SortData & {
+export interface RequestData extends DbFilterData, SortData {
     pagination: PaginationData
 }
