@@ -8,8 +8,6 @@ export const CoordinatesSchema = z.object({
     radius: z.number().min(1).max(15).default(3)
 })
 
-export type CoordinatesInput = z.infer<typeof CoordinatesSchema>
-
 export const CreateEventSchema = z.object({
     title: z.string(),
     description: z.string(),
@@ -46,6 +44,7 @@ export const CreateEventSchema = z.object({
     }).optional(),
     maxAttendees: z.number().optional()
 }).strict()
+
 
 //What about maxAttendies?
 export const EditEventSchema = CreateEventSchema.partial().strict();
