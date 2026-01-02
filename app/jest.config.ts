@@ -8,11 +8,8 @@ module.exports = {
     testEnvironment: "node",
     moduleFileExtensions: ["ts", "js", "json"],
     testMatch: ["**/*.test.ts"],
-    setupFiles: ["<rootDir>/jest.setup.ts"],
     moduleNameMapper: {
         "^@/(.*)$": "<rootDir>/src/$1"
     },
     setupFilesAfterEnv: ["<rootDir>/tests/jest.setup.ts"]
-    //globalSetup: "<rootDir>/jest.global-setup.ts",
-    //globalTeardown: "<rootDir>/jest.global-teardown.ts",
 };

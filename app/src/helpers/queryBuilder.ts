@@ -4,10 +4,9 @@
  * @packageDocumentation
  */
 
-import { Event } from '@/models/Event'
 import { type FilterPrefix, type Filter, type FilterValue } from '@/types/Filter'
 import { type FilterQuery } from "mongoose"
-import { type CoordinatesInput } from '@/schemas/http/Event'
+import { type CoordinatesInput } from '@/types/services/eventService'
 import { SortInput } from '@/types/Sort'
 
 const MongoFilterMap: Record<FilterPrefix, string> = {
