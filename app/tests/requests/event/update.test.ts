@@ -1,11 +1,10 @@
 import { NextFunction, Request, Response } from "express"
-import { editEvent } from "@/services/eventService";
+import { update as updateEvent } from "@/services/eventService";
 import { getMockedRequest, getMockedResponse } from "../../utils";
 import mongoose from "mongoose";
 import { createFakeEvent } from "../../generators/event"
 import { parseMongooseValidationError, setErrorResponse, setSuccessResponse } from "@/helpers/requestHelper";
 import { update } from "@/requests/event/update";
-import { title } from "process";
 
 jest.mock("@/services/eventService")
 jest.mock("@/helpers/requestHelper")
@@ -16,7 +15,7 @@ const next = jest.fn() as NextFunction;
 const mockEvent = { ...createFakeEvent(), toJSON: jest.fn().mockReturnThis() }
 beforeEach(() => {
     jest.resetAllMocks();
-    (editEvent as jest.Mock).mockResolvedValue(mockEvent)
+    (updateEvent as jest.Mock).mockResolvedValue(mockEvent)
     res = getMockedResponse();
 
 })
@@ -27,8 +26,8 @@ describe("update() SUCCESS", () => {
         const eventId = new mongoose.Types.ObjectId().toString();
         const req = getMockedRequest(editData, { eventId }, { user: { id: new mongoose.Types.ObjectId().toString() } });
         await update(req as Request, res as Response, next);
-        expect(editEvent).toHaveBeenCalledTimes(1);
-        expect(editEvent).toHaveBeenCalledWith(editData, eventId, req.user.id);
+        expect(updateEvent).toHaveBeenCalledTimes(1);
+        expect(updateEvent).toHaveBeenCalledWith(editData, eventId, req.user.id);
     })
     it("Should call setSuccessResponse method", async () => {
         const editData = { title: "Updated Title" }
@@ -52,7 +51,7 @@ describe("update() FAIL", () => {
             })
         );
 
-        (editEvent as jest.Mock).mockRejectedValue(validationError)
+        (updateEvent as jest.Mock).mockRejectedValue(validationError)
         const editData = { title: "Updated Title" }
         const eventId = new mongoose.Types.ObjectId().toString();
         const req = getMockedRequest(editData, { eventId }, { user: { id: new mongoose.Types.ObjectId().toString() } });
@@ -61,7 +60,7 @@ describe("update() FAIL", () => {
         expect(next).toHaveBeenCalledWith(validationError)
     })
     it("Should return 500 in case of default error", async () => {
-        (editEvent as jest.Mock).mockRejectedValue(new Error())
+        (updateEvent as jest.Mock).mockRejectedValue(new Error())
         const editData = { title: "Updated Title" }
         const eventId = new mongoose.Types.ObjectId().toString();
         const req = getMockedRequest(editData, { eventId }, { user: { id: new mongoose.Types.ObjectId().toString() } });

@@ -1,4 +1,4 @@
-import { listEvents } from "@/services/eventService";
+import { list as listEvents } from "@/services/eventService";
 import { Request, Response } from "express";
 import { setSuccessResponse } from "@/helpers/requestHelper";
 import { asyncHandler } from "@/requests/asyncHandler";
