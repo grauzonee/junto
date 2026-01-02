@@ -1,11 +1,18 @@
 import { IEvent } from "@/models/Event";
 import { Types } from "mongoose";
 
-export function createFakeEvent(overrides: Partial<IEvent> = {}) {
+type FakeEvent = Omit<IEvent, "date" | "categories" | "type"> & {
+    date: number;
+    categories: string[];
+    type: string;
+};
+
+
+export function createFakeEvent(overrides: Partial<FakeEvent> = {}) {
     return {
         title: "Sample Event " + Math.random().toString(36).substring(7),
         description: "This is a test event for unit testing.",
-        date: Math.floor(new Date().valueOf() / 1000),
+        date: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
         fullAddress: "123 Test Street, Test City",
         location: {
             type: "Point",
@@ -14,7 +21,8 @@ export function createFakeEvent(overrides: Partial<IEvent> = {}) {
         },
         imageUrl: "https://example.com/test-image.jpg",
         author: new Types.ObjectId(),
-        topics: ["testing", "events", "automation"],
+        categories: ["testing", "events", "automation"],
+        type: new Types.ObjectId().toString(),
         ...overrides,
         active: true
     };
