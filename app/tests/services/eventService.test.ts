@@ -2,7 +2,7 @@ import mongoose, { Document, HydratedDocument, Types } from "mongoose"
 import { Request } from "express"
 import { createFakeEvent } from "../generators/event"
 import { Event, type IEvent } from "@/models/Event"
-import { insertEvent, listEvents, geoSearch, editEvent } from "@/services/eventService"
+import { create as createEvent, list as listEvents, geoSearch, update as editEvent } from "@/services/eventService"
 import { NotFoundError } from "@/types/errors/InputError"
 import { ZodError } from "zod"
 import { EventType } from "@/models/EventType"
@@ -35,7 +35,7 @@ describe("create event tests SUCCESS", () => {
         const userId = new mongoose.Types.ObjectId()
         const event: CreateEventInput = createFakeEvent({ type: eventTypeId.toString(), categories: [categoryId.toString()] })
 
-        const result = await insertEvent(event, userId.toString())
+        const result = await createEvent(event, userId.toString())
         expect(result).not.toBe(undefined)
         expect(result!._id).not.toBe(undefined)
         expect(result!.author.toString()).toBe(userId.toString())
@@ -50,7 +50,7 @@ describe("create event tests FAIL", () => {
             { type: eventTypeId.toString(), categories: [categoryId.toString()] }
         )
         try {
-            await insertEvent(event, new Types.ObjectId().toString())
+            await createEvent(event, new Types.ObjectId().toString())
         } catch (error) {
             expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
         }
@@ -61,7 +61,7 @@ describe("create event tests FAIL", () => {
             categories: [categoryId.toString()]
         })
         try {
-            await insertEvent(event, new Types.ObjectId().toString())
+            await createEvent(event, new Types.ObjectId().toString())
         } catch (error) {
             expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
         }
@@ -72,7 +72,7 @@ describe("create event tests FAIL", () => {
             categories: [new Types.ObjectId().toString()]
         })
         try {
-            await insertEvent(event, new Types.ObjectId().toString())
+            await createEvent(event, new Types.ObjectId().toString())
         } catch (error) {
             expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
         }

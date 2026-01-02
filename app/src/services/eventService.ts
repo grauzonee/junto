@@ -6,7 +6,7 @@ import { EventType } from "@/models/EventType";
 import { buildGeosearchQuery, buildFilterQuery, buildSortQuery } from "@/helpers/queryBuilder";
 import { RequestData } from "@/types/common";
 
-export async function listEvents(data: RequestData) {
+export async function list(data: RequestData) {
     const result = await Event.find(buildFilterQuery(data.dbFilter)).sort(buildSortQuery(data.sort)).paginate(data.pagination.offset, data.pagination.limit)
     return result;
 }
@@ -16,7 +16,7 @@ export async function listEventTypes(data: RequestData) {
     return result;
 }
 
-export async function insertEvent(data: CreateEventInput, author: string) {
+export async function create(data: CreateEventInput, author: string) {
     try {
         const createdEvent = await Event.create({ ...data, author });
         return createdEvent;
@@ -37,7 +37,7 @@ export async function geoSearch(coordinates: CoordinatesInput, data: RequestData
     }
 }
 
-export async function editEvent(data: EditEventInput, eventId: string, userId: string) {
+export async function update(data: EditEventInput, eventId: string, userId: string) {
     try {
         const event = await Event.findOneAndUpdate({ _id: eventId, author: userId, active: true }, data, { new: true, runValidators: true })
         if (!event) {

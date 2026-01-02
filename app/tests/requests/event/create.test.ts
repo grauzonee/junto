@@ -3,7 +3,7 @@ import { getMockedRequest, getMockedResponse } from "../../utils"
 import { parseMongooseValidationError } from "@/helpers/requestHelper"
 import mongoose, { Types } from "mongoose"
 import { NextFunction, Request, Response } from "express"
-import { insertEvent } from "@/services/eventService"
+import { create as createEvent } from "@/services/eventService"
 import { createFakeEvent } from "../../generators/event"
 import { setSuccessResponse, setErrorResponse } from "@/helpers/requestHelper"
 import { Category } from "@/models/Category"
@@ -34,17 +34,17 @@ beforeAll(async () => {
 
 beforeEach(() => {
     jest.resetAllMocks();
-    (insertEvent as jest.Mock).mockResolvedValue(mockEvent);
+    (createEvent as jest.Mock).mockResolvedValue(mockEvent);
     (CreateEventSchema.parse as jest.Mock).mockReturnValue(newEvent as CreateEventInput);
     res = getMockedResponse();
 
 })
 describe("create() SUCCESS", () => {
-    it("Should call insertEvent function", async () => {
+    it("Should call createEvent function", async () => {
         const req = getMockedRequest({ ...newEvent }, {}, { user: { id: new mongoose.Types.ObjectId().toString() } });
         await create(req as Request, res as Response, next)
-        expect(insertEvent).toHaveBeenCalledTimes(1)
-        expect(insertEvent).toHaveBeenCalledWith(newEvent, req.user.id)
+        expect(createEvent).toHaveBeenCalledTimes(1)
+        expect(createEvent).toHaveBeenCalledWith(newEvent, req.user.id)
     })
     it("Should call setSuccessResponse function", async () => {
         const req = getMockedRequest({ ...newEvent }, {}, { user: { id: new mongoose.Types.ObjectId().toString() } });
@@ -67,7 +67,7 @@ describe("create() FAIL", () => {
                 value: "badInterest",
             })
         );
-        (insertEvent as jest.Mock).mockRejectedValue(validationError)
+        (createEvent as jest.Mock).mockRejectedValue(validationError)
         const req = getMockedRequest({ ...newEvent }, {}, { user: { id: new mongoose.Types.ObjectId().toString() } });
         await create(req as Request, res as Response, next)
         expect(next).toHaveBeenCalledTimes(1)
@@ -76,7 +76,7 @@ describe("create() FAIL", () => {
     })
     it("Should return 500 on default error", async () => {
 
-        (insertEvent as jest.Mock).mockRejectedValue(new Error())
+        (createEvent as jest.Mock).mockRejectedValue(new Error())
         const req = getMockedRequest({ ...newEvent }, {}, { user: { id: new mongoose.Types.ObjectId().toString() } });
         await create(req as Request, res as Response, next)
         expect(next).toHaveBeenCalledTimes(1)
