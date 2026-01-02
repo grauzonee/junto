@@ -3,10 +3,10 @@ import { Types } from "mongoose";
 
 export function createFakeEvent(overrides: Partial<IEvent> = {}) {
     return {
-        title: "Sample Event " + Math.random().toString(36).substring(7),
+        title: "Test event",
         description: "This is a test event for unit testing.",
         date: Math.floor(new Date().valueOf() / 1000),
-        fullAddress: "123 Test Street, Test City",
+        fullAddress: "00000 TestStreet 1, Macondo, Mexico",
         location: {
             type: "Point",
             coordinates:
@@ -14,7 +14,6 @@ export function createFakeEvent(overrides: Partial<IEvent> = {}) {
         },
         imageUrl: "https://example.com/test-image.jpg",
         author: new Types.ObjectId(),
-        topics: ["testing", "events", "automation"],
         ...overrides,
         active: true
     };
