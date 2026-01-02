@@ -12,7 +12,7 @@ export function createFakeEvent(overrides: Partial<FakeEvent> = {}) {
     return {
         title: "Sample Event " + Math.random().toString(36).substring(7),
         description: "This is a test event for unit testing.",
-        date: Math.floor(new Date().valueOf() / 1000),
+        date: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
         fullAddress: "123 Test Street, Test City",
         location: {
             type: "Point",

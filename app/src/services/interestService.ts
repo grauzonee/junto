@@ -1,8 +1,8 @@
 import { buildFilterQuery } from "@/helpers/queryBuilder";
 import { Interest } from "@/models/Interest";
-import { Request } from "express";
+import { RequestData } from "@/types/common";
 
-export async function list(req: Request) {
-    const interests = await Interest.find(buildFilterQuery(req.dbFilter)).paginate(req.offset, req.limit)
+export async function list(data: RequestData) {
+    const interests = await Interest.find(buildFilterQuery(data.dbFilter)).paginate(data.pagination.offset, data.pagination.limit)
     return interests;
 }
