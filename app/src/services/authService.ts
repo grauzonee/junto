@@ -2,9 +2,9 @@ import { User } from "@/models/User"
 import { BadInputError, NotFoundError } from "@/types/errors/InputError";
 import messages from "@/constants/errorMessages";
 import { generateToken } from "@/helpers/jwtHelper";
-import { IUser } from "@/models/User";
+import { LoginData, RegisterData } from "@/types/services/authService";
 
-export async function login(data: Pick<IUser, "email" | "password">) {
+export async function login(data: LoginData) {
     const userFound = await User.findOne({ email: data.email });
     if (!userFound) {
         throw new NotFoundError("user");
@@ -17,7 +17,7 @@ export async function login(data: Pick<IUser, "email" | "password">) {
     return { token, ...userFound.toJSON() }
 }
 
-export async function register(data: Pick<IUser, "email" | "password" | "username">) {
+export async function register(data: RegisterData) {
     const userExistsEmail = await User.findOne({ email: data.email });
     if (userExistsEmail) {
         throw new BadInputError("email", messages.response.IN_USE("email"));

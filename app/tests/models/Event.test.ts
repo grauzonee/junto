@@ -15,15 +15,15 @@ beforeAll(async () => {
 })
 describe("Validation", () => {
     it("Categories: Should pass validation if categories array is empty", async () => {
-        const event = createFakeEvent({ type: eventTypeId });
+        const event = createFakeEvent({ type: eventTypeId.toString() });
         event.categories = [];
         const newEvent = await Event.create(event);
         const foundDocNum = await Event.countDocuments({ _id: newEvent._id });
         expect(foundDocNum).toBe(1);
     })
     it("Categories: Should throw exception if category doesn't exist", async () => {
-        const event = createFakeEvent({ type: eventTypeId });
-        event.categories = [new Types.ObjectId()];
+        const event = createFakeEvent({ type: eventTypeId.toString() });
+        event.categories = [new Types.ObjectId().toString()];
         try {
             await Event.create(event);
         } catch (error) {
@@ -31,12 +31,12 @@ describe("Validation", () => {
         }
     })
     it("Categories: Should throw exception if one of categories doesn't exist", async () => {
-        const event = createFakeEvent({ type: eventTypeId });
+        const event = createFakeEvent({ type: eventTypeId.toString() });
         const category = await Category.findOne();
         if (!category) {
             throw new Error("No categories in MongoMemory server, check your seeders!");
         }
-        event.categories = [category._id, new Types.ObjectId()];
+        event.categories = [category._id.toString(), new Types.ObjectId().toString()];
         try {
             await Event.create(event);
         } catch (error) {
@@ -44,20 +44,22 @@ describe("Validation", () => {
         }
     })
     it("Categories: Should update categories if categories array is valid", async () => {
-        const event = createFakeEvent({ type: eventTypeId });
+        const event = createFakeEvent({ type: eventTypeId.toString() });
         const categories = await Category.find().limit(2);
         if (!categories) {
             throw new Error("No categories in MongoMemory server, check your seeders!");
         }
-        event.categories = categories.map(i => i._id);
+        event.categories = categories.map(i => i._id.toString());
         const newEvent = await Event.create(event);
         const foundDocNum = await Event.findById(newEvent._id);
         expect(foundDocNum).toHaveProperty("categories");
-        expect(foundDocNum!.categories).toEqual(event.categories);
+        foundDocNum!.categories.forEach((categoryId, index) => {
+            expect(categoryId.toString()).toBe(event.categories[index]);
+        });
     })
 
     it("Type: Should throw exception if type doesn't exist", async () => {
-        const event = createFakeEvent({ type: new Types.ObjectId() });
+        const event = createFakeEvent({ type: new Types.ObjectId().toString() });
         try {
             await Event.create(event);
         } catch (error) {
