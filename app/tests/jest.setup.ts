@@ -6,6 +6,7 @@ import { seed as seedCategories } from "@/seeders/categories.seeder"
 import { seed as seedInterests } from "@/seeders/interests.seeder"
 import { seed as seedUsers } from "@/seeders/users.seeder"
 import { seed as seedEventTypes } from "@/seeders/eventtypes.seeder"
+import { seed as seedEvents } from "@/seeders/events.seeder"
 
 let mongoServer: MongoMemoryServer
 
@@ -18,6 +19,7 @@ beforeAll(async () => {
     await seedInterests();
     await seedUsers();
     await seedEventTypes();
+    await seedEvents();
 })
 
 afterAll(async () => {

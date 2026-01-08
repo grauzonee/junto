@@ -11,6 +11,8 @@ import { authMiddleware } from "@/middlewares/authMiddleware";
 import { filterMiddleware } from "@/middlewares/filterMiddleware";
 import { sortMiddleware } from "@/middlewares/sortMiddleware";
 import { Event } from "@/models/Event";
+import { RSVPSchema } from "@/schemas/http/RSVP";
+import { attend } from "@/requests/event/attend";
 export const router = Router()
 
 router.post('/', [authMiddleware, requestSchemaValidate(CreateEventSchema)], create)
@@ -20,3 +22,4 @@ router.put('/:eventId', [authMiddleware, requestSchemaValidate(CreateEventSchema
 router.patch('/:eventId', [authMiddleware, requestSchemaValidate(EditEventSchema)], update)
 router.get('/', [paginateMiddleware, sortMiddleware(Event), filterMiddleware(Event)], list)
 router.get('/geosearch', [paginateMiddleware, sortMiddleware(Event)], geosearch)
+router.post('/attend', [authMiddleware, requestSchemaValidate(RSVPSchema)], attend)
