@@ -1,6 +1,6 @@
 import { getMockedRequest, getMockedResponse } from "../../utils";
 import { updatePassword } from "@/requests/user/updatePassword";
-import { Request, Response } from "express"
+import { NextFunction, Request, Response } from "express"
 import messages from "@/constants/errorMessages"
 import { BadInputError } from "@/types/errors/InputError";
 import { setErrorResponse } from "@/helpers/requestHelper";
@@ -11,6 +11,7 @@ let res: Partial<Response>;
 const password = "newPassword"
 const field = "password"
 const message = "message"
+const next = jest.fn() as NextFunction;
 beforeEach(() => {
     res = getMockedResponse()
 })
@@ -23,7 +24,7 @@ describe("updatePassword() SUCCESS", () => {
             updatePassword: jest.fn()
         }
         const req = getMockedRequest({ password }, {}, { user: mockedUser })
-        await updatePassword(req as Request, res as Response);
+        await updatePassword(req as Request, res as Response, next);
         expect(mockedUser.updatePassword).toHaveBeenCalledTimes(1)
         expect(mockedUser.updatePassword).toHaveBeenCalledWith({ password })
     })
@@ -32,7 +33,7 @@ describe("updatePassword() SUCCESS", () => {
             updatePassword: jest.fn()
         }
         const req = getMockedRequest({ password }, {}, { user: mockedUser })
-        await updatePassword(req as Request, res as Response);
+        await updatePassword(req as Request, res as Response, next);
         expect(mockedUser.updatePassword).toHaveBeenCalledTimes(1)
         expect(mockedUser.updatePassword).toHaveBeenCalledWith({ password })
     })
@@ -48,9 +49,9 @@ describe("updatePassword() FAIL", () => {
             })
         }
         const req = getMockedRequest({ password }, {}, { user: mockedUser })
-        await updatePassword(req as Request, res as Response);
-        expect(setErrorResponse).toHaveBeenCalledTimes(1)
-        expect(setErrorResponse).toHaveBeenCalledWith(res, 400, {}, [message])
+        await updatePassword(req as Request, res as Response, next);
+        expect(next).toHaveBeenCalledTimes(1)
+        expect(next).toHaveBeenCalledWith(new BadInputError(field, message))
     })
     it("Should return status 500 by default error", async () => {
         const mockedUser = {
@@ -59,9 +60,9 @@ describe("updatePassword() FAIL", () => {
             })
         }
         const req = getMockedRequest({ password }, {}, { user: mockedUser })
-        await updatePassword(req as Request, res as Response);
-        expect(setErrorResponse).toHaveBeenCalledTimes(1)
-        expect(setErrorResponse).toHaveBeenCalledWith(res, 500, {}, [messages.response.SERVER_ERROR()])
+        await updatePassword(req as Request, res as Response, next);
+        expect(next).toHaveBeenCalledTimes(1)
+        expect(next).toHaveBeenCalledWith(new Error(message))
     })
 
 })

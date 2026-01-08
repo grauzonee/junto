@@ -1,25 +1,11 @@
-import { Request, Response } from "express"
-import { editEvent } from "@/services/eventService";
+import { Request, Response } from "express";
+import { update as updateEvent } from "@/services/eventService";
+import { asyncHandler } from "@/requests/asyncHandler";
+import { setSuccessResponse } from "@/helpers/requestHelper";
+import { EditEventSchema } from "@/schemas/http/Event";
 
-import { NotFoundError } from "@/types/errors/InputError";
-import mongoose from "mongoose";
-import messages from "@/constants/errorMessages"
-import { parseMongooseValidationError, setErrorResponse, setSuccessResponse } from "@/helpers/requestHelper";
-
-export async function update(req: Request, res: Response) {
-    try {
-        const event = await editEvent(req);
-        setSuccessResponse(res, event.toJSON());
-    } catch (error) {
-        if (error instanceof NotFoundError) {
-            setErrorResponse(res, 404, {}, [error.message]);
-            return;
-        }
-        if (error instanceof mongoose.Error.ValidationError) {
-            const fieldErrors = parseMongooseValidationError(error);
-            setErrorResponse(res, 400, fieldErrors);
-            return;
-        }
-        setErrorResponse(res, 500, {}, [messages.response.SERVER_ERROR("updating event")]);
-    }
-}
+export const update = asyncHandler(async (req: Request, res: Response) => {
+    const editEventData = EditEventSchema.parse(req.body);
+    const event = await updateEvent(editEventData, req.params.eventId, req.user.id);
+    setSuccessResponse(res, event.toJSON());
+});

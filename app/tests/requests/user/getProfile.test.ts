@@ -1,5 +1,5 @@
 import { getProfile } from "@/requests/user/getProfile"
-import { Request, Response } from "express"
+import { NextFunction, Request, Response } from "express"
 import mongoose from "mongoose"
 import messages from "@/constants/errorMessages"
 import { getMockedResponse, getMockedRequest } from "../../utils"
@@ -11,6 +11,7 @@ jest.mock("@/helpers/requestHelper")
 
 
 const res = getMockedResponse();
+const next = jest.fn() as NextFunction;
 
 describe("getProfile() tests: SUCCESS", () => {
     afterEach(() => {
@@ -20,14 +21,14 @@ describe("getProfile() tests: SUCCESS", () => {
         const spy = jest.spyOn(User, "findById");
         const id = new mongoose.Types.ObjectId()
         const req = getMockedRequest({}, { id });
-        await getProfile(req as Request, res as Response);
+        await getProfile(req as Request, res as Response, next);
 
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith(id);
     })
     it("Should call getUserByToken if ID is not provided in request parameters", async () => {
         const req = getMockedRequest();
-        await getProfile(req as Request, res as Response);
+        await getProfile(req as Request, res as Response, next);
         expect(getUserByToken).toHaveBeenCalledTimes(1);
         expect(getUserByToken).toHaveBeenCalledWith(req);
     })
@@ -37,7 +38,7 @@ describe("getProfile() tests: SUCCESS", () => {
             return user;
         });
         const req = getMockedRequest();
-        await getProfile(req as Request, res as Response);
+        await getProfile(req as Request, res as Response, next);
         expect(setSuccessResponse).toHaveBeenCalledTimes(1);
         expect(setSuccessResponse).toHaveBeenCalledWith(res, user);
     })
@@ -51,18 +52,18 @@ describe("getProfile() tests: FAIL", () => {
             throw new Error("Invalid token");
         });
         const req = getMockedRequest();
-        await getProfile(req as Request, res as Response);
-        expect(setErrorResponse).toHaveBeenCalledTimes(1);
-        expect(setErrorResponse).toHaveBeenCalledWith(res, 500, {}, [messages.response.SERVER_ERROR()]);
+        await getProfile(req as Request, res as Response, next);
+        expect(next).toHaveBeenCalledTimes(1);
+        expect(next).toHaveBeenCalledWith(new Error("Invalid token"));
     })
     it("Should return status 404 if user not found", async () => {
         (getUserByToken as jest.Mock).mockImplementation(() => {
             return null;
         });
         const req = getMockedRequest();
-        await getProfile(req as Request, res as Response);
-        expect(setErrorResponse).toHaveBeenCalledTimes(1);
-        expect(setErrorResponse).toHaveBeenCalledWith(res, 404, {}, [messages.response.NOT_FOUND("User")]);
+        await getProfile(req as Request, res as Response, next);
+        expect(next).toHaveBeenCalledTimes(1);
+        expect(next).toHaveBeenCalledWith(new Error("User not found"));
 
     })
 })
