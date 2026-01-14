@@ -3,7 +3,7 @@ import messages from "@/constants/errorMessages"
 import { RSVP_STATUSES } from '@/models/RSVP';
 import { Types } from 'mongoose';
 
-export const RSVPSchema: z.Schema = z.object({
+export const RSVPSchema = z.object({
     eventId: z.string().refine(
         id => Types.ObjectId.isValid(id),
         {

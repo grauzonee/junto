@@ -1,12 +1,12 @@
 import { Request } from "express";
 import { RSVP, HydratedRSVP } from "@/models/RSVP";
 import { logger } from "@/config/loggerConfig";
+import { CreateRSVPInput } from "@/types/services/RSVPService";
 
-export async function insert(req: Request) {
-    const user = req.user._id;
-    const { eventId, status, additionalGuests } = req.body;
+export async function create(data: CreateRSVPInput, userId: string) {
+    const { eventId, status, additionalGuests } = data;
     try {
-        return await RSVP.create({ event: eventId, status, additionalGuests, user });
+        return await RSVP.create({ event: eventId, status, additionalGuests, user: userId });
     } catch (error) {
         logger.error("Error saving RSVP to MongoDB", error)
         throw error;

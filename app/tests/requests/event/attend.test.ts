@@ -1,7 +1,7 @@
 import { getMockedRequest, getMockedResponse } from "../../utils"
 import { Event } from "@/models/Event";
 import { Response, Request } from "express";
-import { insert } from "@/services/RSVPService"
+import { create } from "@/services/RSVPService"
 import { createFakeRSVP } from "../../generators/rsvp";
 import { attend } from "@/requests/event/attend";
 import { RSVP, STATUS_CONFIRMED } from "@/models/RSVP";
@@ -9,8 +9,11 @@ import { Types, Error } from "mongoose";
 import { parseMongooseValidationError } from "@/helpers/requestHelper";
 import messages from "@/constants/errorMessages"
 import { setSuccessResponse, setErrorResponse } from "@/helpers/requestHelper";
+import { RSVPSchema } from "@/schemas/http/RSVP";
+import { CreateRSVPInput } from "@/types/services/RSVPService";
 jest.mock("@/services/RSVPService")
 jest.mock("@/helpers/requestHelper")
+jest.mock("@/schemas/http/RSVP");
 
 const user = {
     _id: new Types.ObjectId()
@@ -20,21 +23,28 @@ let res: Partial<Response>;
 const mockRSVP = {
     ...createFakeRSVP(), toJSON: jest.fn().mockReturnThis()
 };
+const mockRSVPData = {
+    user: mockRSVP.user.toString(),
+    eventId: mockRSVP.event.toString(),
+    status: mockRSVP.status,
+    additionalGuests: mockRSVP.additionalGuests
+};
 beforeEach(() => {
     jest.resetAllMocks();
-    (insert as jest.Mock).mockResolvedValue(mockRSVP)
+    (create as jest.Mock).mockResolvedValue(mockRSVP);
+    (RSVPSchema.parse as jest.Mock).mockReturnValue(mockRSVPData as CreateRSVPInput);
     res = getMockedResponse();
 })
 describe("attend() SUCCESS", () => {
-    it("Should call isUserAttendingEvent(), insert(), setSuccessResponse() method on correct input data", async () => {
+    it("Should call isUserAttendingEvent(), create(), setSuccessResponse() method on correct input data", async () => {
         const spy = jest.spyOn(RSVP, "isUserAttendingEvent").mockResolvedValue(null);
         const event = await Event.findOne({ active: true });
         const req = await getRequest();
         await attend(req as Request, res as Response);
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith(user._id, req.body.eventId);
-        expect(insert).toHaveBeenCalledTimes(1)
-        expect(insert).toHaveBeenCalledWith(req)
+        expect(create).toHaveBeenCalledTimes(1)
+        expect(create).toHaveBeenCalledWith(mockRSVPData, user._id.toString())
         expect(setSuccessResponse).toHaveBeenCalledTimes(1)
         expect(setSuccessResponse).toHaveBeenCalledWith(res, mockRSVP.toJSON(), 201);
     })
@@ -47,9 +57,9 @@ describe("attend() FAIL", () => {
         await attend(req as Request, res as Response);
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith(user._id, req.body.eventId);
-        expect(insert).toHaveBeenCalledTimes(0)
+        expect(create).toHaveBeenCalledTimes(0)
         expect(setErrorResponse).toHaveBeenCalledTimes(1)
-        expect(setErrorResponse).toHaveBeenCalledWith(res, 400, messages.response.DUPLICATE_ATTEND);
+        expect(setErrorResponse).toHaveBeenCalledWith(res, 400, {}, [messages.response.DUPLICATE_ATTEND]);
     })
 
     it("Should return 400 on mongoose validation error", async () => {
@@ -64,7 +74,7 @@ describe("attend() FAIL", () => {
             })
         );
         const fieldErrors = parseMongooseValidationError(validationError);
-        (insert as jest.Mock).mockRejectedValue(validationError)
+        (create as jest.Mock).mockRejectedValue(validationError)
         const req = await getRequest();
         await attend(req as Request, res as Response)
         expect(setErrorResponse).toHaveBeenCalledTimes(1)
@@ -72,11 +82,11 @@ describe("attend() FAIL", () => {
 
     })
     it("Should return 500 on default error", async () => {
-        (insert as jest.Mock).mockRejectedValue(new Error("error"))
+        (create as jest.Mock).mockRejectedValue(new Error("error"))
         const req = await getRequest();
         await attend(req as Request, res as Response)
         expect(setErrorResponse).toHaveBeenCalledTimes(1)
-        expect(setErrorResponse).toHaveBeenCalledWith(res, 500, [],
+        expect(setErrorResponse).toHaveBeenCalledWith(res, 500, {},
             [messages.response.SERVER_ERROR("attending event")]
         )
     })
