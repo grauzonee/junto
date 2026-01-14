@@ -9,7 +9,7 @@ export async function attend(req: Request, res: Response) {
     try {
         const foundRsvp = await RSVP.isUserAttendingEvent(req.user._id, req.body.eventId);
         if (foundRsvp) {
-            setErrorResponse(res, 400, messages.response.DUPLICATE_ATTEND);
+            setErrorResponse(res, 400, {}, [messages.response.DUPLICATE_ATTEND]);
             return;
         }
         const rsvp = await insert(req);
@@ -23,7 +23,7 @@ export async function attend(req: Request, res: Response) {
             return;
         }
         setErrorResponse(
-            res, 500, [],
+            res, 500, {},
             [messages.response.SERVER_ERROR("attending event")]
         );
     }
