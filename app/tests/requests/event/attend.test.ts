@@ -44,7 +44,7 @@ describe("attend() SUCCESS", () => {
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith(user._id, req.body.eventId);
         expect(create).toHaveBeenCalledTimes(1)
-        expect(create).toHaveBeenCalledWith(mockRSVPData, user._id.toString())
+        expect(create).toHaveBeenCalledWith(mockRSVPData, user._id)
         expect(setSuccessResponse).toHaveBeenCalledTimes(1)
         expect(setSuccessResponse).toHaveBeenCalledWith(res, mockRSVP.toJSON(), 201);
     })

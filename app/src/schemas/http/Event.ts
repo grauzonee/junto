@@ -45,6 +45,4 @@ export const CreateEventSchema = z.object({
     maxAttendees: z.number().optional()
 }).strict()
 
-
-//What about maxAttendies?
 export const EditEventSchema = CreateEventSchema.partial().strict();

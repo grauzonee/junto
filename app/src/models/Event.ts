@@ -1,4 +1,3 @@
-import { BadInputError } from "@/types/errors/InputError";
 import mongoose, { HydratedDocument, Schema, Types, SchemaTypes, Model } from "mongoose";
 import { type Filterable, type FilterableField, FilterValue } from "@/types/Filter";
 import { type CurrencyCode } from "currency-codes-ts/dist/types";
@@ -8,6 +7,8 @@ import { paginatePlugin, type PaginateQueryHelper } from "@/models/plugins/pagin
 import { Category } from "@/models/Category";
 import { EventType } from "@/models/EventType";
 import messages from "@/constants/errorMessages";
+import { create } from "@/services/RSVPService";
+import { STATUS_CONFIRMED } from "@/models//RSVP";
 
 export interface IEvent {
     _id: Types.ObjectId;
@@ -21,7 +22,6 @@ export interface IEvent {
     }
     imageUrl: string;
     author: Types.ObjectId;
-    attendees: Types.ObjectId[];
     maxAttendees: number;
     fee: {
         amount: number,
@@ -35,13 +35,10 @@ export interface IEvent {
 
 export type HydratedEvent = HydratedDocument<IEvent>;
 
-export interface EventMethods {
-    attend(userId: Types.ObjectId): Promise<HydratedEvent>
-}
 
-interface EventModelType extends Model<IEvent, PaginateQueryHelper<IEvent>, EventMethods>, Filterable, Sortable { }
+interface EventModelType extends Model<IEvent, PaginateQueryHelper<IEvent>, object>, Filterable, Sortable { }
 
-export const EventSchema = new Schema<IEvent, Model<IEvent>, EventMethods, PaginateQueryHelper<IEvent>>(
+export const EventSchema = new Schema<IEvent, Model<IEvent>, object, PaginateQueryHelper<IEvent>>(
     {
         title: {
             type: String,
@@ -87,13 +84,6 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, EventMethods, Pagin
             required: true,
             ref: 'User'
         },
-        attendees: [
-            {
-                type: SchemaTypes.ObjectId,
-                ref: 'User',
-                default: []
-            }
-        ],
         maxAttendees: {
             type: Number,
             required: false,
@@ -146,18 +136,6 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, EventMethods, Pagin
                 return ['date'];
             }
         },
-        methods: {
-            // This whole logic will be refactored
-            async attend(this: HydratedDocument<IEvent>, userId: Types.ObjectId) {
-                if (this.attendees.some(id => id.equals(userId))) {
-                    throw new BadInputError("test", "User already attending this event");
-                }
-
-                this.attendees.push(userId);
-                await this.save();
-                return this;
-            }
-        }
     }
 );
 
@@ -194,12 +172,15 @@ EventSchema.path("type").validate({
     message: messages.validation.NOT_EXISTS("event type")
 });
 
-//Author is always attending the event
 EventSchema.pre("save", function (next) {
-    if (this.attendees.length === 0) {
-        this.attendees = [this.author]
-    }
+    this.$locals.wasNew = this.isNew;
     next();
+});
+//Author is always attending the event
+EventSchema.post("save", async function (doc) {
+    if (this.$locals.wasNew) {
+        await create({ eventId: doc._id.toString(), status: STATUS_CONFIRMED }, doc.author.toString());
+    }
 })
 
 EventSchema.plugin(paginatePlugin<IEvent>);

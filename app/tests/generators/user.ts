@@ -7,9 +7,9 @@ export async function createUser(overriders = {}, save = false) {
         password: "password123",
         ...overriders,
     };
-    const user = new User(userData);
+    let user = new User(userData);
     if (save) {
-        await user.save();
+        user = await user.save();
     }
     return user;
 }

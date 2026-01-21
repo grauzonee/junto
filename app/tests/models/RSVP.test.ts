@@ -104,7 +104,7 @@ describe("RSVP model", () => {
         if (!rsvp) {
             throw new Error("RSVP was not created");
         }
-        const result = await RSVP.isUserAttendingEvent(user?._id, event._id);
+        const result = await RSVP.isUserAttendingEvent(user?._id.toString(), event._id.toString());
         if (!result) {
             throw new Error("RSVP was not found");
         }
@@ -121,7 +121,7 @@ describe("RSVP model", () => {
             throw new Error("No user/event found, check your seeders");
         }
 
-        const result = await RSVP.isUserAttendingEvent(user?._id, event._id);
+        const result = await RSVP.isUserAttendingEvent(user?._id.toString(), event._id.toString());
         expect(result).toBeNull();
     })
 })

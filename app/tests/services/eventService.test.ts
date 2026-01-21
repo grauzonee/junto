@@ -41,7 +41,6 @@ describe("create event tests SUCCESS", () => {
         expect(result!.author.toString()).toBe(userId.toString())
         expect(result!.title).toBe(event.title)
         expect(result!.description).toBe(event.description)
-        expect(result!.attendees).toEqual([userId])
     })
 })
 describe("create event tests FAIL", () => {
@@ -88,7 +87,7 @@ describe("list events tests SUCCESS", () => {
         const event = createFakeEvent({
             type: eventTypeId.toString(), categories: [categoryId.toString()]
         })
-        event.author = userId;
+        event.author = userId.toString();
         await Event.create(event)
 
         const result = await listEvents(requestData)
@@ -116,7 +115,7 @@ describe("geosearch events tests SUCCESS", () => {
                 type: "Point",
                 coordinates: [48.21649, 16.40087]
             },
-            author: userId
+            author: userId.toString()
         });
         await Event.create(event)
         eventTitle = event.title;
@@ -173,7 +172,7 @@ describe("Edit event SUCCESS", () => {
             categories: [categoryId.toString()]
         })
         await Event.deleteMany({})
-        event.author = userId;
+        event.author = userId.toString();
         savedEvent = await Event.create(event)
         eventId = savedEvent.id;
     })
@@ -217,7 +216,7 @@ describe("Edit event FAIL", () => {
             categories: [categoryId.toString()]
         })
         await Event.deleteMany({})
-        event.author = userId;
+        event.author = userId.toString();
         savedEvent = await Event.create(event)
         eventId = savedEvent.id;
     })

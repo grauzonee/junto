@@ -1,10 +1,11 @@
 import { IEvent } from "@/models/Event";
 import { Types } from "mongoose";
 
-type FakeEvent = Omit<IEvent, "date" | "categories" | "type"> & {
+type FakeEvent = Omit<IEvent, "date" | "categories" | "type" | "author"> & {
     date: number;
     categories: string[];
     type: string;
+    author: string;
 };
 
 
@@ -20,7 +21,7 @@ export function createFakeEvent(overrides: Partial<FakeEvent> = {}) {
                 [Math.random() * 180 - 90, Math.random() * 180 - 90],
         },
         imageUrl: "https://example.com/test-image.jpg",
-        author: new Types.ObjectId(),
+        author: new Types.ObjectId().toString(),
         categories: ["testing", "events", "automation"],
         type: new Types.ObjectId().toString(),
         ...overrides,

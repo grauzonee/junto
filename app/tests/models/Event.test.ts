@@ -3,6 +3,8 @@ import { Event } from "@/models/Event"
 import { createFakeEvent } from "../generators/event"
 import { Category } from "@/models/Category"
 import { EventType } from "@/models/EventType"
+import { STATUS_CONFIRMED } from "@/models/RSVP"
+import { createUser } from "../generators/user"
 
 let eventTypeId: Types.ObjectId;
 
@@ -66,4 +68,32 @@ describe("Validation", () => {
             expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
         }
     })
+    it("RSVP: Should create RSVP for author when event is created", async () => {
+        const user = await createUser({}, true);
+        const event = createFakeEvent({ author: user._id.toString(), type: eventTypeId.toString() });
+        const categories = await Category.find().limit(2);
+        if (!categories) {
+            throw new Error("No categories in MongoMemory server, check your seeders!");
+        }
+        event.categories = categories.map(i => i._id.toString());
+        const newEvent = await Event.create(event);
+        const rsvp = await mongoose.model("RSVP").findOne({ event: newEvent._id, user: newEvent.author });
+        expect(rsvp).not.toBeNull();
+        expect(rsvp).toHaveProperty("status", STATUS_CONFIRMED);
+    })
+
+    it("RSVP: Should not create duplicate RSVP for author when event is updated", async () => {
+        const user = await createUser({}, true);
+        const event = createFakeEvent({ author: user._id.toString(), type: eventTypeId.toString() });
+        const categories = await Category.find().limit(2);
+        if (!categories) {
+            throw new Error("No categories in MongoMemory server, check your seeders!");
+        }
+        event.categories = categories.map(i => i._id.toString());
+        const newEvent = await Event.create(event);
+        newEvent.title = "Updated Event Title";
+        await newEvent.save();
+        const rsvps = await mongoose.model("RSVP").find({ event: newEvent._id, user: newEvent.author });
+        expect(rsvps.length).toBe(1);
+    });
 })
