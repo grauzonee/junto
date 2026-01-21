@@ -25,7 +25,7 @@ export interface IEvent {
     maxAttendees: number;
     fee: {
         amount: number,
-        currence: CurrencyCode
+        currency: CurrencyCode
     };
     active: boolean;
     categories: Types.ObjectId[];
@@ -78,7 +78,7 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, EventMethods, Pagin
         categories: [
             {
                 type: SchemaTypes.ObjectId,
-                required: false,
+                required: true,
                 ref: 'Category'
             }
         ],
@@ -178,7 +178,7 @@ EventSchema.set('toJSON', {
 })
 
 EventSchema.path("categories").validate({
-    validator: async function(value: Types.ObjectId[]) {
+    validator: async function (value: Types.ObjectId[]) {
         if (!value || value.length === 0) return true;
         const count = await Category.countDocuments({ _id: { $in: value } });
         return count === value.length;
@@ -187,7 +187,7 @@ EventSchema.path("categories").validate({
 });
 
 EventSchema.path("type").validate({
-    validator: async function(value: Types.ObjectId) {
+    validator: async function (value: Types.ObjectId) {
         const typeExists = await EventType.exists({ _id: value });
         return typeExists;
     },
@@ -195,7 +195,7 @@ EventSchema.path("type").validate({
 });
 
 //Author is always attending the event
-EventSchema.pre("save", function(next) {
+EventSchema.pre("save", function (next) {
     if (this.attendees.length === 0) {
         this.attendees = [this.author]
     }

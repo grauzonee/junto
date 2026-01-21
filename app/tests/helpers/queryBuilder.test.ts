@@ -1,22 +1,22 @@
 import { buildFilterQuery, buildGeosearchQuery, buildSortQuery } from "@/helpers/queryBuilder"
-import { CoordinatesInput } from "@/schemas/http/Event"
+import { CoordinatesInput } from "@/types/services/eventService"
 import type { Filter } from "@/types/Filter"
 import { SortInput } from "@/types/Sort"
 
 describe("buildFilterQuery() tests", () => {
     it("Should handle all the operators", () => {
         const filterDatas = [
-            {field: 'author', prefix: 'eq', value: '123', expectedPrefix: "$eq"},
-            {field: 'fee', prefix: 'min', value: 100, expectedPrefix: "$gte"},
-            {field: 'date', prefix: 'before', value: Date.now() / 1000, expectedPrefix: "$lte"},
-            {field: 'fee', prefix: 'max', value: 100, expectedPrefix: "$lte"},
-            {field: 'date', prefix: 'after', value: Date.now() / 1000, expectedPrefix: "$gte"},
-            {field: 'interests', prefix: 'in', value: ['drawing', 'walking'], expectedPrefix: "$in"},
-            {field: 'interests', prefix: 'nin', value: ['drawing', 'walking'], expectedPrefix: "$nin"},
-        ];  
+            { field: 'author', prefix: 'eq', value: '123', expectedPrefix: "$eq" },
+            { field: 'fee', prefix: 'min', value: 100, expectedPrefix: "$gte" },
+            { field: 'date', prefix: 'before', value: Date.now() / 1000, expectedPrefix: "$lte" },
+            { field: 'fee', prefix: 'max', value: 100, expectedPrefix: "$lte" },
+            { field: 'date', prefix: 'after', value: Date.now() / 1000, expectedPrefix: "$gte" },
+            { field: 'interests', prefix: 'in', value: ['drawing', 'walking'], expectedPrefix: "$in" },
+            { field: 'interests', prefix: 'nin', value: ['drawing', 'walking'], expectedPrefix: "$nin" },
+        ];
         filterDatas.forEach(filterData => {
-            const {field, prefix, value, expectedPrefix} = filterData;
-            const query = buildFilterQuery<Event>([{field, prefix, value}])
+            const { field, prefix, value, expectedPrefix } = filterData;
+            const query = buildFilterQuery<Event>([{ field, prefix, value }])
             expect(query).toEqual({
                 [field]: { [expectedPrefix]: value }
             })
