@@ -1,6 +1,6 @@
 import { getMockedRequest, getMockedResponse } from "../../utils"
 import { Event } from "@/models/Event";
-import { Response, Request } from "express";
+import { Response, Request, NextFunction } from "express";
 import { create } from "@/services/RSVPService"
 import { createFakeRSVP } from "../../generators/rsvp";
 import { attend } from "@/requests/event/attend";
@@ -19,7 +19,7 @@ const user = {
     _id: new Types.ObjectId()
 }
 let res: Partial<Response>;
-
+const next = jest.fn() as NextFunction;
 const mockRSVP = {
     ...createFakeRSVP(), toJSON: jest.fn().mockReturnThis()
 };
@@ -40,7 +40,7 @@ describe("attend() SUCCESS", () => {
         const spy = jest.spyOn(RSVP, "isUserAttendingEvent").mockResolvedValue(null);
         const event = await Event.findOne({ active: true });
         const req = await getRequest();
-        await attend(req as Request, res as Response);
+        await attend(req as Request, res as Response, next);
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith(user._id, req.body.eventId);
         expect(create).toHaveBeenCalledTimes(1)
@@ -54,7 +54,7 @@ describe("attend() FAIL", () => {
     it("Should call isUserAttendingEvent(), setErrorResponse() method on incorrect input data", async () => {
         const spy = jest.spyOn(RSVP, "isUserAttendingEvent").mockResolvedValue(new RSVP());
         const req = await getRequest();
-        await attend(req as Request, res as Response);
+        await attend(req as Request, res as Response, next);
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith(user._id, req.body.eventId);
         expect(create).toHaveBeenCalledTimes(0)
@@ -76,19 +76,17 @@ describe("attend() FAIL", () => {
         const fieldErrors = parseMongooseValidationError(validationError);
         (create as jest.Mock).mockRejectedValue(validationError)
         const req = await getRequest();
-        await attend(req as Request, res as Response)
-        expect(setErrorResponse).toHaveBeenCalledTimes(1)
-        expect(setErrorResponse).toHaveBeenCalledWith(res, 400, fieldErrors)
+        await attend(req as Request, res as Response, next)
+        expect(next).toHaveBeenCalledTimes(1)
+        expect(next).toHaveBeenCalledWith(validationError)
 
     })
     it("Should return 500 on default error", async () => {
         (create as jest.Mock).mockRejectedValue(new Error("error"))
         const req = await getRequest();
-        await attend(req as Request, res as Response)
-        expect(setErrorResponse).toHaveBeenCalledTimes(1)
-        expect(setErrorResponse).toHaveBeenCalledWith(res, 500, {},
-            [messages.response.SERVER_ERROR("attending event")]
-        )
+        await attend(req as Request, res as Response, next)
+        expect(next).toHaveBeenCalledTimes(1)
+        expect(next).toHaveBeenCalledWith(new Error("error"))
     })
 })
 
