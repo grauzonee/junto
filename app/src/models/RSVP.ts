@@ -127,8 +127,12 @@ RSVPSchema.path("status").validate({
 });
 RSVPSchema.path("event").validate({
     validator: async function (value: Types.ObjectId) {
-        const exists = Event.exists({ _id: value, active: true })
-        return exists;
+        const event = await Event.findOne({ _id: value, active: true })
+        if (!event) {
+            return false;
+        }
+        const rsvpCount = await RSVP.countDocuments({ event: value, status: STATUS_CONFIRMED });
+        return rsvpCount < event.maxAttendees;
     },
     message: messages.validation.NOT_CORRECT("event")
 });
