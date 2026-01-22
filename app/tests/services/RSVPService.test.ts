@@ -1,15 +1,13 @@
 import { Types } from "mongoose"
-import { Request } from "express"
 import { createFakeRSVP } from "../../tests/generators/rsvp"
 import { getOneUser } from "../../tests/getters"
 import { getMockedRequest } from "../utils"
 import { RSVP, STATUS_CONFIRMED } from "@/models/RSVP"
-import { create } from "@/services/RSVPService"
-
+import { create, update } from "@/services/RSVPService"
 
 describe("create() method SUCCESS", () => {
     it("Should call RSVP.create method", async () => {
-        const mockRSVP = createFakeRSVP();
+        const mockRSVP = await createFakeRSVP({}, true);
         jest.spyOn(RSVP, 'create').mockResolvedValue(mockRSVP as any);
         const body = {
             eventId: new Types.ObjectId().toString(),
@@ -41,4 +39,28 @@ describe("create() method FAIL", () => {
             expect((error as Error).message).toBe("Mock error");
         }
     })
-})
+});
+
+describe("update() method SUCCESS", () => {
+    it("Should call RSVP.setStatus and save methods", async () => {
+        const mockRSVP = await createFakeRSVP({}, true);
+        if (!mockRSVP._id) {
+            throw new Error("Mock RSVP must have an _id");
+        }
+        const setStatusSpy = jest.spyOn(mockRSVP, "setStatus");
+        const saveSpy = jest.spyOn(mockRSVP, "save").mockResolvedValue(mockRSVP as any);
+        jest.spyOn(RSVP, 'findOne').mockResolvedValue(mockRSVP as any);
+        const body = {
+            status: STATUS_CONFIRMED,
+            additionalGuests: 2
+        }
+        const user = await getOneUser();
+        const req = getMockedRequest(body, { id: mockRSVP._id.toString() }, { user })
+
+        await update(body, mockRSVP._id.toString(), user._id.toString())
+        expect(RSVP.findOne).toHaveBeenCalledTimes(1);
+        expect(setStatusSpy).toHaveBeenCalledTimes(1);
+        expect(setStatusSpy).toHaveBeenCalledWith(body.status);
+        expect(saveSpy).toHaveBeenCalledTimes(1);
+    })
+});
