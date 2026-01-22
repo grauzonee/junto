@@ -14,8 +14,9 @@ jest.mock("@/middlewares/authMiddleware", () => ({
 import app from "@/app";
 import { Event } from "@/models/Event";
 import messages from "@/constants/errorMessages"
-import { STATUS_CONFIRMED } from "@/models/RSVP";
+import { RSVP, STATUS_CANCELED, STATUS_CONFIRMED, STATUS_MAYBE } from "@/models/RSVP";
 import { Types } from "mongoose";
+import { createFakeEvent } from "../generators/event";
 
 describe("PUT /rsvp/:id", () => {
     let eventId: string;
@@ -68,5 +69,43 @@ describe("PUT /rsvp/:id", () => {
 
     afterAll(async () => {
         await user.deleteOne();
+    });
+
+    it("Should prevent event authors from setting RSVP status to 'maybe' or 'canceled'", async () => {
+        // Create an event where the user is the author
+        const newEvent = await createFakeEvent({ author: user._id.toString() }, true);
+        const rsvp = await RSVP.findOne({ user: user._id, event: newEvent._id });
+        const authorRsvpId = rsvp ? rsvp._id.toString() : null;
+
+        if (!authorRsvpId) {
+            throw new Error("Failed to create RSVP for event author");
+        }
+        // // User attends their own event
+        // const attendRes = await request(app).post('/api/event/attend').send({
+        //     eventId: newEventRes._id.toString(),
+        //     userId: userId,
+        //     status: STATUS_CONFIRMED
+        // });
+        // const authorRsvpId = attendRes.body.data._id;
+
+        // Attempt to update RSVP status to 'maybe'
+        const updateMaybeRes = await request(app).put(`/api/rsvp/${authorRsvpId}`).send({
+            status: STATUS_MAYBE
+        });
+        console.log(updateMaybeRes.body);
+        expect(updateMaybeRes.statusCode).toBe(400);
+        expect(updateMaybeRes.body.success).toBe(false);
+        expect(updateMaybeRes.body.data.fieldErrors).toEqual({ "user": messages.validation.CANNOT_MODIFY("Event authors RSVP status") });
+
+        // Attempt to update RSVP status to 'canceled'
+        const updateCanceledRes = await request(app).put(`/api/rsvp/${authorRsvpId}`).send({
+            status: STATUS_CANCELED
+        });
+        expect(updateCanceledRes.statusCode).toBe(400);
+        expect(updateCanceledRes.body.success).toBe(false);
+        expect(updateCanceledRes.body.data.fieldErrors).toEqual({ "user": messages.validation.CANNOT_MODIFY("Event authors RSVP status") });
+
+        // Clean up
+        await Event.deleteOne({ _id: newEvent._id });
     });
 });

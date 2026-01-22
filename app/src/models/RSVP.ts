@@ -1,6 +1,7 @@
 import mongoose, { HydratedDocument, Schema, Types, SchemaTypes, Model } from "mongoose";
 import messages from "@/constants/errorMessages"
 import { Event } from "@/models/Event";
+import { BadInputError } from "@/types/errors/InputError";
 
 export const STATUS_CONFIRMED = 'confirmed' as const;
 export const STATUS_CANCELED = 'canceled' as const;
@@ -89,9 +90,16 @@ const RSVPSchema = new Schema<IRSVP, RSVPModelType, RSVPMethods, RSVPQueryHelper
             }
         },
         methods: {
-            setStatus(this: HydratedRSVP, status: string) {
+            async setStatus(this: HydratedRSVP, status: string) {
                 if (!isRSVPStatus(status)) {
                     throw new Error("Invalid RSVP status");
+                }
+                if (status !== STATUS_CONFIRMED) {
+                    await this.populate('event');
+                    const event = this.event as unknown as { author: Types.ObjectId };
+                    if (event.author.toString() === this.user.toString()) {
+                        throw new BadInputError("user", messages.validation.CANNOT_MODIFY("Event authors RSVP status"));
+                    }
                 }
                 this.status = status;
             },

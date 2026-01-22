@@ -6,7 +6,8 @@ export default {
         NOT_EXISTS_MUL: (field: string) => `One or more ${field.toLowerCase()} do not exist`,
         IMAGE_NOT_EXISTS: (field: string) => `Invalid field ${field.toLowerCase()}, image doesn't exist`,
         NOT_CORRECT: (field: string) => uc_first(field) + " is not correct",
-        PASSWORDS_EQUAL: "Passwords are equal"
+        PASSWORDS_EQUAL: "Passwords are equal",
+        CANNOT_MODIFY: (field: string) => uc_first(field) + " cannot be modified",
     },
     // Errors for validation schemes
     http: {
