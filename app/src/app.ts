@@ -11,6 +11,7 @@ import express, { Request, Response } from "express";
 import { router } from "@/routes/main";
 import cors from "cors";
 import path from "path";
+import { errorHandler } from "@/middlewares/errorHandler";
 
 /**
  * Create the Express application.
@@ -62,6 +63,7 @@ app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
  */
 app.use("/docs", express.static(path.join(__dirname, "..", "docs")));
 
+app.use(errorHandler);
 /**
  * The configured Express app.
  */
