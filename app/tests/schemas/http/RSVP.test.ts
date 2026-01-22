@@ -1,17 +1,17 @@
 import { STATUS_CONFIRMED } from "@/models/RSVP";
-import { RSVPSchema } from "@/schemas/http/RSVP";
+import { CreateRSVPSchema, UpdateRSVPSchema } from "@/schemas/http/RSVP";
 import { Types } from "mongoose";
 import messages from "@/constants/errorMessages"
 import * as z from 'zod';
 
-describe("RSVPSchema", () => {
+describe("CreateRSVPSchema", () => {
     it("Should pass validation with valid data", () => {
         const data = {
             eventId: new Types.ObjectId().toString(),
             status: STATUS_CONFIRMED,
             additionalGuests: 2
         };
-        expect(() => RSVPSchema.parse(data)).not.toThrow();
+        expect(() => CreateRSVPSchema.parse(data)).not.toThrow();
     });
 
     it("Should fail validation with invalid eventId", () => {
@@ -20,7 +20,7 @@ describe("RSVPSchema", () => {
             status: "confirmed"
         };
         try {
-            RSVPSchema.parse(data);
+            CreateRSVPSchema.parse(data);
         } catch (e) {
             const error = e as z.ZodError;
             expect(error.issues[0].message).toBe(messages.http.INVALID_ID("Event ID"));
@@ -33,7 +33,7 @@ describe("RSVPSchema", () => {
             status: "going"
         };
         try {
-            RSVPSchema.parse(data);
+            CreateRSVPSchema.parse(data);
         } catch (e) {
             const error = e as z.ZodError;
             expect(error.issues[0].message).toBe(messages.validation.NOT_CORRECT("status"));
@@ -47,7 +47,7 @@ describe("RSVPSchema", () => {
             additionalGuests: -1
         };
         try {
-            RSVPSchema.parse(data);
+            CreateRSVPSchema.parse(data);
         } catch (e) {
             const error = e as z.ZodError;
             expect(error.issues[0].message).toBe(messages.http.MIN("Additional Guests", 0));
@@ -59,6 +59,48 @@ describe("RSVPSchema", () => {
             eventId: "60d21b4667d0d8992e610c85",
             status: "maybe"
         };
-        expect(() => RSVPSchema.parse(data)).not.toThrow();
+        expect(() => CreateRSVPSchema.parse(data)).not.toThrow();
+    });
+});
+
+describe("UpdateRSVPSchema", () => {
+    it("Should pass validation with valid data", () => {
+        const data = {
+            status: STATUS_CONFIRMED,
+            additionalGuests: 3
+        };
+        expect(() => UpdateRSVPSchema.parse(data)).not.toThrow();
+    });
+
+    it("Should fail validation with invalid status", () => {
+        const data = {
+            status: "yes"
+        };
+        try {
+            UpdateRSVPSchema.parse(data);
+        } catch (e) {
+            const error = e as z.ZodError;
+            expect(error.issues[0].message).toBe(messages.validation.NOT_CORRECT("status"));
+        }
+    });
+
+    it("Should fail validation with negative additionalGuests", () => {
+        const data = {
+            status: STATUS_CONFIRMED,
+            additionalGuests: -2
+        };
+        try {
+            UpdateRSVPSchema.parse(data);
+        } catch (e) {
+            const error = e as z.ZodError;
+            expect(error.issues[0].message).toBe(messages.http.MIN("Additional Guests", 0));
+        }
+    });
+
+    it("Should pass validation without additionalGuests", () => {
+        const data = {
+            status: STATUS_CONFIRMED
+        };
+        expect(() => UpdateRSVPSchema.parse(data)).not.toThrow();
     });
 });

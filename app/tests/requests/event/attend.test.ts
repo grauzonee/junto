@@ -9,7 +9,7 @@ import { Types, Error } from "mongoose";
 import { parseMongooseValidationError } from "@/helpers/requestHelper";
 import messages from "@/constants/errorMessages"
 import { setSuccessResponse, setErrorResponse } from "@/helpers/requestHelper";
-import { RSVPSchema } from "@/schemas/http/RSVP";
+import { CreateRSVPSchema } from "@/schemas/http/RSVP";
 import { CreateRSVPInput } from "@/types/services/RSVPService";
 jest.mock("@/services/RSVPService")
 jest.mock("@/helpers/requestHelper")
@@ -32,7 +32,7 @@ const mockRSVPData = {
 beforeEach(() => {
     jest.resetAllMocks();
     (create as jest.Mock).mockResolvedValue(mockRSVP);
-    (RSVPSchema.parse as jest.Mock).mockReturnValue(mockRSVPData as CreateRSVPInput);
+    (CreateRSVPSchema.parse as jest.Mock).mockReturnValue(mockRSVPData as CreateRSVPInput);
     res = getMockedResponse();
 })
 describe("attend() SUCCESS", () => {

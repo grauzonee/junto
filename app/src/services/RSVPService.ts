@@ -1,10 +1,16 @@
-import { Request } from "express";
-import { RSVP, HydratedRSVP } from "@/models/RSVP";
+import { RSVP } from "@/models/RSVP";
 import { logger } from "@/config/loggerConfig";
-import { CreateRSVPInput } from "@/types/services/RSVPService";
+import { CreateRSVPInput, UpdateRSVPInput } from "@/types/services/RSVPService";
+import { BadInputError, NotFoundError } from "@/types/errors/InputError";
+import messages from "@/constants/errorMessages";
 
 export async function create(data: CreateRSVPInput, userId: string) {
     const { eventId, status, additionalGuests } = data;
+    const foundRsvp = await RSVP.isUserAttendingEvent(userId, eventId);
+    if (foundRsvp) {
+        throw new BadInputError("user", messages.response.DUPLICATE_ATTEND);
+    }
+
     try {
         return await RSVP.create({ event: eventId, status, additionalGuests, user: userId });
     } catch (error) {
@@ -13,10 +19,17 @@ export async function create(data: CreateRSVPInput, userId: string) {
     }
 }
 
-export async function update(rsvp: HydratedRSVP, req: Request) {
-    const { status, additionalGuests } = req.body;
-    rsvp.status = status;
-    rsvp.additionalGuests = additionalGuests;
+export async function update(data: UpdateRSVPInput, rsvpId: string, userId: string) {
+    const rsvp = await RSVP.findOne({ _id: rsvpId, user: userId }).populate('event');
+    if (!rsvp) {
+        throw new NotFoundError("rsvp");
+    }
+
+    rsvp.setStatus(data.status);
+    if (data.additionalGuests !== undefined) {
+        rsvp.additionalGuests = data.additionalGuests;
+    }
+
     await rsvp.save();
-    return rsvp;
+    return rsvp.depopulate('event');
 }
