@@ -1,4 +1,5 @@
-import { RSVP, STATUS_CANCELED, STATUS_CONFIRMED } from "@/models/RSVP"
+import { RSVP } from "@/models/rsvp/RSVP"
+import { STATUS_CANCELED, STATUS_CONFIRMED } from "@/models/rsvp/utils"
 import { User } from "@/models/User"
 import { Event } from "@/models/Event"
 import { EventType } from "@/models/EventType"

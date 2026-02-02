@@ -8,7 +8,7 @@ import { Category } from "@/models/Category";
 import { EventType } from "@/models/EventType";
 import messages from "@/constants/errorMessages";
 import { create } from "@/services/RSVPService";
-import { STATUS_CONFIRMED } from "@/models//RSVP";
+import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
 
 export interface IEvent {
     _id: Types.ObjectId;

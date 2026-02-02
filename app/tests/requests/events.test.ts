@@ -14,7 +14,7 @@ jest.mock("@/middlewares/authMiddleware", () => ({
 import app from "@/app";
 import { Event } from "@/models/Event";
 import messages from "@/constants/errorMessages"
-import { STATUS_CONFIRMED } from "@/models/RSVP";
+import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
 
 describe("POST /attend", () => {
     let eventId: string;

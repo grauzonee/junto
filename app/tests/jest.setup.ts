@@ -1,5 +1,5 @@
 require("dotenv").config({ path: ".env.test", quiet: true });
-
+jest.mock("@/models/rsvp/validators");
 import mongoose from "mongoose"
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { seed as seedCategories } from "@/seeders/categories.seeder"

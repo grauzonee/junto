@@ -1,6 +1,5 @@
 import { create } from "@/requests/event/create"
 import { getMockedRequest, getMockedResponse } from "../../utils"
-import { parseMongooseValidationError } from "@/helpers/requestHelper"
 import mongoose, { Types } from "mongoose"
 import { NextFunction, Request, Response } from "express"
 import { create as createEvent } from "@/services/eventService"
@@ -15,13 +14,16 @@ jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/Event");
 
 let res: Partial<Response>;
-const mockEvent = { ...createFakeEvent(), toJSON: jest.fn().mockReturnThis() }
-let newEvent: ReturnType<typeof createFakeEvent>;
+let mockEvent: Awaited<ReturnType<typeof createFakeEvent>> & { toJSON(): any };
+//const mockEvent = { ...createFakeEvent(), toJSON: jest.fn().mockReturnThis() }
+let newEvent: Awaited<ReturnType<typeof createFakeEvent>>;
 const next = jest.fn() as NextFunction;
 let categoriesIds: string[];
 let eventTypeId: string;
 
 beforeAll(async () => {
+    const event = await createFakeEvent();
+    mockEvent = { ...event, toJSON: jest.fn().mockReturnThis() } as any;
     const categories = await Category.find().limit(2);
     const eventType = await EventType.findOne();
     if (!categories || !eventType) {
@@ -29,7 +31,7 @@ beforeAll(async () => {
     }
     categoriesIds = categories.map(i => i._id.toString());
     eventTypeId = eventType._id.toString();
-    newEvent = createFakeEvent({ type: eventTypeId, categories: categoriesIds });
+    newEvent = await createFakeEvent({ type: eventTypeId, categories: categoriesIds });
 })
 
 beforeEach(() => {

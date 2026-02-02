@@ -2,13 +2,14 @@ import { Types } from "mongoose"
 import { createFakeRSVP } from "../../tests/generators/rsvp"
 import { getOneUser } from "../../tests/getters"
 import { getMockedRequest } from "../utils"
-import { RSVP, STATUS_CONFIRMED } from "@/models/RSVP"
+import { RSVP } from "@/models/rsvp/RSVP"
+import { STATUS_CONFIRMED } from "@/models/rsvp/utils"
 import { create, update } from "@/services/RSVPService"
 
 describe("create() method SUCCESS", () => {
     it("Should call RSVP.create method", async () => {
         const mockRSVP = await createFakeRSVP({}, true);
-        jest.spyOn(RSVP, 'create').mockResolvedValue(mockRSVP as any);
+        const spy = jest.spyOn(RSVP, 'create').mockResolvedValue(mockRSVP as any);
         const body = {
             eventId: new Types.ObjectId().toString(),
             status: STATUS_CONFIRMED,
@@ -19,11 +20,11 @@ describe("create() method SUCCESS", () => {
         await create(body, user._id.toString())
         expect(RSVP.create).toHaveBeenCalledTimes(1);
         expect(RSVP.create).toHaveBeenCalledWith({ event: body.eventId, status: body.status, additionalGuests: body.additionalGuests, user: user._id.toString() });
+        spy.mockRestore();
     })
 })
 describe("create() method FAIL", () => {
     it("Should rethrow error", async () => {
-        const mockRSVP = createFakeRSVP();
         const spy = jest.spyOn(RSVP, "create").mockRejectedValue(new Error("Mock error"));
         const body = {
             eventId: new Types.ObjectId().toString(),
@@ -38,6 +39,7 @@ describe("create() method FAIL", () => {
             expect(error).toBeInstanceOf(Error);
             expect((error as Error).message).toBe("Mock error");
         }
+        spy.mockRestore();
     })
 });
 
@@ -49,7 +51,12 @@ describe("update() method SUCCESS", () => {
         }
         const setStatusSpy = jest.spyOn(mockRSVP, "setStatus");
         const saveSpy = jest.spyOn(mockRSVP, "save").mockResolvedValue(mockRSVP as any);
-        jest.spyOn(RSVP, 'findOne').mockResolvedValue(mockRSVP as any);
+
+        const populateMock = jest.fn().mockReturnValue(mockRSVP);
+
+        jest.spyOn(RSVP, "findOne").mockReturnValue({
+            populate: populateMock,
+        } as any);
         const body = {
             status: STATUS_CONFIRMED,
             additionalGuests: 2

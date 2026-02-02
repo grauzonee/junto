@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express"
 import { geoSearch as serviceGeoSearch } from "@/services/eventService";
 import { createFakeEvent } from "../../generators/event"
-import { setErrorResponse, setSuccessResponse } from "@/helpers/requestHelper";
+import { setSuccessResponse } from "@/helpers/requestHelper";
 import { getMockedRequest, getMockedResponse } from "../../utils";
 import { geosearch } from "@/requests/event/geosearch";
 import { ZodError } from "zod";
@@ -12,14 +12,19 @@ jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/Event")
 
 let res: Partial<Response>;
-const mockEvent = { ...createFakeEvent(), toJSON: jest.fn().mockReturnThis() }
-const result = [mockEvent, mockEvent];
+let mockEvent: Awaited<ReturnType<typeof createFakeEvent>> & { toJSON(): any };
+let result: typeof mockEvent[] = [];
 const next = jest.fn() as NextFunction;
 const coordinates = {
     lat: 40.7128,
     lng: -74.0060,
     radius: 3
 };
+beforeAll(async () => {
+    const event = await createFakeEvent();
+    mockEvent = { ...event, toJSON: jest.fn().mockReturnThis() } as any;
+    result = [mockEvent, mockEvent];
+});
 
 beforeEach(() => {
     jest.resetAllMocks();

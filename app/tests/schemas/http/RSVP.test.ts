@@ -1,4 +1,4 @@
-import { STATUS_CONFIRMED } from "@/models/RSVP";
+import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
 import { CreateRSVPSchema, UpdateRSVPSchema } from "@/schemas/http/RSVP";
 import { Types } from "mongoose";
 import messages from "@/constants/errorMessages"

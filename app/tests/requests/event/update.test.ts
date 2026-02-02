@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import { createFakeEvent } from "../../generators/event"
 import { parseMongooseValidationError, setErrorResponse, setSuccessResponse } from "@/helpers/requestHelper";
 import { update } from "@/requests/event/update";
+import { before } from "node:test";
 
 jest.mock("@/services/eventService")
 jest.mock("@/helpers/requestHelper")
@@ -12,7 +13,12 @@ jest.mock("@/helpers/requestHelper")
 
 let res: Partial<Response>;
 const next = jest.fn() as NextFunction;
-const mockEvent = { ...createFakeEvent(), toJSON: jest.fn().mockReturnThis() }
+let mockEvent: Awaited<ReturnType<typeof createFakeEvent>> & { toJSON(): any };
+//const mockEvent = { ...createFakeEvent(), toJSON: jest.fn().mockReturnThis() }
+beforeAll(async () => {
+    const event = await createFakeEvent();
+    mockEvent = { ...event, toJSON: jest.fn().mockReturnThis() } as any;
+})
 beforeEach(() => {
     jest.resetAllMocks();
     (updateEvent as jest.Mock).mockResolvedValue(mockEvent)

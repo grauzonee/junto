@@ -1,4 +1,4 @@
-import { RSVP } from "@/models/RSVP";
+import { RSVP } from "@/models/rsvp/RSVP";
 import { logger } from "@/config/loggerConfig";
 import { CreateRSVPInput, UpdateRSVPInput } from "@/types/services/RSVPService";
 import { BadInputError, NotFoundError } from "@/types/errors/InputError";

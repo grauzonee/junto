@@ -1,6 +1,6 @@
 import * as z from 'zod';
 import messages from "@/constants/errorMessages"
-import { RSVP_STATUSES } from '@/models/RSVP';
+import { RSVP_STATUSES } from '@/models/rsvp/utils';
 import { Types } from 'mongoose';
 
 export const CreateRSVPSchema = z.object({

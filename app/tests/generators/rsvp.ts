@@ -1,4 +1,5 @@
-import { HydratedRSVP, IRSVP, RSVP, STATUS_CONFIRMED } from "@/models/RSVP";
+import { HydratedRSVP, RSVP } from "@/models/rsvp/RSVP";
+import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
 import { Types } from "mongoose";
 
 export async function createFakeRSVP(overrides: Partial<HydratedRSVP> = {}, save = false) {
@@ -9,7 +10,7 @@ export async function createFakeRSVP(overrides: Partial<HydratedRSVP> = {}, save
         ...overrides
     }
     if (save) {
-        const rsvp = RSVP.create(rsvpData);
+        const rsvp = await RSVP.create(rsvpData);
         return rsvp;
     } else {
         return rsvpData;
