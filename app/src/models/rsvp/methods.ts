@@ -13,7 +13,7 @@ export interface RSVPMethods {
 
 export async function setStatus(this: HydratedRSVP, status: string) {
     if (!isRSVPStatus(status)) {
-        throw new Error("Invalid RSVP status");
+        throw new BadInputError("status", messages.validation.NOT_CORRECT("Rsvp status"));
     }
     if (status !== STATUS_CONFIRMED) {
         await this.populate('event');
