@@ -91,8 +91,9 @@ describe("GET /:eventId/rsvps", () => {
         const res = await request(app).get(`/api/event/${eventId}/rsvps`);
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('data');
-        expect(Array.isArray(res.body.data)).toBe(true);
-        expect(res.body.data.length).toBe(4); // 3 created + 1 author
+        expect(res.body.data).toHaveProperty('total', 4); // 3 created + 1 author
+        expect(Array.isArray(res.body.data.entities)).toBe(true);
+        expect(res.body.data.entities.length).toBe(4); // 3 created + 1 author
     });
 
     afterAll(async () => {

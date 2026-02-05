@@ -26,7 +26,7 @@ describe("listRsvps() success", () => {
         await listRsvps(req as any, res as any, next);
         expect(getForEvent).toHaveBeenCalledWith("mockEventId");
         expect(setSuccessResponse).toHaveBeenCalledTimes(1)
-        expect(setSuccessResponse).toHaveBeenCalledWith(res, rsvps.map(rsvp => rsvp.toJSON?.()))
+        expect(setSuccessResponse).toHaveBeenCalledWith(res, { total: 2, entities: rsvps.map(rsvp => rsvp.toJSON?.()) });
     });
 
     it("Should call next with BadInputError if eventId is missing", async () => {
