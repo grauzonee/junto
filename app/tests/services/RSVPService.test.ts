@@ -4,7 +4,7 @@ import { getOneUser } from "../../tests/getters"
 import { getMockedRequest } from "../utils"
 import { RSVP } from "@/models/rsvp/RSVP"
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils"
-import { create, update } from "@/services/RSVPService"
+import { create, getForEvent, update } from "@/services/RSVPService"
 
 describe("create() method SUCCESS", () => {
     it("Should call RSVP.create method", async () => {
@@ -70,4 +70,33 @@ describe("update() method SUCCESS", () => {
         expect(setStatusSpy).toHaveBeenCalledWith(body.status);
         expect(saveSpy).toHaveBeenCalledTimes(1);
     })
+});
+
+describe("getForEvent() method SUCCESS", () => {
+    it("Should call RSVP.find with correct parameters", async () => {
+        const eventId = new Types.ObjectId().toString();
+        const status = STATUS_CONFIRMED;
+        const populateMock = jest.fn().mockReturnValue([]);
+        const findSpy = jest.spyOn(RSVP, "find").mockReturnValue({
+            populate: populateMock,
+        } as any);
+
+        await getForEvent(eventId, status);
+        expect(RSVP.find).toHaveBeenCalledTimes(1);
+        expect(RSVP.find).toHaveBeenCalledWith({ event: eventId, status: status });
+        expect(populateMock).toHaveBeenCalledWith('user');
+
+        findSpy.mockRestore();
+    });
+    it("Should return array of RSVPs", async () => {
+        const mockRSVPs = [await createFakeRSVP({}), await createFakeRSVP({})];
+        const findSpy = jest.spyOn(RSVP, "find").mockReturnValue({
+            populate: jest.fn().mockReturnValue(mockRSVPs),
+        } as any);
+
+        const result = await getForEvent(new Types.ObjectId().toString(), STATUS_CONFIRMED);
+        expect(result).toBe(mockRSVPs);
+
+        findSpy.mockRestore();
+    });
 });
