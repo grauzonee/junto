@@ -6,7 +6,8 @@ export default {
         NOT_EXISTS_MUL: (field: string) => `One or more ${field.toLowerCase()} do not exist`,
         IMAGE_NOT_EXISTS: (field: string) => `Invalid field ${field.toLowerCase()}, image doesn't exist`,
         NOT_CORRECT: (field: string) => uc_first(field) + " is not correct",
-        PASSWORDS_EQUAL: "Passwords are equal"
+        PASSWORDS_EQUAL: "Passwords are equal",
+        CANNOT_MODIFY: (field: string) => uc_first(field) + " cannot be modified",
     },
     // Errors for validation schemes
     http: {
@@ -16,7 +17,13 @@ export default {
         MIN_LENGTH: (field: string, length: number) => uc_first(field) + ` must be at least ${length} characters long`,
         MAX_LENGTH: (field: string, length: number) => uc_first(field) + ` must be maximum ${length} characters long`,
         DATE_IN_PAST: "Date cannot be in the past",
-        NO_FIELDS: "At least one field must be provided"
+        NO_FIELDS: "At least one field must be provided",
+        MIN(field: string, min: number) {
+            return uc_first(field) + ` must be at least ${min}`;
+        },
+        MAX(field: string, max: number) {
+            return uc_first(field) + ` must be maximum ${max}`;
+        }
     },
     // Errors fro request handlers
     response: {
@@ -24,6 +31,7 @@ export default {
         NOT_FOUND: (entity: string) => uc_first(entity) + " not found",
         IN_USE: (field: string) => uc_first(field) + " already in use",
         INVALID: (field: string) => `Invalid ${field.toLowerCase()}`,
+        DUPLICATE_ATTEND: "The user is already attending the event",
         SERVER_ERROR: (action = "on our side", advice = "try again later") => `Error ${action.toLowerCase()}, ${advice.toLowerCase()}`
     }
 }

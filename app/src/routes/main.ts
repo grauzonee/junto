@@ -5,6 +5,7 @@ import { router as authRouter } from '@/routes/auth'
 import { router as userRouter } from '@/routes/user'
 import { router as interestRouter } from '@/routes/interest';
 import { router as categoryRouter } from '@/routes/categories';
+import { router as rsvpRouter } from '@/routes/rsvp';
 
 export const router = Router()
 
@@ -14,3 +15,4 @@ router.use('/auth', authRouter)
 router.use('/user', userRouter)
 router.use('/interests', interestRouter)
 router.use('/categories', categoryRouter)
+router.use('/rsvp', rsvpRouter)

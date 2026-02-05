@@ -1,0 +1,15 @@
+import { User } from "@/models/User";
+
+export async function createUser(overriders = {}, save = false) {
+    const userData = {
+        username: "testuser" + Date.now(),
+        email: `testuser${Date.now()}@example.com`,
+        password: "password123",
+        ...overriders,
+    };
+    let user = new User(userData);
+    if (save) {
+        user = await user.save();
+    }
+    return user;
+}
