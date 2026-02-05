@@ -70,8 +70,8 @@ RSVPSchema.path("status").validate({
     message: messages.validation.NOT_CORRECT("Rsvp status")
 });
 RSVPSchema.path("event").validate({
-    validator: function (value) {
-        return validators.eventValidator(value);
+    validator: async function (value) {
+        return await validators.eventValidator(value);
     },
     message: messages.validation.NOT_CORRECT("event")
 });

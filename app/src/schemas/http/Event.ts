@@ -42,7 +42,7 @@ export const CreateEventSchema = z.object({
         amount: z.number(),
         currency: z.string()
     }).optional(),
-    maxAttendees: z.number().optional()
+    maxAttendees: z.number().min(1).max(200)
 }).strict()
 
 export const EditEventSchema = CreateEventSchema.partial().strict();
