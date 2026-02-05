@@ -3,6 +3,7 @@ import { logger } from "@/config/loggerConfig";
 import { CreateRSVPInput, UpdateRSVPInput } from "@/types/services/RSVPService";
 import { BadInputError, NotFoundError } from "@/types/errors/InputError";
 import messages from "@/constants/errorMessages";
+import { RSVPStatus, STATUS_CONFIRMED } from "@/models/rsvp/utils";
 
 export async function create(data: CreateRSVPInput, userId: string) {
     const { eventId, status, additionalGuests } = data;
@@ -32,4 +33,9 @@ export async function update(data: UpdateRSVPInput, rsvpId: string, userId: stri
 
     await rsvp.save();
     return rsvp.depopulate('event');
+}
+
+export async function getForEvent(eventId: string, status: RSVPStatus = STATUS_CONFIRMED) {
+    const rsvps = await RSVP.find({ event: eventId, status }).populate('user');
+    return rsvps;
 }

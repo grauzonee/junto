@@ -75,5 +75,17 @@ RSVPSchema.path("event").validate({
     },
     message: messages.validation.NOT_CORRECT("event")
 });
+RSVPSchema.set('toJSON', {
+    getters: true,
+    virtuals: false,
+    versionKey: false,
+    transform: (_, ret) => {
+        if ('updatedAt' in ret) {
+            delete ret.updatedAt;
+        }
+
+        return ret;
+    }
+});
 
 export const RSVP = mongoose.model<IRSVP, RSVPModelType>("RSVP", RSVPSchema);

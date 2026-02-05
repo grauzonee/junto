@@ -1,5 +1,6 @@
 import request from "supertest";
 import { createUser } from "../generators/user";
+import { createFakeRSVP } from "../generators/rsvp";
 
 let user: Awaited<ReturnType<typeof createUser>>;
 
@@ -15,6 +16,8 @@ import app from "@/app";
 import { Event } from "@/models/Event";
 import messages from "@/constants/errorMessages"
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
+import { createFakeEvent } from "../generators/event";
+import { getOneUser } from "../getters";
 
 describe("POST /attend", () => {
     let eventId: string;
@@ -55,6 +58,42 @@ describe("POST /attend", () => {
         expect(res.statusCode).toBe(400);
         expect(res.body.success).toBe(false);
         expect(res.body.data.fieldErrors).toEqual({ user: messages.response.DUPLICATE_ATTEND });
+    });
+
+    afterAll(async () => {
+        await user.deleteOne();
+    });
+});
+
+describe("GET /:eventId/rsvps", () => {
+    let eventId: string;
+    let userId: string;
+
+    beforeAll(async () => {
+        const author = await getOneUser();
+        const user1 = await createUser({}, true);
+        const user2 = await createUser({}, true);
+        const user3 = await createUser({}, true);
+
+        const event = await createFakeEvent({ maxAttendees: 10, author: author._id.toString() }, true);
+        const rsvp1 = createFakeRSVP({ event: event._id, user: user1._id, status: STATUS_CONFIRMED }, true);
+        const rsvp2 = createFakeRSVP({ event: event._id, user: user2._id, status: STATUS_CONFIRMED }, true);
+        const rsvp3 = createFakeRSVP({ event: event._id, user: user3._id, status: STATUS_CONFIRMED }, true);
+
+        if (!event || !event._id) {
+            throw new Error("No events found, check your seeders");
+        }
+        eventId = event._id.toString();
+        userId = author._id.toString();
+    });
+
+    it("Should allow a user to get RSVPs for an event", async () => {
+        const res = await request(app).get(`/api/event/${eventId}/rsvps`);
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty('data');
+        expect(res.body.data).toHaveProperty('total', 4); // 3 created + 1 author
+        expect(Array.isArray(res.body.data.entities)).toBe(true);
+        expect(res.body.data.entities.length).toBe(4); // 3 created + 1 author
     });
 
     afterAll(async () => {
