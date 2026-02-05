@@ -16,7 +16,6 @@ import app from '@/app';
 import { logger } from "@/config/loggerConfig";
 import { checkAllRequiredVars } from "@/helpers/configHelper";
 import { connectToMongo, disconnectFromMongo } from "@/config/mongoConfig";
-import { errorHandler } from '@/middlewares/errorHandler';
 
 const PORT = process.env.PORT || 3000;
 
@@ -29,7 +28,6 @@ bootstrap().catch(err => {
     logger.error("Failed to bootstrap app:", err);
     process.exit(1);
 });
-app.use(errorHandler);
 
 app.listen(PORT, () => {
     logger.debug(`Server running at http://localhost:${PORT}`);
