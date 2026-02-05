@@ -101,4 +101,15 @@ describe("PUT /rsvp/:id", () => {
         // Clean up
         await Event.deleteOne({ _id: newEvent._id });
     });
+
+    it("Should throw validation error for invalid status", async () => {
+        const requestBody = {
+            status: "invalidstatus",
+            additionalGuests: 1
+        }
+        const res = await request(app).put(`/api/rsvp/${rsvpId}`).send(requestBody);
+        expect(res.statusCode).toBe(400);
+        expect(res.body.success).toBe(false);
+        expect(res.body.data.fieldErrors).toEqual({ "status": [messages.validation.NOT_CORRECT("Status")] });
+    });
 });
