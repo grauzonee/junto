@@ -1,4 +1,4 @@
-import { IUser } from "@/models/User";
+import { IUser } from "@/models/user/User";
 
 export type LoginData = Pick<IUser, "email" | "password">;
 

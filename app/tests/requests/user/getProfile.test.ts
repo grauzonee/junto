@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express"
 import mongoose from "mongoose"
 import messages from "@/constants/errorMessages"
 import { getMockedResponse, getMockedRequest } from "../../utils"
-import { User } from "@/models/User"
+import { User } from "@/models/user/User"
 import { getUserByToken } from "@/helpers/jwtHelper"
 import { setSuccessResponse, setErrorResponse } from "@/helpers/requestHelper"
 jest.mock('@/helpers/jwtHelper');

@@ -1,9 +1,8 @@
 import { Request } from "express"
 import messages from "@/constants/errorMessages"
-import { User } from "@/models/User";
+import { User } from "@/models/user/User";
 
-export async function validateUpdateData(req: Request): Promise<{ error?: string | null; field?: string | null }> 
-{
+export async function validateUpdateData(req: Request): Promise<{ error?: string | null; field?: string | null }> {
     const requestData = req.body;
     if (requestData.username) {
         const username = requestData.username;

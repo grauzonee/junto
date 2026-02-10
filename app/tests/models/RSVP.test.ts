@@ -1,6 +1,6 @@
 import { RSVP } from "@/models/rsvp/RSVP"
 import { STATUS_CANCELED, STATUS_CONFIRMED } from "@/models/rsvp/utils"
-import { User } from "@/models/User"
+import { User } from "@/models/user/User"
 import { Event } from "@/models/event/Event"
 import { EventType } from "@/models/EventType"
 import { Types, Error } from "mongoose"

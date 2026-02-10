@@ -1,4 +1,4 @@
-import { User } from "@/models/User"
+import { User } from "@/models/user/User"
 import { Interest } from "@/models/Interest";
 import mongoose, { Types } from "mongoose";
 

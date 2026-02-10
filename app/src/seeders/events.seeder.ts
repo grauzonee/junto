@@ -1,6 +1,6 @@
 import { Event } from "@/models/event/Event";
 import { EventType } from "@/models/EventType";
-import { User } from "@/models/User";
+import { User } from "@/models/user/User";
 
 export async function seed() {
     const eventTypes = await EventType.find({}, { _id: 1 }).lean();
