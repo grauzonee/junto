@@ -1,7 +1,7 @@
 import { Types } from "mongoose"
 import { list } from "@/services/categoryService"
 import { Request } from "express"
-import { Category } from "@/models/Category"
+import { Category } from "@/models/category/Category"
 
 let req: Partial<Request>
 

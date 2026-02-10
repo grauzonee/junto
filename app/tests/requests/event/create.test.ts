@@ -5,7 +5,7 @@ import { NextFunction, Request, Response } from "express"
 import { create as createEvent } from "@/services/eventService"
 import { createFakeEvent } from "../../generators/event"
 import { setSuccessResponse, setErrorResponse } from "@/helpers/requestHelper"
-import { Category } from "@/models/Category"
+import { Category } from "@/models/category/Category"
 import { EventType } from "@/models/EventType"
 import { CreateEventSchema } from "@/schemas/http/Event";
 import { CreateEventInput } from "@/types/services/eventService"

@@ -1,7 +1,7 @@
 import mongoose, { Types } from "mongoose"
 import { Event } from "@/models/event/Event"
 import { createFakeEvent } from "../generators/event"
-import { Category } from "@/models/Category"
+import { Category } from "@/models/category/Category"
 import { EventType } from "@/models/EventType"
 import { createUser } from "../generators/user"
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils"

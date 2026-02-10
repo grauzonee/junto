@@ -1,4 +1,4 @@
-import { Category } from "@/models/Category";
+import { Category } from "@/models/category/Category";
 import { Types } from "mongoose";
 import { EventType } from "@/models/EventType";
 

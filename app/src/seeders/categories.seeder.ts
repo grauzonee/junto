@@ -1,4 +1,4 @@
-import { Category, ICategory } from "@/models/Category";
+import { Category, ICategory } from "@/models/category/Category";
 
 interface SeedCategory extends ICategory {
     subcategories?: ICategory[]
@@ -7,7 +7,7 @@ export async function seed() {
     const categories: SeedCategory[] = [
         {
             title: "Social",
-            parent: undefined,
+            parent: null,
             subcategories: [
                 {
                     title: "New in town"
@@ -20,7 +20,7 @@ export async function seed() {
         },
         {
             title: "Educating",
-            parent: undefined,
+            parent: null,
             subcategories: [
                 {
                     title: "History"
@@ -33,7 +33,7 @@ export async function seed() {
         },
         {
             title: "Hobby",
-            parent: undefined,
+            parent: null,
             subcategories: [
                 {
                     title: "Drawing"
@@ -49,7 +49,7 @@ export async function seed() {
         },
         {
             title: "Environmental",
-            parent: undefined,
+            parent: null,
             subcategories: [
                 {
                     title: "Cleaning up"
