@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { Event } from "@/models/Event";
+import { Event } from "@/models/event/Event";
 import { RSVP } from "@/models/rsvp/RSVP";
 import { isRSVPStatus, STATUS_CONFIRMED } from "@/models/rsvp/utils";
 

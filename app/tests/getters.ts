@@ -1,5 +1,5 @@
 import { HydratedUserDoc, User, IUser } from "@/models/User";
-import { Event, HydratedEvent, IEvent } from "@/models/Event";
+import { Event, HydratedEvent, IEvent } from "@/models/event/Event";
 import { Category, HydratedCategoryDoc, ICategory } from "@/models/Category";
 import { EventType, HydratedEventTypeDoc, IEventType } from "@/models/EventType";
 

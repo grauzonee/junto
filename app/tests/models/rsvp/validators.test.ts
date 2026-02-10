@@ -6,7 +6,7 @@ import { Types } from "mongoose";
 import { createFakeEvent } from "../../generators/event";
 import { RSVP } from "@/models/rsvp/RSVP";
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
-import { Event } from "@/models/Event";
+import { Event } from "@/models/event/Event";
 
 describe("eventValidator", () => {
     it("Should return false for non existing event", async () => {

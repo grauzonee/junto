@@ -11,7 +11,7 @@ import { EventType } from "@/models/EventType"
 import { CreateEventInput } from "@/types/services/eventService"
 import { Category } from "@/models/Category"
 
-import { Event, type IEvent } from "@/models/Event"
+import { Event, type IEvent } from "@/models/event/Event"
 
 let req: Partial<Request>
 let eventTypeId: Types.ObjectId;

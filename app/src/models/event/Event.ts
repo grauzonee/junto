@@ -1,14 +1,13 @@
 import mongoose, { HydratedDocument, Schema, Types, SchemaTypes, Model } from "mongoose";
-import { type Filterable, type FilterableField, FilterValue } from "@/types/Filter";
+import { type Filterable } from "@/types/Filter";
 import { type CurrencyCode } from "currency-codes-ts/dist/types";
 import { getConfigValue } from "@/helpers/configHelper";
 import { type Sortable } from "@/types/Sort";
 import { paginatePlugin, type PaginateQueryHelper } from "@/models/plugins/paginate";
-import { Category } from "@/models/Category";
-import { EventType } from "@/models/EventType";
 import messages from "@/constants/errorMessages";
-import { create } from "@/services/RSVPService";
-import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
+import { getFilterableFields, getSortableFields } from "@/models/event/statics";
+import { categoriesValidator, typeValidator } from "@/models/event/validators";
+import { postSaveHook, preSaveHook } from "@/models/event/hooks";
 
 export interface IEvent {
     _id: Types.ObjectId;
@@ -34,7 +33,6 @@ export interface IEvent {
 }
 
 export type HydratedEvent = HydratedDocument<IEvent>;
-
 
 interface EventModelType extends Model<IEvent, PaginateQueryHelper<IEvent>, object>, Filterable, Sortable { }
 
@@ -118,23 +116,8 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, object, PaginateQue
     {
         timestamps: true,
         statics: {
-            getFilterableFields(): FilterableField[] {
-                return [
-                    {
-                        field: 'date',
-                        preprocess: (value: FilterValue) => new Date(value as string)
-                    },
-                    {
-                        field: 'categories'
-                    },
-                    {
-                        field: 'type'
-                    }
-                ]
-            },
-            getSortableFields(): string[] {
-                return ['date'];
-            }
+            getFilterableFields,
+            getSortableFields
         },
     }
 );
@@ -156,32 +139,22 @@ EventSchema.set('toJSON', {
 })
 
 EventSchema.path("categories").validate({
-    validator: async function (value: Types.ObjectId[]) {
-        if (!value || value.length === 0) return true;
-        const count = await Category.countDocuments({ _id: { $in: value } });
-        return count === value.length;
+    validator: async function (value) {
+        return await categoriesValidator(value);
     },
     message: messages.validation.NOT_EXISTS_MUL("categories")
 });
 
 EventSchema.path("type").validate({
-    validator: async function (value: Types.ObjectId) {
-        const typeExists = await EventType.exists({ _id: value });
-        return typeExists;
+    validator: async function (value) {
+        return await typeValidator(value);
     },
     message: messages.validation.NOT_EXISTS("event type")
 });
 
-EventSchema.pre("save", function (next) {
-    this.$locals.wasNew = this.isNew;
-    next();
-});
+EventSchema.pre("save", preSaveHook);
 //Author is always attending the event
-EventSchema.post("save", async function (doc) {
-    if (this.$locals.wasNew) {
-        await create({ eventId: doc._id.toString(), status: STATUS_CONFIRMED }, doc.author.toString());
-    }
-})
+EventSchema.post("save", postSaveHook)
 
 EventSchema.plugin(paginatePlugin<IEvent>);
 

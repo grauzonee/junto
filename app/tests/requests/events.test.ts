@@ -1,3 +1,4 @@
+//jest.unmock("@/services/RSVPService");
 import request from "supertest";
 import { createUser } from "../generators/user";
 import { createFakeRSVP } from "../generators/rsvp";
@@ -13,7 +14,7 @@ jest.mock("@/middlewares/authMiddleware", () => ({
     ),
 }));
 import app from "@/app";
-import { Event } from "@/models/Event";
+import { Event } from "@/models/event/Event";
 import messages from "@/constants/errorMessages"
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
 import { createFakeEvent } from "../generators/event";

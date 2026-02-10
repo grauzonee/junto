@@ -1,5 +1,5 @@
 import { logger } from "@/config/loggerConfig";
-import { Event } from "@/models/Event"
+import { Event } from "@/models/event/Event"
 import { CreateEventInput, CoordinatesInput, EditEventInput } from "@/types/services/eventService";
 import { NotFoundError } from "@/types/errors/InputError";
 import { EventType } from "@/models/EventType";

@@ -1,5 +1,5 @@
 import { getMockedRequest, getMockedResponse } from "../../utils"
-import { Event } from "@/models/Event";
+import { Event } from "@/models/event/Event";
 import { Response, Request, NextFunction } from "express";
 import { create } from "@/services/RSVPService"
 import { createFakeRSVP } from "../../generators/rsvp";
@@ -32,11 +32,11 @@ beforeAll(async () => {
     mockRSVP = {
         ...rsvp, toJSON: jest.fn().mockReturnThis()
     };
+    (create as jest.Mock).mockResolvedValue(mockRSVP);
 })
 
 beforeEach(() => {
-    jest.resetAllMocks();
-    (create as jest.Mock).mockResolvedValue(mockRSVP);
+    jest.clearAllMocks();
     res = getMockedResponse();
 })
 describe("attend() SUCCESS", () => {

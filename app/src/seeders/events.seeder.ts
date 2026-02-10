@@ -1,4 +1,4 @@
-import { Event } from "@/models/Event";
+import { Event } from "@/models/event/Event";
 import { EventType } from "@/models/EventType";
 import { User } from "@/models/User";
 
