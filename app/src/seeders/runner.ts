@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import { connectToMongo } from "@/config/mongoConfig";
-import { ca } from 'zod/v4/locales';
 
 async function run() {
   await connectToMongo();
@@ -17,7 +16,7 @@ async function run() {
     for (const name of seeders) {
       try {
         await runSeeder(name);
-      } catch (err) {
+      } catch {
         process.exit(1);
       }
 
@@ -26,7 +25,7 @@ async function run() {
   }
   try {
     await runSeeder(seederName);
-  } catch (err) {
+  } catch {
     process.exit(1);
   }
 

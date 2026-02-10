@@ -1,4 +1,3 @@
-//jest.unmock("@/services/RSVPService");
 import request from "supertest";
 import { createUser } from "../generators/user";
 import { createFakeRSVP } from "../generators/rsvp";

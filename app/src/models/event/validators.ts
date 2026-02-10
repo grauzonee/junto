@@ -8,7 +8,7 @@ export async function categoriesValidator(value: Types.ObjectId[]) {
     return count === value.length;
 }
 
-export async function typeValidator(value: Types.ObjectId) {
+export async function typeValidator(value: Types.ObjectId): Promise<boolean> {
     const typeExists = await EventType.exists({ _id: value });
-    return typeExists;
+    return !!typeExists;
 }

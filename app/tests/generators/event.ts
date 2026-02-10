@@ -1,4 +1,3 @@
-//jest.unmock("@/services/RSVPService");
 import { IEvent, Event } from "@/models/event/Event";
 import { Types } from "mongoose";
 import { getOneCategory, getOneEventType } from "../getters";
