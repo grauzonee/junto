@@ -1,10 +1,13 @@
-import { HydratedUserDoc, IUser } from "@/models/user/User";
+import { HydratedUserDoc } from "@/models/user/User";
 import { checkImage } from "@/helpers/mediaHelper";
 import bcrypt from 'bcrypt';
 import messages from "@/constants/errorMessages"
 import { BadInputError } from "@/types/errors/InputError";
+import { UpdateProfileSchema } from "@/schemas/http/Profile";
+import * as z from "zod";
+import { Types } from "mongoose";
 
-export type UpdateUserData = Partial<Pick<IUser, 'username' | 'avatarUrl' | 'interests'>>
+export type UpdateUserData = z.infer<typeof UpdateProfileSchema>;
 export interface UpdatePasswordData {
     oldPassword: string,
     newPassword: string
@@ -18,13 +21,12 @@ export interface UserMethods {
 export async function updateProfile(this: HydratedUserDoc, data: UpdateUserData): Promise<HydratedUserDoc> {
     if (typeof (data.avatarUrl) === 'string') {
         if (!checkImage(data.avatarUrl)) {
-            throw new Error(messages.validation.IMAGE_NOT_EXISTS("avatar"))
+            throw new BadInputError("avatar", messages.validation.IMAGE_NOT_EXISTS("avatar"))
         }
         this.avatarUrl = data.avatarUrl
     }
     if (data.username !== undefined) this.username = data.username;
-    if (data.interests !== undefined) this.interests = data.interests;
-
+    if (data.interests !== undefined) this.interests = data.interests.map(id => new Types.ObjectId(id));
     await this.save();
     return this;
 };

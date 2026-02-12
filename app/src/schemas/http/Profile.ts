@@ -3,7 +3,7 @@ import { passwordRule } from '@/schemas/http/Auth';
 import { Types } from "mongoose";
 import messages from "@/constants/errorMessages";
 
-export const UpdateProfileSchema: z.Schema = z.object({
+export const UpdateProfileSchema = z.object({
     username: z.string().optional(),
     avatarUrl: z.string().optional(),
     interests: z.array(z.string()).optional().refine(
@@ -32,7 +32,7 @@ export const UpdateProfileSchema: z.Schema = z.object({
 );
 
 
-export const UpdatePasswordSchema: z.Schema = z.object({
+export const UpdatePasswordSchema = z.object({
     oldPassword: z.string(),
     newPassword: passwordRule
 });
