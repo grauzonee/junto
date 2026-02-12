@@ -18,5 +18,4 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
     }
     const user = await req.user?.updateProfile(requestData);
     setSuccessResponse(res, user.toJSON());
-    return;
 });
