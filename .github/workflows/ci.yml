@@ -11,9 +11,9 @@ on:
 permissions:
   contents: read
   pull-requests: write
-  
+
 jobs:
-  lint:
+  LintTestCompile:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,11 +36,13 @@ jobs:
         run: npm run lint
         working-directory: ./app
       
-      - name: Run Tests
-        run: npx jest --coverage --coverageReporters json-summary
-        working-directory: ./app
+      - name: Run tests
+        run: |
+          npx jest --coverage --coverageReporters json-summary | tee ./coverage.txt && exit ${PIPESTATUS[0]}
 
       - name: Jest Coverage Comment
         uses: MishaKav/jest-coverage-comment@main
         with:
           coverage-summary-path: ./app/coverage/coverage-summary.json
+          coverage-path: ./app/coverage.txt
+          
