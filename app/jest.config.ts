@@ -11,5 +11,10 @@ module.exports = {
     moduleNameMapper: {
         "^@/(.*)$": "<rootDir>/src/$1"
     },
+    coverageReporters: [
+        "json-summary",
+        "text",
+        "lcov"
+    ],
     setupFilesAfterEnv: ["<rootDir>/tests/jest.setup.ts"]
 };
