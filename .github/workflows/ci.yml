@@ -39,6 +39,7 @@ jobs:
       - name: Run tests
         run: |
           npx jest --coverage --coverageReporters json-summary | tee ./coverage.txt && exit ${PIPESTATUS[0]}
+        working-directory: ./app
 
       - name: Jest Coverage Comment
         uses: MishaKav/jest-coverage-comment@main
