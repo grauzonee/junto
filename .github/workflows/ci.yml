@@ -38,3 +38,4 @@ jobs:
 
       - name: Jest Coverage Comment
         uses: MishaKav/jest-coverage-comment@main
+        working-directory: ./app
