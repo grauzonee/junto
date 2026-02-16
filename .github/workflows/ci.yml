@@ -39,4 +39,4 @@ jobs:
       - name: Jest Coverage Comment
         uses: MishaKav/jest-coverage-comment@main
         with:
-          working-directory: ./app
+          coverage-summary-path: ./app/coverage/coverage-summary.json
