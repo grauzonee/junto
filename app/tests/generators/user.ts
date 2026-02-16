@@ -1,4 +1,4 @@
-import { User } from "@/models/User";
+import { User } from "@/models/user/User";
 
 export async function createUser(overriders = {}, save = false) {
     const userData = {

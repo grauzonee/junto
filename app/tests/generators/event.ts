@@ -1,5 +1,4 @@
-import { Category } from "@/models/Category";
-import { IEvent, Event } from "@/models/Event";
+import { IEvent, Event } from "@/models/event/Event";
 import { Types } from "mongoose";
 import { getOneCategory, getOneEventType } from "../getters";
 
@@ -24,7 +23,7 @@ export async function createFakeEvent(overrides: Partial<FakeEvent> = {}, save =
         title: "Sample Event " + Math.random().toString(36).substring(7),
         description: "This is a test event for unit testing.",
         date: Math.floor((Date.now() + 60 * 60 * 1000) / 1000),
-        fullAddress: "123 Test Street, Test City",
+        fullAddress: "00000 TestStreet 1, Macondo, Mexico",
         location: {
             type: "Point",
             coordinates:

@@ -6,7 +6,7 @@
 
 import jsonwebtoken, { JwtPayload } from 'jsonwebtoken';
 import { getConfigValue } from "@/helpers/configHelper";
-import { User } from "@/models/User";
+import { User } from "@/models/user/User";
 import { Request } from "express"
 
 /**

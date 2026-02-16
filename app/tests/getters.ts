@@ -1,6 +1,6 @@
-import { HydratedUserDoc, User, IUser } from "@/models/User";
-import { Event, HydratedEvent, IEvent } from "@/models/Event";
-import { Category, HydratedCategoryDoc, ICategory } from "@/models/Category";
+import { HydratedUserDoc, User, IUser } from "@/models/user/User";
+import { Event, HydratedEvent, IEvent } from "@/models/event/Event";
+import { Category, HydratedCategoryDoc, ICategory } from "@/models/category/Category";
 import { EventType, HydratedEventTypeDoc, IEventType } from "@/models/EventType";
 
 export async function getOneUser(filters: Partial<IUser> = {}): Promise<HydratedUserDoc> {

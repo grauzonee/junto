@@ -1,6 +1,6 @@
 import { validateUpdateData } from "@/requests/user/utils"
 import { getMockedRequest } from "../../utils"
-import { User } from "@/models/User"
+import { User } from "@/models/user/User"
 import { Request } from "express"
 import mongoose from "mongoose"
 import messages from "@/constants/errorMessages"

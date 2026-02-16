@@ -9,9 +9,9 @@ import { NotFoundError } from "@/types/errors/InputError"
 import { ZodError } from "zod"
 import { EventType } from "@/models/EventType"
 import { CreateEventInput } from "@/types/services/eventService"
-import { Category } from "@/models/Category"
+import { Category } from "@/models/category/Category"
 
-import { Event, type IEvent } from "@/models/Event"
+import { Event, type IEvent } from "@/models/event/Event"
 
 let req: Partial<Request>
 let eventTypeId: Types.ObjectId;

@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { getUserByToken } from "@/helpers/jwtHelper";
-import { User } from "@/models/User";
+import { User } from "@/models/user/User";
 import { setSuccessResponse } from "@/helpers/requestHelper";
 import { asyncHandler } from "@/requests/asyncHandler";
 import { NotFoundError } from "@/types/errors/InputError";

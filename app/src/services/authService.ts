@@ -1,4 +1,4 @@
-import { User } from "@/models/User"
+import { User } from "@/models/user/User"
 import { BadInputError, NotFoundError } from "@/types/errors/InputError";
 import messages from "@/constants/errorMessages";
 import { generateToken } from "@/helpers/jwtHelper";

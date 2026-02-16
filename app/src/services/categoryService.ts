@@ -1,4 +1,4 @@
-import { Category } from "@/models/Category";
+import { Category } from "@/models/category/Category";
 import { RequestData } from "@/types/common";
 
 export async function list(data: RequestData) {

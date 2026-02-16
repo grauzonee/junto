@@ -1,7 +1,7 @@
 import { authMiddleware } from "@/middlewares/authMiddleware";
 import { getUserByToken } from "@/helpers/jwtHelper";
 import { Request, Response, NextFunction } from "express";
-import { HydratedUserDoc } from "@/models/User";
+import { HydratedUserDoc } from "@/models/user/User";
 
 jest.mock("@/helpers/jwtHelper", () => ({
     getUserByToken: jest.fn(),

@@ -11,16 +11,35 @@ async function run() {
     console.error("Please specify a seeder name!");
     process.exit(1);
   }
+  if (seederName === "all") {
+    const seeders = ["categories", "interests", "users", "eventtypes", "events"];
+    for (const name of seeders) {
+      try {
+        await runSeeder(name);
+      } catch {
+        process.exit(1);
+      }
 
+    }
+    process.exit(0);
+  }
   try {
-    const { seed } = await import(`./${seederName}.seeder`);
-    await seed();
-  } catch (err) {
-    // eslint-disable-next-line
-    console.error("Seeder not found or failed:", err);
+    await runSeeder(seederName);
+  } catch {
+    process.exit(1);
   }
 
   process.exit(0);
 }
 
+async function runSeeder(seederName: string) {
+  try {
+    const { seed } = await import(`./${seederName}.seeder`);
+    await seed();
+  } catch (err) {
+    // eslint-disable-next-line
+    console.error(`Seeder ${seederName} not found or failed:`, err);
+    throw err;
+  }
+}
 run();

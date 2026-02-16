@@ -3,20 +3,25 @@ import { passwordRule } from '@/schemas/http/Auth';
 import { Types } from "mongoose";
 import messages from "@/constants/errorMessages";
 
-export const UpdateProfileSchema: z.Schema = z.object({
-    username: z.string(),
-    avatarUrl: z.string(),
-    interests: z.array(z.string()).refine(
-        interests => new Set(interests).size === interests.length,
+export const UpdateProfileSchema = z.object({
+    username: z.string().optional(),
+    avatarUrl: z.string().optional(),
+    interests: z.array(z.string()).optional().refine(
+        interests => {
+            if (!interests) return true;
+            return new Set(interests).size === interests.length;
+        },
         {
             message: messages.http.UNIQUE_VALUES("Interests")
         }
     ).refine(
-        interests => interests.every(interest => Types.ObjectId.isValid(interest),
-            {
-                message: messages.http.INVALID_ID("Interests")
-            }
-        )
+        interests => {
+            if (!interests) return true;
+            return interests.every(id => Types.ObjectId.isValid(id));
+        },
+        {
+            message: messages.http.INVALID_ID("Interests")
+        }
     )
 }).refine(
     (data) =>
@@ -27,7 +32,7 @@ export const UpdateProfileSchema: z.Schema = z.object({
 );
 
 
-export const UpdatePasswordSchema: z.Schema = z.object({
+export const UpdatePasswordSchema = z.object({
     oldPassword: z.string(),
     newPassword: passwordRule
 });

@@ -1,4 +1,4 @@
-import { Event } from "@/models/Event"
+import { Event } from "@/models/event/Event"
 import { Request, Response, NextFunction } from "express"
 import { filterMiddleware } from "@/middlewares/filterMiddleware"
 import { type FilterValue } from "@/types/Filter"

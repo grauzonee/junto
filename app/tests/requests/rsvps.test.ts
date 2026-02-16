@@ -12,7 +12,7 @@ jest.mock("@/middlewares/authMiddleware", () => ({
     ),
 }));
 import app from "@/app";
-import { Event } from "@/models/Event";
+import { Event } from "@/models/event/Event";
 import messages from "@/constants/errorMessages"
 import { RSVP } from "@/models/rsvp/RSVP";
 import { STATUS_CANCELED, STATUS_CONFIRMED, STATUS_MAYBE } from "@/models/rsvp/utils";

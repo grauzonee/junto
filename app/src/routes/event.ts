@@ -10,7 +10,7 @@ import { paginateMiddleware } from "@/middlewares/paginateMiddleware";
 import { authMiddleware } from "@/middlewares/authMiddleware";
 import { filterMiddleware } from "@/middlewares/filterMiddleware";
 import { sortMiddleware } from "@/middlewares/sortMiddleware";
-import { Event } from "@/models/Event";
+import { Event } from "@/models/event/Event";
 import { CreateRSVPSchema } from "@/schemas/http/RSVP";
 import { attend } from "@/requests/event/attend";
 import { listRsvps } from "@/requests/event/listRsvps";
