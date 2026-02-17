@@ -1,4 +1,4 @@
-![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/<your-username>/36cfc391c70f4ddf96bbd984c1276760/raw/junto__master.json)
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/grauzonee/36cfc391c70f4ddf96bbd984c1276760/raw/junto__master.json)
 
 # Junto
 
