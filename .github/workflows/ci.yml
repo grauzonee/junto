@@ -36,11 +36,12 @@ jobs:
         run: npm run lint
         working-directory: ./app
       
-      - name: Debug token length
-        run: echo "Token length ${#TOKEN}"
-        env:
-          TOKEN: ${{ secrets.JEST_COVERAGE_COMMENT }}
-          
+      - name: Test gist API directly
+        run: |
+          curl -H "Authorization: Bearer ${{ secrets.JEST_COVERAGE_COMMENT }}" \
+               -H "Accept: application/vnd.github+json" \
+              https://api.github.com/gists/36cfc391c70f4ddf96bbd984c1276760
+
       - name: Run tests
         run: |
           npx jest --coverage | tee ./coverage.txt && exit ${PIPESTATUS[0]}
