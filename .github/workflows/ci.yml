@@ -75,6 +75,6 @@ jobs:
           gistID: 36cfc391c70f4ddf96bbd984c1276760
           filename: junto__master.json
           label: Coverage
-          message: ${{ steps.coverageComment.outputs.coverage }}%
-          color: ${{ steps.coverageComment.outputs.color }}
+          message: ${{ steps.coverageComment.outputs.coverage }}
+          color: orange
           
