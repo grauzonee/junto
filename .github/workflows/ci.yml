@@ -42,6 +42,7 @@ jobs:
         working-directory: ./app
 
       - name: Jest Coverage Comment
+        id: coverageComment
         uses: MishaKav/jest-coverage-comment@main
         with:
           coverage-summary-path: ./app/coverage/coverage-summary.json
@@ -65,8 +66,8 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.JEST_COVERAGE_COMMENT }}
-          gistID: 5e90d640f8c212ab7bbac38f72323f80
-          filename: jest-coverage-comment__master.json
+          gistID: f4ec9a09f44519d1b39db17c7aa10ef4
+          filename: junto__master.json
           label: Coverage
           message: ${{ steps.coverageComment.outputs.coverage }}%
           color: ${{ steps.coverageComment.outputs.color }}
