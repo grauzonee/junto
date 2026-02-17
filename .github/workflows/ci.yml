@@ -36,6 +36,11 @@ jobs:
         run: npm run lint
         working-directory: ./app
       
+      - name: Debug token length
+        run: echo "Token length ${#TOKEN}"
+        env:
+          TOKEN: ${{ secrets.JEST_COVERAGE_COMMENT }}
+          
       - name: Run tests
         run: |
           npx jest --coverage | tee ./coverage.txt && exit ${PIPESTATUS[0]}
