@@ -66,7 +66,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.JEST_COVERAGE_COMMENT }}
-          gistID: f4ec9a09f44519d1b39db17c7aa10ef4
+          gistID: 36cfc391c70f4ddf96bbd984c1276760
           filename: junto__master.json
           label: Coverage
           message: ${{ steps.coverageComment.outputs.coverage }}%
