@@ -69,13 +69,12 @@ jobs:
 
       - name: Create the master badge
         if: github.ref == 'refs/heads/master'
-        uses: schneegans/dynamic-badges-action@v1.6.0
+        uses: schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.JEST_COVERAGE_COMMENT }}
           gistID: 36cfc391c70f4ddf96bbd984c1276760
           filename: junto__master.json
           label: Coverage
-          message: ${{ steps.coverageComment.outputs.coverage }}%
-          color: ${{ steps.coverageComment.outputs.color }}
-          namedLogo: javascript
+          message: Hello
+          color: orange
           
