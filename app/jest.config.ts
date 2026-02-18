@@ -9,12 +9,18 @@ module.exports = {
     moduleFileExtensions: ["ts", "js", "json"],
     testMatch: ["**/*.test.ts"],
     moduleNameMapper: {
-        "^@/(.*)$": "<rootDir>/src/$1"
+        "^@/(.*)$": "<rootDir>/src/$1",
+        "^@tests/(.*)$": "<rootDir>/tests/$1"
     },
     coverageReporters: [
         "json-summary",
         "text",
         "lcov"
+    ],
+    coveragePathIgnorePatterns: [
+        "/node_modules/",
+        "/src/tests/",
+        "/src/seeders/"
     ],
     setupFilesAfterEnv: ["<rootDir>/tests/jest.setup.ts"]
 };

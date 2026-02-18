@@ -191,7 +191,7 @@ export async function seed() {
                 amount: 120,
                 currence: "USD",
             },
-            active: true
+            active: false
         },
     ];
     const eventsToInsert = events.map(event => ({
