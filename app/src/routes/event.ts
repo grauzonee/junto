@@ -14,10 +14,12 @@ import { Event } from "@/models/event/Event";
 import { CreateRSVPSchema } from "@/schemas/http/RSVP";
 import { attend } from "@/requests/event/attend";
 import { listRsvps } from "@/requests/event/listRsvps";
+import { fetchOne } from "@/requests/event/fetchOne";
 export const router = Router()
 
 router.post('/', [authMiddleware, requestSchemaValidate(CreateEventSchema)], create)
 router.get('/', [paginateMiddleware, filterMiddleware(Event)], list)
+router.get('/:eventId', [], fetchOne)
 router.get('/types', [paginateMiddleware, filterMiddleware(Event)], getEventTypes)
 router.put('/:eventId', [authMiddleware, requestSchemaValidate(CreateEventSchema)], update)
 router.patch('/:eventId', [authMiddleware, requestSchemaValidate(EditEventSchema)], update)

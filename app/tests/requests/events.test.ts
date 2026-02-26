@@ -1,6 +1,7 @@
 import request from "supertest";
 import { createUser } from "../generators/user";
 import { createFakeRSVP } from "../generators/rsvp";
+import { Types } from "mongoose";
 
 let user: Awaited<ReturnType<typeof createUser>>;
 
@@ -16,9 +17,50 @@ import app from "@/app";
 import { Event } from "@/models/event/Event";
 import messages from "@/constants/errorMessages"
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
-import { createFakeEvent } from "../generators/event";
-import { getOneUser } from "../getters";
+import { createFakeEvent } from "@tests/generators/event";
+import { getOneEvent, getOneUser } from "@tests/getters";
 
+describe("GET /:eventId", () => {
+    it("Should return event with author, categories and type data", async () => {
+        const event = await getOneEvent();
+        if (!event) {
+            throw new Error("No events in DB!");
+        }
+        const res = await request(app).get(`/api/event/${event._id.toString()}`).send();
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty('data');
+        expect(res.body.data).toHaveProperty('_id');
+        expect(res.body.data).toHaveProperty('location');
+        expect(res.body.data).toHaveProperty('fee');
+        expect(res.body.data).toHaveProperty('author');
+        expect(res.body.data.author).toHaveProperty('_id');
+        expect(res.body.data.author).toHaveProperty('username');
+        expect(res.body.data.author).toHaveProperty('email');
+        expect(res.body.data).toHaveProperty('categories');
+        expect(res.body.data).toHaveProperty('type');
+        expect(res.body.data.type).toHaveProperty('_id');
+        expect(res.body.data.type).toHaveProperty('title');
+        expect(res.body.data).toHaveProperty('description');
+        expect(res.body.data).toHaveProperty('date');
+        expect(res.body.data).toHaveProperty('fullAddress');
+        expect(res.body.data).toHaveProperty('imageUrl');
+        expect(res.body.data).toHaveProperty('maxAttendees');
+        expect(res.body.data).toHaveProperty('active');
+        expect(res.body.data).toHaveProperty('createdAt');
+    })
+    it("Should return 404 if event not found", async () => {
+        const event = await getOneEvent();
+        if (!event) {
+            throw new Error("No events in DB!");
+        }
+        const res = await request(app).get(`/api/event/${new Types.ObjectId().toString()}`).send();
+        expect(res.statusCode).toBe(404);
+        expect(res.body).toHaveProperty('data');
+        expect(res.body.data).toHaveProperty('formErrors');
+        expect(res.body.data.formErrors).toEqual([messages.response.NOT_FOUND('event')]);
+        expect(res.body.data).toHaveProperty('fieldErrors');
+    })
+})
 describe("POST /attend", () => {
     let eventId: string;
     let userId: string;
@@ -39,7 +81,6 @@ describe("POST /attend", () => {
             status: STATUS_CONFIRMED
         }
         const res = await request(app).post('/api/event/attend').send(requestBody);
-        console.log(res.body);
         expect(res.statusCode).toBe(201);
         expect(res.body).toHaveProperty('data');
         expect(res.body.data).toHaveProperty('_id');
