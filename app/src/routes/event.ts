@@ -19,8 +19,9 @@ export const router = Router()
 
 router.post('/', [authMiddleware, requestSchemaValidate(CreateEventSchema)], create)
 router.get('/', [paginateMiddleware, filterMiddleware(Event)], list)
-router.get('/:eventId', [], fetchOne)
 router.get('/types', [paginateMiddleware, filterMiddleware(Event)], getEventTypes)
+router.get('/:eventId', [], fetchOne)
+
 router.put('/:eventId', [authMiddleware, requestSchemaValidate(CreateEventSchema)], update)
 router.patch('/:eventId', [authMiddleware, requestSchemaValidate(EditEventSchema)], update)
 router.get('/', [paginateMiddleware, sortMiddleware(Event), filterMiddleware(Event)], list)

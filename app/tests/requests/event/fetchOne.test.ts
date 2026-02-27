@@ -18,7 +18,7 @@ describe("fetchOne()", () => {
         jest.resetAllMocks();
         (fetchOneEvent as jest.Mock).mockResolvedValue(result)
     })
-    it("Should call listEvents method", async () => {
+    it("Should call fetchOne method", async () => {
         const eventId = new Types.ObjectId().toString();
         const req = getMockedRequest({}, { eventId });
 

@@ -1,6 +1,7 @@
 import mongoose, { Document, HydratedDocument, Types } from "mongoose"
 import { Request } from "express"
-import { createFakeEvent } from "../generators/event"
+import { createFakeEvent } from "@tests/generators/event"
+import { createUser } from "@tests/generators/user"
 
 import { create as createEvent, list as listEvents, geoSearch, update as editEvent, fetchOne } from "@/services/eventService"
 import { NotFoundError } from "@/types/errors/InputError"
@@ -10,7 +11,7 @@ import { CreateEventInput } from "@/types/services/eventService"
 import { Category } from "@/models/category/Category"
 
 import { Event, type IEvent } from "@/models/event/Event"
-import { getOneCategory, getOneEventType, getOneUser } from "@tests/getters"
+import { getOneCategory, getOneEventType } from "@tests/getters"
 
 let req: Partial<Request>
 let eventTypeId: Types.ObjectId;
@@ -110,7 +111,7 @@ describe("fetchOne tests SUCCESS", () => {
         await Event.deleteMany({});
     })
     it("Should return event if it exists", async () => {
-        const author = await getOneUser();
+        const author = await createUser({}, true);
         const type = await getOneEventType();
         const category = await getOneCategory()
         const event = await createFakeEvent({ author: author._id.toString(), type: type._id.toString(), categories: [category._id.toString()] }, true);
