@@ -57,3 +57,11 @@ describe("PUT /api/user/password", () => {
         expect(res.statusCode).toBe(200);
     });
 });
+
+describe("GET /api/user/events", () => {
+    it("Should return users's RSVPs", async () => {
+        // Create RSVPs
+        // Send request
+        // Check
+    })
+})
