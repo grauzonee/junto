@@ -11,6 +11,11 @@ export async function list(data: RequestData) {
     return result;
 }
 
+export async function fetchOne(id: string) {
+    const result = await Event.findOne({ _id: id, active: true }).populate('categories').populate('type').populate('author', '_id username email');
+    return result;
+}
+
 export async function listEventTypes(data: RequestData) {
     const result = await EventType.find(buildFilterQuery(data.dbFilter)).sort(buildSortQuery(data.sort)).paginate(data.pagination.offset, data.pagination.limit)
     return result;

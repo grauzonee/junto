@@ -1,10 +1,9 @@
-//import * as validators from "@/models/rsvp/validators";
-
 import mongoose, { Document, HydratedDocument, Types } from "mongoose"
 import { Request } from "express"
-import { createFakeEvent } from "../generators/event"
+import { createFakeEvent } from "@tests/generators/event"
+import { createUser } from "@tests/generators/user"
 
-import { create as createEvent, list as listEvents, geoSearch, update as editEvent } from "@/services/eventService"
+import { create as createEvent, list as listEvents, geoSearch, update as editEvent, fetchOne } from "@/services/eventService"
 import { NotFoundError } from "@/types/errors/InputError"
 import { ZodError } from "zod"
 import { EventType } from "@/models/EventType"
@@ -12,6 +11,7 @@ import { CreateEventInput } from "@/types/services/eventService"
 import { Category } from "@/models/category/Category"
 
 import { Event, type IEvent } from "@/models/event/Event"
+import { getOneCategory, getOneEventType } from "@tests/getters"
 
 let req: Partial<Request>
 let eventTypeId: Types.ObjectId;
@@ -103,6 +103,46 @@ describe("list events tests SUCCESS", () => {
         req = {} as Request
         const result = await listEvents(requestData)
         expect(result).toEqual([])
+    })
+})
+
+describe("fetchOne tests SUCCESS", () => {
+    beforeEach(async () => {
+        await Event.deleteMany({});
+    })
+    it("Should return event if it exists", async () => {
+        const author = await createUser({}, true);
+        const type = await getOneEventType();
+        const category = await getOneCategory()
+        const event = await createFakeEvent({ author: author._id.toString(), type: type._id.toString(), categories: [category._id.toString()] }, true);
+        if (!event._id) {
+            throw new Error("Error creating event in test");
+        }
+        const result = await fetchOne(event._id?.toString());
+        if (!result) {
+            throw new Error("No event retrieved in test")
+        }
+        expect(result).toHaveProperty('author');
+        expect(result.title).toBe(event.title)
+        expect(result.author).toMatchObject({
+            _id: author._id,
+            username: author.username,
+            email: author.email,
+        })
+        expect(result.type).toMatchObject({
+            _id: type._id,
+            title: type.title
+        });
+        expect(result.categories[0]).toMatchObject(
+            {
+                _id: category._id,
+                title: category.title
+            }
+        );
+    })
+    it("Should return null if event not found", async () => {
+        const result = await fetchOne(new Types.ObjectId().toString());
+        expect(result).toBe(null);
     })
 })
 describe("geosearch events tests SUCCESS", () => {

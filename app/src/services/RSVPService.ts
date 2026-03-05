@@ -25,7 +25,6 @@ export async function update(data: UpdateRSVPInput, rsvpId: string, userId: stri
     if (!rsvp) {
         throw new NotFoundError("rsvp");
     }
-
     await rsvp.setStatus(data.status);
     if (data.additionalGuests !== undefined) {
         rsvp.additionalGuests = data.additionalGuests;

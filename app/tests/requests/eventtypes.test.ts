@@ -13,7 +13,7 @@ jest.mock("@/middlewares/authMiddleware", () => ({
 }));
 import app from "@/app";
 
-describe("GET /api/event/types", () => {
+describe("GET /api/eventtypes", () => {
     beforeAll(async () => {
         user = await createUser({}, true);
         if (!user) {
@@ -22,7 +22,7 @@ describe("GET /api/event/types", () => {
     });
 
     it("Should return a list of event types", async () => {
-        const res = await request(app).get('/api/event/types');
+        const res = await request(app).get('/api/eventtypes');
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('data');
         expect(Array.isArray(res.body.data)).toBe(true);

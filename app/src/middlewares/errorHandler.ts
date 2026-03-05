@@ -5,6 +5,7 @@ import messages from "@/constants/errorMessages"
 import { ZodError } from "zod";
 import * as z from "zod"
 import { parseMongooseValidationError, setErrorResponse } from "@/helpers/requestHelper";
+import { logger } from "@/config/loggerConfig";
 
 //eslint-disable-next-line @typescript-eslint/no-unused-vars 
 export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
@@ -22,5 +23,6 @@ export function errorHandler(err: Error, req: Request, res: Response, next: Next
         setErrorResponse(res, 400, flattenedError.fieldErrors, flattenedError.formErrors);
         return;
     }
+    logger.error("Server error:", err);
     setErrorResponse(res, 500, {}, [messages.response.SERVER_ERROR()]);
 }

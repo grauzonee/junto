@@ -8,6 +8,6 @@ export const listRsvps = asyncHandler(async (req: Request, res: Response) => {
     if (!req.params.eventId) {
         throw new BadInputError("eventId", "Event ID is required");
     }
-    const rsvps = await getForEvent(req.params.eventId as string);
+    const rsvps = await getForEvent(req.params.eventId);
     setSuccessResponse(res, { total: rsvps.length, entities: rsvps.map(rsvp => rsvp.toJSON()) });
 });
