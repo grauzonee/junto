@@ -1,18 +1,11 @@
 import { RSVP } from "@/models/rsvp/RSVP"
 import { STATUS_CANCELED, STATUS_CONFIRMED } from "@/models/rsvp/utils"
-<<<<<<< Updated upstream
-=======
-import { EventType } from "@/models/EventType"
->>>>>>> Stashed changes
 import { Types, Error } from "mongoose"
 import messages from "@/constants/errorMessages"
 import { parseMongooseValidationError } from "@/helpers/requestHelper"
 import { getOneEvent, getOneUser } from "@tests/getters"
-<<<<<<< Updated upstream
 import { createUser } from "@tests/generators/user"
 import { createFakeEvent } from "@tests/generators/event"
-=======
->>>>>>> Stashed changes
 
 async function createUserAndEvent() {
     const user = await createUser({}, true);
@@ -25,7 +18,6 @@ async function createUserAndEvent() {
 
 describe("RSVP model", () => {
     it("Should save RSVP with valid status", async () => {
-<<<<<<< Updated upstream
         const { user, event } = await createUserAndEvent();
         const rsvp = await RSVP.create({ user: user.id, event: event._id, status: STATUS_CONFIRMED })
 
@@ -37,26 +29,6 @@ describe("RSVP model", () => {
 
     it("Should not save RSVP with invalid status", async () => {
         const { user, event } = await createUserAndEvent();
-=======
-        const user = await getOneUser();
-        const event = await getOneEvent({ active: true });
-        if (!user || !event) {
-            throw new Error("No user/event found, check your seeders");
-        }
-        try {
-            await RSVP.create({ user: user.id, event: event.id, status: STATUS_CANCELED })
-        } catch (error) {
-            expect(error).toBeInstanceOf(Error.ValidationError);
-        }
-    })
-
-    it("Should not save RSVP with invalid status", async () => {
-        const user = await getOneUser();
-        const event = await getOneEvent({ active: true });
-        if (!user || !event) {
-            throw new Error("No user/event found, check your seeders");
-        }
->>>>>>> Stashed changes
         try {
             await RSVP.create({ user: user.id, event: event._id, status: "going" })
         } catch (error) {
@@ -96,11 +68,7 @@ describe("RSVP model", () => {
 
     it("Should not save RSVP with inactive event", async () => {
         const event = await getOneEvent({ active: false });
-<<<<<<< Updated upstream
         const user = await createUser({}, true);
-=======
-        const user = await getOneUser();
->>>>>>> Stashed changes
         if (!user || !event) {
             throw new Error("No user/event found, check your seeders");
         }
@@ -117,15 +85,7 @@ describe("RSVP model", () => {
     })
 
     it("Should return an RSVP if user is attending an event", async () => {
-<<<<<<< Updated upstream
         const { user, event } = await createUserAndEvent();
-=======
-        const event = await getOneEvent({ active: true });
-        const user = await getOneUser();
-        if (!user || !event) {
-            throw new Error("No user/event found, check your seeders");
-        }
->>>>>>> Stashed changes
         const newRsvp = {
             user: user._id,
             event: event._id,
@@ -147,15 +107,7 @@ describe("RSVP model", () => {
     })
     it("Should return null if user is not attending an event", async () => {
         await RSVP.deleteMany();
-<<<<<<< Updated upstream
         const { user, event } = await createUserAndEvent();
-=======
-        const event = await getOneEvent({ active: true });
-        const user = await getOneUser();
-        if (!user || !event) {
-            throw new Error("No user/event found, check your seeders");
-        }
->>>>>>> Stashed changes
 
         const result = await RSVP.isUserAttendingEvent(user?._id.toString(), event._id!.toString());
         expect(result).toBeNull();
