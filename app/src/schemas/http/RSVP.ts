@@ -28,14 +28,13 @@ export const UpdateRSVPSchema = z.object({
 });
 
 export const FilterRSVPSchema = z.object({
-    status: z.string().refine((status) => {
+    status_eq: z.string().refine((status) => {
         return (RSVP_STATUSES as readonly string[]).includes(status);
     }, {
         message: messages.validation.NOT_CORRECT("status")
     }).optional(),
     active: z.boolean().optional(),
-    before_date: z.int().optional(),
-    after_date: z.int().optional(),
-    date: z.int().optional(),
-    is_organizer: z.boolean().optional()
+    date_before: z.int().optional(),
+    date_after: z.int().optional(),
+    date_eq: z.int().optional()
 })
