@@ -1,6 +1,8 @@
 import * as rsvpMethods from "@/services/RSVPService";
 import { Types } from "mongoose";
 import { preSaveHook, postSaveHook } from "@/models/event/hooks";
+import { RSVP } from "@/models/rsvp/RSVP";
+import { createFakeRSVP } from "@tests/generators/rsvp";
 
 describe("preSaveHook", () => {
     it("should set wasNew to true if the document is new", () => {
@@ -46,10 +48,28 @@ describe("postSaveHook", () => {
             author: new Types.ObjectId(),
             $locals: {
                 wasNew: false
-            }
+            },
+            isModified: (val: string) => false
         };
         await postSaveHook.call(doc, doc);
         expect(spy).not.toHaveBeenCalled();
         spy.mockRestore();
     });
+
+    it("should update RSVP's eventDate if event.date was updated", async () => {
+        const mockRSVP = await createFakeRSVP({});
+        const spy = jest.spyOn(RSVP, "updateMany").mockResolvedValue(mockRSVP as any);
+        const doc: any = {
+            _id: new Types.ObjectId(),
+            author: new Types.ObjectId(),
+            date: new Date(),
+            $locals: {
+                wasNew: false
+            },
+            isModified: (val: string) => true
+        };
+        await postSaveHook.call(doc, doc);
+        expect(spy).toHaveBeenCalledWith({ event: doc._id }, { eventDate: doc.date });
+        spy.mockRestore();
+    })
 });

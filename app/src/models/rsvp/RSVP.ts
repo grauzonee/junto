@@ -11,6 +11,7 @@ export interface IRSVP {
     user: Types.ObjectId;
     status: RSVPStatus;
     additionalGuests?: number;
+    eventDate: Date;
 }
 
 export type HydratedRSVP = HydratedDocument<IRSVP> & RSVPMethods;
@@ -44,6 +45,10 @@ const RSVPSchema = new Schema<IRSVP, RSVPModelType, RSVPMethods, RSVPQueryHelper
             type: Number,
             required: false,
             default: 0
+        },
+        eventDate: {
+            type: Date,
+            required: true
         }
     },
     {

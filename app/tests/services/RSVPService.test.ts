@@ -3,29 +3,36 @@ import { createFakeRSVP } from "../../tests/generators/rsvp"
 import { getOneUser } from "../../tests/getters"
 import { getMockedRequest } from "../utils"
 import { RSVP } from "@/models/rsvp/RSVP"
+import { Event } from "@/models/event/Event"
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils"
 import { create, getForEvent, update } from "@/services/RSVPService"
 
 describe("create() method SUCCESS", () => {
     it("Should call RSVP.create method", async () => {
-        const mockRSVP = await createFakeRSVP({}, true);
-        const spy = jest.spyOn(RSVP, 'create').mockResolvedValue(mockRSVP as any);
+        const mockRSVP = await createFakeRSVP({});
+        const eventDate = new Date();
+        const spyFind = jest.spyOn(Event, "findOne").mockResolvedValue({ date: eventDate })
+        const spyCreate = jest.spyOn(RSVP, 'create').mockResolvedValue(mockRSVP as any);
         const body = {
             eventId: new Types.ObjectId().toString(),
             status: STATUS_CONFIRMED,
             additionalGuests: 0
         }
         const user = await getOneUser();
-        const req = getMockedRequest(body, {}, { user })
         await create(body, user._id.toString())
-        expect(RSVP.create).toHaveBeenCalledTimes(1);
-        expect(RSVP.create).toHaveBeenCalledWith({ event: body.eventId, status: body.status, additionalGuests: body.additionalGuests, user: user._id.toString() });
-        spy.mockRestore();
+        expect(spyFind).toHaveBeenCalledTimes(1);
+        expect(spyFind).toHaveBeenCalledWith({ _id: body.eventId, active: true });
+        expect(spyCreate).toHaveBeenCalledTimes(1);
+        expect(spyCreate).toHaveBeenCalledWith({ event: body.eventId, status: body.status, additionalGuests: body.additionalGuests, user: user._id.toString(), eventDate });
+        spyCreate.mockRestore();
+        spyFind.mockRestore();
     })
 })
 describe("create() method FAIL", () => {
     it("Should rethrow error", async () => {
-        const spy = jest.spyOn(RSVP, "create").mockRejectedValue(new Error("Mock error"));
+        const eventDate = new Date();
+        const spyFind = jest.spyOn(Event, "findOne").mockResolvedValue({ date: eventDate })
+        const spyCreate = jest.spyOn(RSVP, "create").mockRejectedValue(new Error("Mock error"));
         const body = {
             eventId: new Types.ObjectId().toString(),
             status: STATUS_CONFIRMED,
@@ -39,7 +46,8 @@ describe("create() method FAIL", () => {
             expect(error).toBeInstanceOf(Error);
             expect((error as Error).message).toBe("Mock error");
         }
-        spy.mockRestore();
+        spyCreate.mockRestore();
+        spyFind.mockRestore();
     })
 });
 
@@ -62,7 +70,6 @@ describe("update() method SUCCESS", () => {
             additionalGuests: 2
         }
         const user = await getOneUser();
-        const req = getMockedRequest(body, { id: mockRSVP._id.toString() }, { user })
 
         await update(body, mockRSVP._id.toString(), user._id.toString())
         expect(RSVP.findOne).toHaveBeenCalledTimes(1);
