@@ -19,7 +19,7 @@ async function createUserAndEvent() {
 describe("RSVP model", () => {
     it("Should save RSVP with valid status", async () => {
         const { user, event } = await createUserAndEvent();
-        const rsvp = await RSVP.create({ user: user.id, event: event._id, status: STATUS_CONFIRMED })
+        const rsvp = await RSVP.create({ user: user.id, event: event._id, status: STATUS_CONFIRMED, eventDate: event.date })
 
         expect(rsvp).toBeDefined();
         expect(rsvp.user.toString()).toBe(user.id.toString());
@@ -30,7 +30,7 @@ describe("RSVP model", () => {
     it("Should not save RSVP with invalid status", async () => {
         const { user, event } = await createUserAndEvent();
         try {
-            await RSVP.create({ user: user.id, event: event._id, status: "going" })
+            await RSVP.create({ user: user.id, event: event._id, status: "going", eventDate: event.date })
         } catch (error) {
             expect(error).toBeInstanceOf(Error.ValidationError);
             const parsedError = parseMongooseValidationError(error as Error.ValidationError);
@@ -48,7 +48,7 @@ describe("RSVP model", () => {
             throw new Error("No event found, check your seeders");
         }
         try {
-            await RSVP.create({ user: new Types.ObjectId(), event: event.id, status: STATUS_CANCELED })
+            await RSVP.create({ user: new Types.ObjectId(), event: event.id, status: STATUS_CANCELED, eventDate: event.date })
         } catch (error) {
             expect(error).toBeInstanceOf(Error.ValidationError);
         }
@@ -60,7 +60,7 @@ describe("RSVP model", () => {
             throw new Error("No user found, check your seeders");
         }
         try {
-            await RSVP.create({ user: user.id, event: new Types.ObjectId(), status: STATUS_CANCELED })
+            await RSVP.create({ user: user.id, event: new Types.ObjectId(), status: STATUS_CANCELED, eventDate: new Date() })
         } catch (error) {
             expect(error).toBeInstanceOf(Error.ValidationError);
         }
@@ -75,7 +75,7 @@ describe("RSVP model", () => {
         event.active = false;
         await event.save();
         try {
-            await RSVP.create({ user: user.id, event: event.id, status: STATUS_CANCELED })
+            await RSVP.create({ user: user.id, event: event.id, status: STATUS_CANCELED, eventDate: event.date })
         } catch (error) {
             expect(error).toBeInstanceOf(Error.ValidationError);
             const parsedError = parseMongooseValidationError(error as Error.ValidationError);
@@ -90,7 +90,8 @@ describe("RSVP model", () => {
             user: user._id,
             event: event._id,
             status: STATUS_CONFIRMED,
-            additionalGuests: 0
+            additionalGuests: 0,
+            eventDate: event.date
         };
         const rsvp = await RSVP.create(newRsvp);
         if (!rsvp) {
