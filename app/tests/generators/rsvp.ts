@@ -7,6 +7,7 @@ export async function createFakeRSVP(overrides: Partial<HydratedRSVP> = {}, save
         event: new Types.ObjectId(),
         user: new Types.ObjectId(),
         status: STATUS_CONFIRMED,
+        eventDate: new Date(),
         ...overrides
     }
     if (save) {
