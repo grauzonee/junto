@@ -25,7 +25,6 @@ describe("update() success", () => {
             additionalGuests: 2
         }
         const user = await getOneUser();
-        const req = getMockedRequest(body, { id: mockRSVP._id.toString() }, { user })
 
         await update(body, mockRSVP._id.toString(), user._id.toString())
 

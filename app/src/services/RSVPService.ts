@@ -1,11 +1,17 @@
 import { RSVP } from "@/models/rsvp/RSVP";
 import { Event } from "@/models/event/Event";
 import { logger } from "@/config/loggerConfig";
-import { CreateRSVPInput, UpdateRSVPInput, RSVPFilters } from "@/types/services/RSVPService";
+import { CreateRSVPInput, UpdateRSVPInput } from "@/types/services/RSVPService";
 import { BadInputError, NotFoundError } from "@/types/errors/InputError";
 import messages from "@/constants/errorMessages";
 import { RSVPStatus, STATUS_CONFIRMED } from "@/models/rsvp/utils";
+import { RequestData } from "@/types/common";
+import { buildFilterQuery, buildSortQuery } from "@/helpers/queryBuilder";
 
+export async function list(data: RequestData) {
+    const result = await RSVP.find(buildFilterQuery(data.dbFilter)).sort(buildSortQuery(data.sort)).paginate(data.pagination.offset, data.pagination.limit)
+    return result;
+}
 export async function create(data: CreateRSVPInput, userId: string) {
     const { eventId, status, additionalGuests } = data;
 
@@ -44,7 +50,7 @@ export async function getForEvent(eventId: string, status: RSVPStatus = STATUS_C
     return rsvps;
 }
 
-export async function getForUser(userId: string, filters: RSVPFilters) {
+export async function getForUser(userId: string) {
     const rsvps = await RSVP.find({ user: userId }).populate('event');
     return rsvps;
 }

@@ -3,8 +3,11 @@ import messages from "@/constants/errorMessages"
 import * as validators from "@/models/rsvp/validators";
 import { RSVPMethods, setStatus, cancel, confirm, markAsMaybe } from "@/models/rsvp/methods";
 import { RSVPStatus } from "@/models/rsvp/utils";
-import { RSVPQueryHelpers, confirmed, canceled, maybe } from "@/models/rsvp/queries";
-import { isUserAttendingEvent } from "@/models/rsvp/statics";
+import { RSVPQueryHelpers } from "@/models/rsvp/queries";
+import { isUserAttendingEvent, getFilterableFields, getSortableFields } from "@/models/rsvp/statics";
+import { Filterable } from "@/types/Filter";
+import { Sortable } from "@/types/Sort";
+import { paginatePlugin } from "@/models/plugins/paginate";
 
 export interface IRSVP {
     event: Types.ObjectId;
@@ -17,13 +20,12 @@ export interface IRSVP {
 export type HydratedRSVP = HydratedDocument<IRSVP> & RSVPMethods;
 
 export interface RSVPModelType
-    extends Model<IRSVP, RSVPQueryHelpers, RSVPMethods> {
+    extends Model<IRSVP, RSVPQueryHelpers, RSVPMethods>, Filterable, Sortable {
     isUserAttendingEvent(
         user: string,
         event: string
     ): Promise<HydratedRSVP | null>;
 }
-
 
 const RSVPSchema = new Schema<IRSVP, RSVPModelType, RSVPMethods, RSVPQueryHelpers>(
     {
@@ -54,12 +56,9 @@ const RSVPSchema = new Schema<IRSVP, RSVPModelType, RSVPMethods, RSVPQueryHelper
     {
         timestamps: true,
         statics: {
+            getFilterableFields,
+            getSortableFields,
             isUserAttendingEvent
-        },
-        query: {
-            confirmed,
-            canceled,
-            maybe
         },
         methods: {
             setStatus,
@@ -69,6 +68,8 @@ const RSVPSchema = new Schema<IRSVP, RSVPModelType, RSVPMethods, RSVPQueryHelper
         }
     }
 )
+
+RSVPSchema.plugin(paginatePlugin<IRSVP>);
 
 RSVPSchema.path("status").validate({
     validator: validators.statusValidator,
