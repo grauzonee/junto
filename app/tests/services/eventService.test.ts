@@ -156,7 +156,7 @@ describe("geosearch events tests SUCCESS", () => {
             categories: [categoryId.toString()],
             location: {
                 type: "Point",
-                coordinates: [48.21649, 16.40087]
+                coordinates: [16.40087, 48.21649]
             },
             author: userId.toString()
         }, true);

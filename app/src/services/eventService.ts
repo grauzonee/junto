@@ -5,6 +5,7 @@ import { NotFoundError } from "@/types/errors/InputError";
 import { EventType } from "@/models/EventType";
 import { buildGeosearchQuery, buildFilterQuery, buildSortQuery } from "@/helpers/queryBuilder";
 import { RequestData } from "@/types/common";
+import { CoordinatesSchema } from "@/schemas/http/Event";
 
 export async function list(data: RequestData) {
     const result = await Event.find(buildFilterQuery(data.dbFilter)).sort(buildSortQuery(data.sort)).paginate(data.pagination.offset, data.pagination.limit)
@@ -32,7 +33,8 @@ export async function create(data: CreateEventInput, author: string) {
 }
 
 export async function geoSearch(coordinates: CoordinatesInput, data: RequestData) {
-    const query = buildGeosearchQuery(coordinates)
+    const validatedCoordinates = CoordinatesSchema.parse(coordinates);
+    const query = buildGeosearchQuery(validatedCoordinates)
     try {
         const result = await Event.find(query).sort(buildSortQuery(data.sort)).paginate(data.pagination.offset, data.pagination.limit);
         return result;

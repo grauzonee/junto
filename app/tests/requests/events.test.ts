@@ -61,6 +61,56 @@ describe("GET /:eventId", () => {
         expect(res.body.data).toHaveProperty('fieldErrors');
     })
 })
+
+describe("GET /geosearch", () => {
+    it("Should route to geosearch instead of fetchOne for the static path", async () => {
+        const author = await getOneUser();
+        const latitude = 48.2082;
+        const longitude = 16.3738;
+        const event = await createFakeEvent({
+            author: author._id.toString(),
+            location: {
+                type: "Point",
+                coordinates: [longitude, latitude]
+            }
+        }, true);
+
+        const res = await request(app)
+            .get('/api/event/geosearch')
+            .query({ lat: latitude.toString(), lng: longitude.toString(), radius: "3" });
+
+        if (!event._id) {
+            throw new Error("Expected saved event to have an _id");
+        }
+        const eventId = event._id.toString();
+
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body.data)).toBe(true);
+        expect(res.body.data.some((item: { _id: string }) => item._id === eventId)).toBe(true);
+
+        await Event.deleteOne({ _id: event._id });
+    });
+
+    it("Should treat radius as kilometers", async () => {
+        const viennaEvent = await Event.findOne({ fullAddress: "Leystraße 2, 1200 Vienna, Austria" });
+        if (!viennaEvent?._id) {
+            throw new Error("Expected seeded Vienna event to exist");
+        }
+
+        const res = await request(app)
+            .get('/api/event/geosearch')
+            .query({
+                lat: "48.24847480429635",
+                lng: "16.37497422734464",
+                radius: "3"
+            });
+
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body.data)).toBe(true);
+        expect(res.body.data.some((item: { _id: string }) => item._id === viennaEvent._id.toString())).toBe(true);
+    });
+});
+
 describe("POST /attend", () => {
     let eventId: string;
     let userId: string;

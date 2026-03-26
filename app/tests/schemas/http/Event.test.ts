@@ -1,4 +1,4 @@
-import { CreateEventSchema } from "@/schemas/http/Event";
+import { CoordinatesSchema, CreateEventSchema } from "@/schemas/http/Event";
 import { Types } from "mongoose";
 import messages from "@/constants/errorMessages"
 import * as z from 'zod';
@@ -179,5 +179,30 @@ describe("CreateEventSchema", () => {
             const error = e as z.ZodError;
             expect(error.issues[0].message).toBe(messages.http.MIN("Max Attendees", 1));
         }
+    });
+});
+
+describe("CoordinatesSchema", () => {
+    it("Should coerce query string values into numbers", () => {
+        const data = CoordinatesSchema.parse({
+            lat: "40.7128",
+            lng: "-74.0060",
+            radius: "3"
+        });
+
+        expect(data).toEqual({
+            lat: 40.7128,
+            lng: -74.006,
+            radius: 3
+        });
+    });
+
+    it("Should default radius when omitted", () => {
+        const data = CoordinatesSchema.parse({
+            lat: "40.7128",
+            lng: "-74.0060"
+        });
+
+        expect(data.radius).toBe(3);
     });
 });
