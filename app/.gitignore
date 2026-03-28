@@ -1,7 +1,9 @@
 .env
 node_modules/
 logs/
-uploads/
+uploads/*
+!uploads/seed-events/
+!uploads/seed-events/*.svg
 .DS_Store
 docs
 coverage
