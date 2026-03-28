@@ -196,9 +196,11 @@ describe("GET /:eventId/rsvps", () => {
         const user3 = await createUser({}, true);
 
         const event = await createFakeEvent({ maxAttendees: 10, author: author._id.toString() }, true);
-        const rsvp1 = createFakeRSVP({ event: event._id, user: user1._id, status: STATUS_CONFIRMED }, true);
-        const rsvp2 = createFakeRSVP({ event: event._id, user: user2._id, status: STATUS_CONFIRMED }, true);
-        const rsvp3 = createFakeRSVP({ event: event._id, user: user3._id, status: STATUS_CONFIRMED }, true);
+        await Promise.all([
+            createFakeRSVP({ event: event._id, user: user1._id, status: STATUS_CONFIRMED }, true),
+            createFakeRSVP({ event: event._id, user: user2._id, status: STATUS_CONFIRMED }, true),
+            createFakeRSVP({ event: event._id, user: user3._id, status: STATUS_CONFIRMED }, true)
+        ]);
 
         if (!event || !event._id) {
             throw new Error("No events found, check your seeders");
