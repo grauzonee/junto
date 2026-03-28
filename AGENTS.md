@@ -92,6 +92,13 @@ cd app && npm run lint
 - Models: `app/src/models/`
 - Schemas and validation: `app/src/schemas/`
 
+### Model Organization
+
+- Keep each model entry file focused on schema definition, indexes, `toJSON` transforms, plugin wiring, and importing related model helpers.
+- Put model-specific logic next to the model in the same directory, following the existing split such as `hooks.ts`, `methods.ts`, `queries.ts`, `statics.ts`, `utils.ts`, and `validators.ts`.
+- Use `app/src/helpers/` for shared cross-model helpers. If a function is reusable outside one model domain, prefer a helper over placing it in a model file.
+- Mirror this structure in tests: shared helpers belong in `app/tests/helpers/`, and model-specific utilities or behavior belong in `app/tests/models/<model>/`.
+
 ### Tests
 
 - Request tests: `app/tests/requests/`

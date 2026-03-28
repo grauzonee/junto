@@ -2,12 +2,14 @@ import mongoose, { HydratedDocument, Schema, Types, SchemaTypes, Model } from "m
 import { type Filterable } from "@/types/Filter";
 import { type CurrencyCode } from "currency-codes-ts/dist/types";
 import { getConfigValue } from "@/helpers/configHelper";
+import { toUnixSeconds } from "@/helpers/dateHelper";
 import { type Sortable } from "@/types/Sort";
 import { paginatePlugin, type PaginateQueryHelper } from "@/models/plugins/paginate";
 import messages from "@/constants/errorMessages";
 import { getFilterableFields, getSortableFields } from "@/models/event/statics";
 import { categoriesValidator, typeValidator } from "@/models/event/validators";
 import { postSaveHook, preSaveHook } from "@/models/event/hooks";
+import { normalizeEventDate } from "@/models/event/utils";
 
 export interface IEvent {
     _id: Types.ObjectId;
@@ -48,7 +50,7 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, object, PaginateQue
         },
         date: {
             type: Date,
-            set: (v: number) => new Date(v * 1000),
+            set: normalizeEventDate,
             required: true
         },
         fullAddress: {
@@ -129,12 +131,21 @@ EventSchema.set('toJSON', {
     virtuals: false,
     versionKey: false,
     transform: (_, ret) => {
-        if ('updatedAt' in ret) {
-            delete ret.updatedAt;
-        }
-        ret.imageUrl = getConfigValue('HOST') + '/' + ret.imageUrl
+        const transformedRet = ret as unknown as Record<string, unknown> & {
+            date: unknown;
+            imageUrl: string;
+        };
 
-        return ret;
+        if ('updatedAt' in transformedRet) {
+            delete transformedRet.updatedAt;
+        }
+
+        if (transformedRet.date instanceof Date) {
+            transformedRet.date = toUnixSeconds(transformedRet.date);
+        }
+        transformedRet.imageUrl = getConfigValue('HOST') + '/' + transformedRet.imageUrl
+
+        return transformedRet;
     }
 })
 
@@ -159,5 +170,3 @@ EventSchema.post("save", postSaveHook)
 EventSchema.plugin(paginatePlugin<IEvent>);
 
 export const Event = mongoose.model<IEvent, EventModelType>("Event", EventSchema)
-
-
