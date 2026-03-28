@@ -1,13 +1,17 @@
 import { logger } from "@/config/loggerConfig";
-import { Event } from "@/models/event/Event"
+import { Event, type IEvent } from "@/models/event/Event"
 import { CreateEventInput, CoordinatesInput, EditEventInput } from "@/types/services/eventService";
 import { NotFoundError } from "@/types/errors/InputError";
 import { EventType } from "@/models/EventType";
-import { buildGeosearchQuery, buildFilterQuery, buildSortQuery } from "@/helpers/queryBuilder";
+import { buildGeosearchQuery, buildFilterQuery, buildSearchQuery, buildSortQuery, combineQueries } from "@/helpers/queryBuilder";
 import { RequestData } from "@/types/common";
 
 export async function list(data: RequestData) {
-    const result = await Event.find(buildFilterQuery(data.dbFilter)).sort(buildSortQuery(data.sort)).paginate(data.pagination.offset, data.pagination.limit)
+    const query = combineQueries<IEvent>(
+        buildFilterQuery<IEvent>(data.dbFilter),
+        buildSearchQuery<IEvent>(['title', 'description'], data.search)
+    );
+    const result = await Event.find(query).sort(buildSortQuery(data.sort)).paginate(data.pagination.offset, data.pagination.limit)
     return result;
 }
 

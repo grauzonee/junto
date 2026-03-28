@@ -6,6 +6,8 @@ const tsJestTransformCfg = createDefaultPreset().transform;
 module.exports = {
     preset: "ts-jest",
     testEnvironment: "node",
+    // The shared test bootstrap starts an in-memory Mongo instance and seeds data.
+    testTimeout: 30000,
     moduleFileExtensions: ["ts", "js", "json"],
     testMatch: ["**/*.test.ts"],
     moduleNameMapper: {

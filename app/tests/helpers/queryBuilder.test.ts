@@ -1,4 +1,4 @@
-import { buildFilterQuery, buildGeosearchQuery, buildSortQuery } from "@/helpers/queryBuilder"
+import { buildFilterQuery, buildGeosearchQuery, buildSearchQuery, buildSortQuery, escapeRegexSearchTerm } from "@/helpers/queryBuilder"
 import { CoordinatesInput } from "@/types/services/eventService"
 import type { Filter } from "@/types/Filter"
 import { SortInput } from "@/types/Sort"
@@ -62,6 +62,28 @@ describe("buildFilterQuery() tests", () => {
             }
         })
     })
+
+    it("Should prefer equality range over other range operators for the same field", () => {
+        const dbFilter: Filter[] = [
+            { prefix: 'after', field: 'date', value: new Date("2026-03-27T00:00:00.000Z") },
+            {
+                prefix: 'eq',
+                field: 'date',
+                value: {
+                    start: new Date("2026-03-28T00:00:00.000Z"),
+                    end: new Date("2026-03-28T23:59:59.999Z")
+                }
+            },
+            { prefix: 'before', field: 'date', value: new Date("2026-03-30T00:00:00.000Z") }
+        ]
+        const query = buildFilterQuery<Event>(dbFilter)
+        expect(query).toEqual({
+            date: {
+                $gte: new Date("2026-03-28T00:00:00.000Z"),
+                $lte: new Date("2026-03-28T23:59:59.999Z")
+            }
+        })
+    })
 })
 describe("buildGeosearchQuery() tests", () => {
     it("Should return FilterQuery object", () => {
@@ -82,24 +104,40 @@ describe("buildGeosearchQuery() tests", () => {
     })
 })
 describe("buildSortQuery() tests", () => {
-    it("Should return -1 if sortByAsc", () => {
+    it("Should return 1 if sortByAsc", () => {
         const field = "interests";
         const sortInput: SortInput = {
             sortByAsc: field
         }
         const result = buildSortQuery(sortInput);
         expect(result).toEqual({
-            [field]: -1
+            [field]: 1
         })
     })
-    it("Should return 1 if sortByDesc", () => {
+    it("Should return -1 if sortByDesc", () => {
         const field = "interests";
         const sortInput: SortInput = {
             sortByDesc: field
         }
         const result = buildSortQuery(sortInput);
         expect(result).toEqual({
-            [field]: 1
+            [field]: -1
+        })
+    })
+})
+
+describe("search query helpers", () => {
+    it("Should escape regex metacharacters in the search term", () => {
+        expect(escapeRegexSearchTerm("party.*(vip)+?")).toBe("party\\.\\*\\(vip\\)\\+\\?")
+    })
+
+    it("Should build a case-insensitive literal search query", () => {
+        const query = buildSearchQuery<Event>(['title', 'description'], 'party.*')
+        expect(query).toEqual({
+            $or: [
+                { title: { $regex: "party\\.\\*", $options: 'i' } },
+                { description: { $regex: "party\\.\\*", $options: 'i' } }
+            ]
         })
     })
 })

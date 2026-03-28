@@ -105,6 +105,7 @@ cd app && npm run lint
 Before finishing a task, check:
 
 - Behavior change is implemented.
+- `npm run lint` is successfull
 - Relevant tests were added or updated.
 - Build still succeeds.
 - Relevant test suite passes.
@@ -117,27 +118,19 @@ When opening a PR, include:
 - What changed
 - Why it changed
 - User or developer impact
-- Validation performed
 
 ## Known Caveats
 
 - Jest should be run with `jest.config.ts`.
 - Stale generated files can cause duplicate Jest config or mock issues if they appear outside `dist/`.
-- There are duplicate `GET /` route registrations in `app/src/routes/event.ts`; review route order carefully when changing event listing behavior.
 
 ## Project-Specific Conventions
 
 Fill in any conventions that agents should follow here.
 
-- Naming: `TODO`
-- Branching: `TODO`
-- Review expectations: `TODO`
-- Release process: `TODO`
+- Naming: verbObject
+- Branching: feature-dash-separated
 
-## Contacts
+## Notes
 
-Add project owners or team references here.
-
-- Engineering owner: `TODO`
-- Product owner: `TODO`
-- Slack / docs / issue tracker: `TODO`
+Don't use deprecated functions in new code.
