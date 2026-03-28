@@ -12,6 +12,7 @@ module.exports = {
         "^@/(.*)$": "<rootDir>/src/$1",
         "^@tests/(.*)$": "<rootDir>/tests/$1"
     },
+    modulePathIgnorePatterns: ["<rootDir>/dist/"],
     coverageReporters: [
         "json-summary",
         "text",

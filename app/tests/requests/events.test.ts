@@ -20,6 +20,21 @@ import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
 import { createFakeEvent } from "@tests/generators/event";
 import { getOneEvent, getOneUser } from "@tests/getters";
 
+function toUnixSeconds(value: Date): number {
+    return Math.floor(value.getTime() / 1000);
+}
+
+function atNoon(value: Date): Date {
+    return new Date(value.getFullYear(), value.getMonth(), value.getDate(), 12, 0, 0, 0);
+}
+
+function startOfWeek(value: Date): Date {
+    const result = new Date(value.getFullYear(), value.getMonth(), value.getDate());
+    const distanceFromMonday = (result.getDay() + 6) % 7;
+    result.setDate(result.getDate() - distanceFromMonday);
+    return result;
+}
+
 describe("GET /:eventId", () => {
     it("Should return event with author, categories and type data", async () => {
         const event = await getOneEvent();
@@ -61,6 +76,70 @@ describe("GET /:eventId", () => {
         expect(res.body.data).toHaveProperty('fieldErrors');
     })
 })
+
+describe("GET /api/event date filters", () => {
+    const titles = {
+        today: "Today Event",
+        tomorrow: "Tomorrow Event",
+        thisWeekend: "This Weekend Event",
+        nextWeek: "Next Week Event",
+        nextMonth: "Next Month Event"
+    };
+
+    beforeEach(async () => {
+        await Event.deleteMany({});
+
+        const now = new Date();
+        const weekStart = startOfWeek(now);
+        const thisWeekendDate = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 5, 12, 0, 0, 0);
+        const nextWeekDate = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 7, 12, 0, 0, 0);
+        const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1, 12, 0, 0, 0);
+
+        await createFakeEvent({ title: titles.today, date: toUnixSeconds(atNoon(now)) }, true);
+        await createFakeEvent({ title: titles.tomorrow, date: toUnixSeconds(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 12, 0, 0, 0)) }, true);
+        await createFakeEvent({ title: titles.thisWeekend, date: toUnixSeconds(thisWeekendDate) }, true);
+        await createFakeEvent({ title: titles.nextWeek, date: toUnixSeconds(nextWeekDate) }, true);
+        await createFakeEvent({ title: titles.nextMonth, date: toUnixSeconds(nextMonthDate) }, true);
+    });
+
+    it("Should filter events for today", async () => {
+        const res = await request(app).get("/api/event").query({ date_eq: "today" }).send();
+        expect(res.statusCode).toBe(200);
+        const resultTitles = res.body.data.map((event: { title: string }) => event.title);
+        expect(resultTitles).toContain(titles.today);
+        expect(resultTitles).not.toContain(titles.tomorrow);
+        expect(resultTitles).not.toContain(titles.nextWeek);
+        expect(resultTitles).not.toContain(titles.nextMonth);
+    });
+
+    it("Should filter events for this week", async () => {
+        const res = await request(app).get("/api/event").query({ date_eq: "this week" }).send();
+        expect(res.statusCode).toBe(200);
+        const resultTitles = res.body.data.map((event: { title: string }) => event.title);
+        expect(resultTitles).toContain(titles.today);
+        expect(resultTitles).toContain(titles.thisWeekend);
+        expect(resultTitles).not.toContain(titles.nextWeek);
+        expect(resultTitles).not.toContain(titles.nextMonth);
+    });
+
+    it("Should filter events for this month", async () => {
+        const res = await request(app).get("/api/event").query({ date_eq: "this month" }).send();
+        expect(res.statusCode).toBe(200);
+        const resultTitles = res.body.data.map((event: { title: string }) => event.title);
+        expect(resultTitles).toContain(titles.today);
+        expect(resultTitles).not.toContain(titles.nextMonth);
+    });
+
+    it("Should filter events for this weekend", async () => {
+        const res = await request(app).get("/api/event").query({ date_eq: "this weekend" }).send();
+        expect(res.statusCode).toBe(200);
+        const resultTitles = res.body.data.map((event: { title: string }) => event.title);
+        expect(resultTitles).toContain(titles.thisWeekend);
+        expect(resultTitles).not.toContain(titles.nextWeek);
+        expect(resultTitles).not.toContain(titles.nextMonth);
+    });
+});
+
 describe("POST /attend", () => {
     let eventId: string;
     let userId: string;
