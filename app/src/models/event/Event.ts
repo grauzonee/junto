@@ -36,6 +36,37 @@ export type HydratedEvent = HydratedDocument<IEvent>;
 
 interface EventModelType extends Model<IEvent, PaginateQueryHelper<IEvent>, object>, Filterable, Sortable { }
 
+function normalizeEventDate(value: Date | number | string): Date {
+    if (value instanceof Date) {
+        return value;
+    }
+
+    if (typeof value === "number") {
+        const milliseconds = Math.abs(value) >= 1e12 ? value : value * 1000;
+        return new Date(milliseconds);
+    }
+
+    if (typeof value === "string") {
+        const trimmedValue = value.trim();
+
+        if (/^-?\d+$/.test(trimmedValue)) {
+            return normalizeEventDate(Number(trimmedValue));
+        }
+
+        return new Date(trimmedValue);
+    }
+
+    return value;
+}
+
+function toUnixSeconds(value: unknown): number | unknown {
+    if (!(value instanceof Date)) {
+        return value;
+    }
+
+    return Math.floor(value.getTime() / 1000);
+}
+
 export const EventSchema = new Schema<IEvent, Model<IEvent>, object, PaginateQueryHelper<IEvent>>(
     {
         title: {
@@ -48,7 +79,7 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, object, PaginateQue
         },
         date: {
             type: Date,
-            set: (v: number) => new Date(v * 1000),
+            set: normalizeEventDate,
             required: true
         },
         fullAddress: {
@@ -129,12 +160,19 @@ EventSchema.set('toJSON', {
     virtuals: false,
     versionKey: false,
     transform: (_, ret) => {
-        if ('updatedAt' in ret) {
-            delete ret.updatedAt;
-        }
-        ret.imageUrl = getConfigValue('HOST') + '/' + ret.imageUrl
+        const transformedRet = ret as unknown as Record<string, unknown> & {
+            date: unknown;
+            imageUrl: string;
+        };
 
-        return ret;
+        if ('updatedAt' in transformedRet) {
+            delete transformedRet.updatedAt;
+        }
+
+        transformedRet.date = toUnixSeconds(transformedRet.date);
+        transformedRet.imageUrl = getConfigValue('HOST') + '/' + transformedRet.imageUrl
+
+        return transformedRet;
     }
 })
 
@@ -159,5 +197,3 @@ EventSchema.post("save", postSaveHook)
 EventSchema.plugin(paginatePlugin<IEvent>);
 
 export const Event = mongoose.model<IEvent, EventModelType>("Event", EventSchema)
-
-

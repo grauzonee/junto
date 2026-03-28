@@ -44,6 +44,7 @@ describe("GET /:eventId", () => {
         if (!event) {
             throw new Error("No events in DB!");
         }
+        const expectedDate = Math.floor(event.date.getTime() / 1000);
         const res = await request(app).get(`/api/event/${event._id.toString()}`).send();
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('data');
@@ -60,6 +61,8 @@ describe("GET /:eventId", () => {
         expect(res.body.data.type).toHaveProperty('title');
         expect(res.body.data).toHaveProperty('description');
         expect(res.body.data).toHaveProperty('date');
+        expect(res.body.data.date).toBe(expectedDate);
+        expect(typeof res.body.data.date).toBe("number");
         expect(res.body.data).toHaveProperty('fullAddress');
         expect(res.body.data).toHaveProperty('imageUrl');
         expect(res.body.data).toHaveProperty('maxAttendees');
