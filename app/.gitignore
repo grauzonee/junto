@@ -6,3 +6,8 @@ uploads/
 docs
 coverage
 coverage.txt
+dist/
+*.tsbuildinfo
+src/**/*.js
+tests/**/*.js
+jest.config.js

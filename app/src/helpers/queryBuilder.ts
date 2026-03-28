@@ -4,7 +4,7 @@
  * @packageDocumentation
  */
 
-import { type FilterPrefix, type Filter, type FilterValue } from '@/types/Filter'
+import { type FilterPrefix, type Filter, isFilterRangeValue, type FilterValue } from '@/types/Filter'
 import { type FilterQuery } from "mongoose"
 import { type CoordinatesInput } from '@/types/services/eventService'
 import { SortInput } from '@/types/Sort'
@@ -49,13 +49,28 @@ export function buildFilterQuery<T>(dbFilter: Filter[] | undefined): FilterQuery
     const query: Record<string, Record<string, FilterValue>> = {}
     if (!dbFilter) return query;
     dbFilter.forEach(filter => {
-        const operator = MongoFilterMap[filter.prefix]
-        let definition = { [operator]: filter.value };
+        let definition: Record<string, FilterValue>;
+        if (isFilterRangeValue(filter.value)) {
+            if (filter.prefix === 'eq') {
+                definition = { $gte: filter.value.start, $lte: filter.value.end };
+            } else if (filter.prefix === 'after' || filter.prefix === 'min') {
+                definition = { $gte: filter.value.start };
+            } else if (filter.prefix === 'before' || filter.prefix === 'max') {
+                definition = { $lte: filter.value.end };
+            } else {
+                const operator = MongoFilterMap[filter.prefix]
+                definition = { [operator]: filter.value };
+            }
+        } else {
+            const operator = MongoFilterMap[filter.prefix]
+            definition = { [operator]: filter.value };
+        }
+
         if (filter.options) {
             definition = { ...definition, $options: filter.options }
         }
 
-        query[filter.field] = definition
+        query[filter.field] = { ...query[filter.field], ...definition }
     })
     return query;
 }

@@ -5,7 +5,7 @@ describe("getRoots() method", () => {
         const roots = await Category.find().getRoots();
 
         expect(roots).toBeInstanceOf(Array);
-        roots.forEach(async (root) => {
+        roots.forEach((root) => {
             expect(root.parent).toBeNull();
         });
     });

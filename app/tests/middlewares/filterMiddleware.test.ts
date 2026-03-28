@@ -59,6 +59,23 @@ describe("FilterMiddleware tests SUCCESS", () => {
         expect(next).toHaveBeenCalledTimes(1)
         expect(req.dbFilter).toEqual([{ prefix: 'before', value: new Date(inputDate), field: 'date' }])
     })
+    it("should populate DATE RANGE request.dbFilter parameter", () => {
+        jest.spyOn(Event, "getFilterableFields").mockReturnValue([{
+            field: 'date',
+            preprocess: (value: FilterValue) => value === "today"
+                ? { start: new Date("2026-03-28T00:00:00.000Z"), end: new Date("2026-03-28T23:59:59.999Z") }
+                : value
+        }])
+        req.query = { 'date_eq': "today" }
+        const middleware = filterMiddleware(Event)
+        middleware(req as Request, res as Response, next)
+        expect(next).toHaveBeenCalledTimes(1)
+        expect(req.dbFilter).toEqual([{
+            prefix: 'eq',
+            value: { start: new Date("2026-03-28T00:00:00.000Z"), end: new Date("2026-03-28T23:59:59.999Z") },
+            field: 'date'
+        }])
+    })
     it("should populate OPTIONS request.dbFilter parameter", () => {
         const inputTopic = "meet";
         jest.spyOn(Event, "getFilterableFields").mockReturnValue([{ field: 'topics', options: 'i' }])

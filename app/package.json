@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "dev": "npx tsx watch src/index.ts",
     "lint": "eslint src --ext .ts",
     "fix": "eslint --fix src --ext .ts",

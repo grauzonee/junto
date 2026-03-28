@@ -3,12 +3,12 @@ import { Category } from "@/models/category/Category";
 describe("getTree() method", () => {
     beforeAll(async () => {
         const categories = await Category.find({ parent: null });
-        categories.forEach(async (category) => {
-            await Category.create({
+        await Promise.all(categories.map(category =>
+            Category.create({
                 title: category.title + " Subcategory",
                 parent: category._id
-            });
-        });
+            })
+        ));
     });
     afterAll(async () => {
         await Category.deleteMany({ parent: { $ne: null } });
