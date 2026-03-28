@@ -16,6 +16,16 @@ describe("getFilterableFields() method", () => {
             }
         ]);
     });
+
+    it("should resolve relative date aliases through the date preprocess function", () => {
+        const fields = getFilterableFields();
+        const dateField = fields.find(field => field.field === "date");
+        const result = dateField?.preprocess?.("this week", "eq");
+        expect(result).toEqual({
+            start: expect.any(Date),
+            end: expect.any(Date)
+        });
+    })
 });
 
 describe("getSortableFields() method", () => {

@@ -30,6 +30,38 @@ describe("buildFilterQuery() tests", () => {
             topics: { $regex: "meet", $options: 'i' }
         })
     })
+
+    it("Should expand date equality ranges into gte and lte operators", () => {
+        const dbFilter: Filter[] = [{
+            prefix: 'eq',
+            field: 'date',
+            value: {
+                start: new Date("2026-03-28T00:00:00.000Z"),
+                end: new Date("2026-03-28T23:59:59.999Z")
+            }
+        }]
+        const query = buildFilterQuery<Event>(dbFilter)
+        expect(query).toEqual({
+            date: {
+                $gte: new Date("2026-03-28T00:00:00.000Z"),
+                $lte: new Date("2026-03-28T23:59:59.999Z")
+            }
+        })
+    })
+
+    it("Should merge multiple operators for the same field", () => {
+        const dbFilter: Filter[] = [
+            { prefix: 'after', field: 'date', value: new Date("2026-03-28T00:00:00.000Z") },
+            { prefix: 'before', field: 'date', value: new Date("2026-03-30T00:00:00.000Z") }
+        ]
+        const query = buildFilterQuery<Event>(dbFilter)
+        expect(query).toEqual({
+            date: {
+                $gte: new Date("2026-03-28T00:00:00.000Z"),
+                $lte: new Date("2026-03-30T00:00:00.000Z")
+            }
+        })
+    })
 })
 describe("buildGeosearchQuery() tests", () => {
     it("Should return FilterQuery object", () => {

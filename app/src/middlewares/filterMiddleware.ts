@@ -2,20 +2,20 @@ import { NextFunction, Request, Response } from "express";
 import { type Filterable, type FilterPrefix, ARRAY_PREFIXES, SKIP_WORDS, type Filter, type FilterValue, isFilterPrefix, isFilterValue, FilterableField } from "@/types/Filter";
 import { BadInputError } from "@/types/errors/InputError";
 
-function parseFilterValue(filterValue: string, filterPrefix: FilterPrefix, preprocess: (value: FilterValue) => FilterValue = (value) => value): FilterValue {
-    const isArray = filterValue[0] == '[' && filterValue[filterValue.length - 1] == ']';
+function parseFilterValue(filterValue: string, filterPrefix: FilterPrefix, preprocess: (value: FilterValue, prefix: FilterPrefix) => FilterValue = (value) => value): FilterValue {
+    const isArray = filterValue.startsWith('[') && filterValue.endsWith(']');
     const isArrayPrefix = ARRAY_PREFIXES.includes(filterPrefix);
 
     if (isArray !== isArrayPrefix) {
-        throw Error("Invalid filter value " + filterValue)
+        throw new Error("Invalid filter value " + filterValue)
     }
 
     const result = isArray ? filterValue.replace(" ", "").substring(1, filterValue.length - 1).split(',') : filterValue;
 
     if (!isFilterValue(result)) {
-        throw Error("Invalid filter value " + filterValue)
+        throw new Error("Invalid filter value " + filterValue)
     }
-    return preprocess(result);
+    return preprocess(result, filterPrefix);
 }
 
 function parseFilterKey(filterKey: string, filterableFields: FilterableField[]): { filterableField: FilterableField, fieldKey: string, operator: string } | undefined {

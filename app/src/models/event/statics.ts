@@ -1,9 +1,10 @@
-import { FilterableField, FilterValue } from "@/types/Filter"
+import { resolveEventDateFilterValue } from "@/helpers/dateFilterHelper";
+import { FilterableField, FilterValue, FilterPrefix } from "@/types/Filter"
 export function getFilterableFields(): FilterableField[] {
     return [
         {
             field: 'date',
-            preprocess: (value: FilterValue) => new Date(value as string)
+            preprocess: (value: FilterValue, prefix: FilterPrefix) => resolveEventDateFilterValue(value, prefix)
         },
         {
             field: 'categories'
