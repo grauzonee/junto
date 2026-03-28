@@ -4,10 +4,12 @@
  * @packageDocumentation
  */
 
-import { type FilterPrefix, type Filter, isFilterRangeValue, type FilterValue } from '@/types/Filter'
+import { type FilterPrefix, type Filter, isEqualityFilterPrefix, isFilterRangeValue, isRangeBoundPrefix, type FilterValue } from '@/types/Filter'
 import { type FilterQuery } from "mongoose"
 import { type CoordinatesInput } from '@/types/services/eventService'
 import { SortInput } from '@/types/Sort'
+
+type MongoFilterDefinitionValue = FilterValue | string;
 
 const MongoFilterMap: Record<FilterPrefix, string> = {
     eq: '$eq',
@@ -46,12 +48,13 @@ export function buildGeosearchQuery(value: CoordinatesInput): FilterQuery<Event>
  * @returns {FilterQuery<T>}
  */
 export function buildFilterQuery<T>(dbFilter: Filter[] | undefined): FilterQuery<T> {
-    const query: Record<string, Record<string, FilterValue>> = {}
+    const query: Record<string, Record<string, MongoFilterDefinitionValue>> = {}
+    const equalityRangeFields = new Set<string>();
     if (!dbFilter) return query;
     dbFilter.forEach(filter => {
-        let definition: Record<string, FilterValue>;
+        let definition: Record<string, MongoFilterDefinitionValue>;
         if (isFilterRangeValue(filter.value)) {
-            if (filter.prefix === 'eq') {
+            if (isEqualityFilterPrefix(filter.prefix)) {
                 definition = { $gte: filter.value.start, $lte: filter.value.end };
             } else if (filter.prefix === 'after' || filter.prefix === 'min') {
                 definition = { $gte: filter.value.start };
@@ -70,9 +73,55 @@ export function buildFilterQuery<T>(dbFilter: Filter[] | undefined): FilterQuery
             definition = { ...definition, $options: filter.options }
         }
 
+        if (isFilterRangeValue(filter.value) && isEqualityFilterPrefix(filter.prefix)) {
+            query[filter.field] = definition;
+            equalityRangeFields.add(filter.field);
+            return;
+        }
+
+        if (equalityRangeFields.has(filter.field) && isRangeBoundPrefix(filter.prefix)) {
+            return;
+        }
+
         query[filter.field] = { ...query[filter.field], ...definition }
     })
     return query;
+}
+
+export function escapeRegexSearchTerm(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function buildSearchQuery<T>(fields: string[], search: string | undefined): FilterQuery<T> {
+    if (!search) {
+        return {};
+    }
+
+    const escapedSearch = escapeRegexSearchTerm(search);
+    return {
+        $or: fields.map(field => ({
+            [field]: {
+                $regex: escapedSearch,
+                $options: 'i'
+            }
+        }))
+    } as FilterQuery<T>;
+}
+
+export function combineQueries<T>(...queries: FilterQuery<T>[]): FilterQuery<T> {
+    const nonEmptyQueries = queries.filter(query => Object.keys(query).length > 0);
+
+    if (nonEmptyQueries.length === 0) {
+        return {};
+    }
+
+    if (nonEmptyQueries.length === 1) {
+        return nonEmptyQueries[0];
+    }
+
+    return {
+        $and: nonEmptyQueries
+    } as FilterQuery<T>;
 }
 
 /**
@@ -83,10 +132,10 @@ export function buildFilterQuery<T>(dbFilter: Filter[] | undefined): FilterQuery
 export function buildSortQuery(sort: SortInput | undefined): Record<string, 1 | -1> {
     if (!sort) return {}
     if (sort.sortByAsc) {
-        return { [sort.sortByAsc]: - 1 }
+        return { [sort.sortByAsc]: 1 }
     }
     if (sort.sortByDesc) {
-        return { [sort.sortByDesc]: 1 }
+        return { [sort.sortByDesc]: -1 }
     }
     return {}
 }

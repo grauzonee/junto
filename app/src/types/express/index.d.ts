@@ -8,8 +8,8 @@ declare global {
             offset?: number;
             limit?: number;
             dbFilter?: Filter[];
-            sort: SortInput
+            sort?: SortInput;
+            search?: string;
         }
     }
 }
-

@@ -11,7 +11,11 @@ import { seed as seedEvents } from "@/seeders/events.seeder"
 let mongoServer: MongoMemoryServer
 
 beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
+    mongoServer = await MongoMemoryServer.create({
+        instance: {
+            launchTimeout: 30000
+        }
+    });
     const uri = mongoServer.getUri();
 
     await mongoose.connect(uri);

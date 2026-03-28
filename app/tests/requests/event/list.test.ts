@@ -19,6 +19,9 @@ describe("list() SUCCESS", () => {
     })
     it("Should call listEvents method", async () => {
         const requestData = {
+            dbFilter: undefined,
+            sort: undefined,
+            search: undefined,
             pagination: {
                 offset: 0,
                 limit: 10
@@ -29,6 +32,19 @@ describe("list() SUCCESS", () => {
         await list(req as Request, res as Response, next);
         expect(listEvents).toHaveBeenCalledTimes(1)
         expect(listEvents).toHaveBeenCalledWith(requestData)
+    })
+    it("Should pass normalized search data to the service", async () => {
+        const req = getMockedRequest({}, {}, { search: "community meetup" });
+        await list(req as Request, res as Response, next);
+        expect(listEvents).toHaveBeenCalledWith({
+            dbFilter: undefined,
+            sort: undefined,
+            search: "community meetup",
+            pagination: {
+                offset: 0,
+                limit: 10
+            }
+        })
     })
     it("Should call setSuccessResponse method", async () => {
         const req = getMockedRequest();

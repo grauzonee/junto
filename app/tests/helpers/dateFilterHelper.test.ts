@@ -47,6 +47,21 @@ describe("getRelativeDateRange()", () => {
             end: new Date(2026, 2, 29, 23, 59, 59, 999)
         });
     })
+
+    it("should support discover preset aliases", () => {
+        expect(getRelativeDateRange("week", referenceDate)).toEqual({
+            start: new Date(2026, 2, 23, 0, 0, 0, 0),
+            end: new Date(2026, 2, 29, 23, 59, 59, 999)
+        });
+        expect(getRelativeDateRange("weekend", referenceDate)).toEqual({
+            start: new Date(2026, 2, 28, 0, 0, 0, 0),
+            end: new Date(2026, 2, 29, 23, 59, 59, 999)
+        });
+        expect(getRelativeDateRange("month", referenceDate)).toEqual({
+            start: new Date(2026, 2, 1, 0, 0, 0, 0),
+            end: new Date(2026, 2, 31, 23, 59, 59, 999)
+        });
+    })
 })
 
 describe("resolveEventDateFilterValue()", () => {

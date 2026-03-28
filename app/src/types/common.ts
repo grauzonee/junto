@@ -7,13 +7,17 @@ export interface PaginationData {
 }
 
 export interface DbFilterData {
-    dbFilter?: Filter[] | undefined;
+    dbFilter?: Filter[];
 }
 
 export interface SortData {
-    sort?: SortInput | undefined;
+    sort?: SortInput;
 }
 
-export interface RequestData extends DbFilterData, SortData {
+export interface SearchData {
+    search?: string;
+}
+
+export interface RequestData extends DbFilterData, SortData, SearchData {
     pagination: PaginationData
 }

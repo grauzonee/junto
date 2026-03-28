@@ -15,10 +15,13 @@ jest.mock("@/middlewares/authMiddleware", () => ({
 }));
 import app from "@/app";
 import { Event } from "@/models/event/Event";
+import { Category } from "@/models/category/Category";
+import { EventType } from "@/models/EventType";
 import messages from "@/constants/errorMessages"
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
 import { createFakeEvent } from "@tests/generators/event";
-import { getOneEvent, getOneUser } from "@tests/getters";
+import { getOneCategory, getOneEvent, getOneEventType, getOneUser } from "@tests/getters";
+import { SEARCH_QUERY_MAX_LENGTH } from "@/schemas/http/Event";
 
 function toUnixSeconds(value: Date): number {
     return Math.floor(value.getTime() / 1000);
@@ -137,6 +140,183 @@ describe("GET /api/event date filters", () => {
         expect(resultTitles).toContain(titles.thisWeekend);
         expect(resultTitles).not.toContain(titles.nextWeek);
         expect(resultTitles).not.toContain(titles.nextMonth);
+    });
+
+    it("Should support discover date aliases", async () => {
+        const weekRes = await request(app).get("/api/event").query({ date_eq: "week" }).send();
+        const canonicalWeekRes = await request(app).get("/api/event").query({ date_eq: "this week" }).send();
+        const weekendRes = await request(app).get("/api/event").query({ date_eq: "weekend" }).send();
+        const canonicalWeekendRes = await request(app).get("/api/event").query({ date_eq: "this weekend" }).send();
+        const monthRes = await request(app).get("/api/event").query({ date_eq: "month" }).send();
+        const canonicalMonthRes = await request(app).get("/api/event").query({ date_eq: "this month" }).send();
+
+        expect(weekRes.statusCode).toBe(200);
+        expect(weekRes.body.data.map((event: { title: string }) => event.title)).toEqual(
+            canonicalWeekRes.body.data.map((event: { title: string }) => event.title)
+        );
+
+        expect(weekendRes.statusCode).toBe(200);
+        expect(weekendRes.body.data.map((event: { title: string }) => event.title)).toEqual(
+            canonicalWeekendRes.body.data.map((event: { title: string }) => event.title)
+        );
+
+        expect(monthRes.statusCode).toBe(200);
+        expect(monthRes.body.data.map((event: { title: string }) => event.title)).toEqual(
+            canonicalMonthRes.body.data.map((event: { title: string }) => event.title)
+        );
+    });
+});
+
+describe("GET /api/event filters, search and sorting", () => {
+    let defaultCategoryId: string;
+    let alternateCategoryId: string;
+    let defaultTypeId: string;
+    let alternateTypeId: string;
+
+    beforeAll(async () => {
+        defaultCategoryId = (await getOneCategory())._id.toString();
+        defaultTypeId = (await getOneEventType())._id.toString();
+        alternateCategoryId = (await Category.create({ title: "Alternate Category" }))._id.toString();
+        alternateTypeId = (await EventType.create({ title: "Alternate Type" }))._id.toString();
+    });
+
+    beforeEach(async () => {
+        await Event.deleteMany({});
+    });
+
+    it("Should filter events by event type", async () => {
+        await createFakeEvent({ title: "Default Type Event", type: defaultTypeId, categories: [defaultCategoryId] }, true);
+        await createFakeEvent({ title: "Alternate Type Event", type: alternateTypeId, categories: [defaultCategoryId] }, true);
+
+        const res = await request(app).get("/api/event").query({ type_eq: alternateTypeId }).send();
+        expect(res.statusCode).toBe(200);
+        expect(res.body.data.map((event: { title: string }) => event.title)).toEqual(["Alternate Type Event"]);
+    });
+
+    it("Should filter events by category", async () => {
+        await createFakeEvent({ title: "Default Category Event", type: defaultTypeId, categories: [defaultCategoryId] }, true);
+        await createFakeEvent({ title: "Alternate Category Event", type: defaultTypeId, categories: [alternateCategoryId] }, true);
+
+        const res = await request(app).get("/api/event").query({ categories_in: `[${alternateCategoryId}]` }).send();
+        expect(res.statusCode).toBe(200);
+        expect(res.body.data.map((event: { title: string }) => event.title)).toEqual(["Alternate Category Event"]);
+    });
+
+    it("Should merge date_after and date_before filters", async () => {
+        await createFakeEvent({ title: "Before Range", date: toUnixSeconds(new Date("2026-03-27T12:00:00.000Z")) }, true);
+        await createFakeEvent({ title: "Within Range", date: toUnixSeconds(new Date("2026-03-28T12:00:00.000Z")) }, true);
+        await createFakeEvent({ title: "After Range", date: toUnixSeconds(new Date("2026-03-30T12:00:00.000Z")) }, true);
+
+        const res = await request(app).get("/api/event").query({
+            date_after: "2026-03-28T00:00:00.000Z",
+            date_before: "2026-03-29T23:59:59.999Z"
+        }).send();
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.data.map((event: { title: string }) => event.title)).toEqual(["Within Range"]);
+    });
+
+    it("Should keep date_eq as the source of truth when mixed with date_after and date_before", async () => {
+        await createFakeEvent({ title: "Preset Match", date: toUnixSeconds(atNoon(new Date())) }, true);
+        await createFakeEvent({ title: "Later Event", date: toUnixSeconds(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) }, true);
+
+        const res = await request(app).get("/api/event").query({
+            date_eq: "today",
+            date_after: "2100-01-01T00:00:00.000Z",
+            date_before: "2100-01-02T00:00:00.000Z"
+        }).send();
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.data.map((event: { title: string }) => event.title)).toContain("Preset Match");
+        expect(res.body.data.map((event: { title: string }) => event.title)).not.toContain("Later Event");
+    });
+
+    it("Should sort events by date ascending and descending", async () => {
+        await createFakeEvent({ title: "Middle Event", date: toUnixSeconds(new Date("2026-03-29T12:00:00.000Z")) }, true);
+        await createFakeEvent({ title: "Latest Event", date: toUnixSeconds(new Date("2026-03-30T12:00:00.000Z")) }, true);
+        await createFakeEvent({ title: "Earliest Event", date: toUnixSeconds(new Date("2026-03-28T12:00:00.000Z")) }, true);
+
+        const ascRes = await request(app).get("/api/event").query({ sortByAsc: "date" }).send();
+        const descRes = await request(app).get("/api/event").query({ sortByDesc: "date" }).send();
+
+        expect(ascRes.statusCode).toBe(200);
+        expect(ascRes.body.data.map((event: { title: string }) => event.title)).toEqual([
+            "Earliest Event",
+            "Middle Event",
+            "Latest Event"
+        ]);
+
+        expect(descRes.statusCode).toBe(200);
+        expect(descRes.body.data.map((event: { title: string }) => event.title)).toEqual([
+            "Latest Event",
+            "Middle Event",
+            "Earliest Event"
+        ]);
+    });
+
+    it("Should search across title and description using literal case-insensitive matching", async () => {
+        await createFakeEvent({ title: "Harbor Party", description: "No keyword here", fullAddress: "One Street" }, true);
+        await createFakeEvent({ title: "No Match", description: "Meet by the HARBOR at sunset", fullAddress: "Two Street" }, true);
+        await createFakeEvent({ title: "Another Event", description: "No keyword here", fullAddress: "55 Harbor Lane" }, true);
+        await createFakeEvent({ title: "Different Event", description: "Somewhere else entirely", fullAddress: "99 Inland Ave" }, true);
+
+        const res = await request(app).get("/api/event").query({ search: "harbor" }).send();
+        expect(res.statusCode).toBe(200);
+        expect(res.body.data.map((event: { title: string }) => event.title)).toEqual(
+            expect.arrayContaining(["Harbor Party", "No Match"])
+        );
+        expect(res.body.data.map((event: { title: string }) => event.title)).not.toContain("Another Event");
+        expect(res.body.data.map((event: { title: string }) => event.title)).not.toContain("Different Event");
+    });
+
+    it("Should normalize whitespace in the search query", async () => {
+        await createFakeEvent({ title: "Summer Festival" }, true);
+        await createFakeEvent({ title: "Summer Gathering" }, true);
+
+        const res = await request(app).get("/api/event").query({ search: "   Summer    Festival   " }).send();
+        expect(res.statusCode).toBe(200);
+        expect(res.body.data.map((event: { title: string }) => event.title)).toEqual(["Summer Festival"]);
+    });
+
+    it("Should treat regex metacharacters in search as literal text", async () => {
+        await createFakeEvent({ title: "Literal .* Pattern" }, true);
+        await createFakeEvent({ title: "Pattern Without Symbols" }, true);
+
+        const res = await request(app).get("/api/event").query({ search: ".*" }).send();
+        expect(res.statusCode).toBe(200);
+        expect(res.body.data.map((event: { title: string }) => event.title)).toEqual(["Literal .* Pattern"]);
+    });
+
+    it("Should reject oversized search input", async () => {
+        const res = await request(app).get("/api/event").query({ search: "a".repeat(SEARCH_QUERY_MAX_LENGTH + 1) }).send();
+        expect(res.statusCode).toBe(400);
+        expect(res.body.success).toBe(false);
+        expect(res.body.data.fieldErrors.search).toEqual([`Search must be maximum ${SEARCH_QUERY_MAX_LENGTH} characters long`]);
+    });
+
+    it("Should reject array search payloads", async () => {
+        const res = await request(app).get("/api/event").query({ search: ["one", "two"] }).send();
+        expect(res.statusCode).toBe(400);
+        expect(res.body.success).toBe(false);
+        expect(res.body.data.fieldErrors).toHaveProperty("search");
+    });
+
+    it("Should keep geosearch reachable and working as a static route", async () => {
+        await createFakeEvent({
+            title: "Nearby Event",
+            location: {
+                type: "Point",
+                coordinates: [48.21649, 16.40087]
+            }
+        }, true);
+
+        const res = await request(app).get("/api/event/geosearch").query({
+            lat: 48.21649,
+            lng: 16.40087
+        }).send();
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.data.map((event: { title: string }) => event.title)).toContain("Nearby Event");
     });
 });
 

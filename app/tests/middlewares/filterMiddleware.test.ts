@@ -85,6 +85,13 @@ describe("FilterMiddleware tests SUCCESS", () => {
         expect(next).toHaveBeenCalledTimes(1)
         expect(req.dbFilter).toEqual([{ prefix: 'contains', value: inputTopic, field: 'topics', options: 'i' }])
     })
+    it("should ignore non-filter search query parameters", () => {
+        req.query = { search: "community meetup" }
+        const middleware = filterMiddleware(Event)
+        middleware(req as Request, res as Response, next)
+        expect(next).toHaveBeenCalledTimes(1)
+        expect(req.dbFilter).toEqual([])
+    })
 })
 
 describe("FilterMiddleware tests FAIL", () => {

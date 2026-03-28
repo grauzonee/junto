@@ -36,20 +36,20 @@ export function getRelativeDateRange(value: string, referenceDate: Date = new Da
         return buildRange(start, endExclusive);
     }
 
-    if (normalizedValue === "this week") {
+    if (normalizedValue === "this week" || normalizedValue === "week") {
         const start = startOfWeek(referenceDate);
         const endExclusive = new Date(start);
         endExclusive.setDate(endExclusive.getDate() + 7);
         return buildRange(start, endExclusive);
     }
 
-    if (normalizedValue === "this month") {
+    if (normalizedValue === "this month" || normalizedValue === "month") {
         const start = startOfMonth(referenceDate);
         const endExclusive = new Date(start.getFullYear(), start.getMonth() + 1, 1);
         return buildRange(start, endExclusive);
     }
 
-    if (normalizedValue === "this weekend") {
+    if (normalizedValue === "this weekend" || normalizedValue === "weekend") {
         const start = startOfWeek(referenceDate);
         start.setDate(start.getDate() + 5);
         const endExclusive = new Date(start);
