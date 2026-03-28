@@ -4,7 +4,7 @@
  * @packageDocumentation
  */
 
-import { type FilterPrefix, type Filter, isFilterRangeValue } from '@/types/Filter'
+import { type FilterPrefix, type Filter, isFilterRangeValue, type FilterValue } from '@/types/Filter'
 import { type FilterQuery } from "mongoose"
 import { type CoordinatesInput } from '@/types/services/eventService'
 import { SortInput } from '@/types/Sort'
@@ -46,10 +46,10 @@ export function buildGeosearchQuery(value: CoordinatesInput): FilterQuery<Event>
  * @returns {FilterQuery<T>}
  */
 export function buildFilterQuery<T>(dbFilter: Filter[] | undefined): FilterQuery<T> {
-    const query: Record<string, Record<string, unknown>> = {}
+    const query: Record<string, Record<string, FilterValue>> = {}
     if (!dbFilter) return query;
     dbFilter.forEach(filter => {
-        let definition: Record<string, unknown>;
+        let definition: Record<string, FilterValue>;
         if (isFilterRangeValue(filter.value)) {
             if (filter.prefix === 'eq') {
                 definition = { $gte: filter.value.start, $lte: filter.value.end };
