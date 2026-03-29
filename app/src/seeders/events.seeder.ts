@@ -48,6 +48,10 @@ function shuffle<T>(values: T[], random: RandomFn): T[] {
     return result;
 }
 
+function getCategorySlice(categories: { _id: unknown }[], start: number, count: number) {
+    return Array.from({ length: count }, (_, offset) => categories[(start + offset) % categories.length]._id);
+}
+
 function pickThisWeekDate(referenceDate: Date): Date {
     const weekDates = getWeekDates(referenceDate);
     const nextDate = weekDates.find(date => !isSameDay(date, referenceDate) && date > referenceDate);
@@ -341,9 +345,16 @@ export async function seed() {
             active: false
         },
     ];
+    const categoryAssignments = events.map((_, index) => [categories[index % categories.length]._id]);
+
+    categoryAssignments[0] = getCategorySlice(categories, 0, 4);
+    categoryAssignments[1] = getCategorySlice(categories, 4, 3);
+    categoryAssignments[2] = getCategorySlice(categories, 7, 2);
+    categoryAssignments[3] = getCategorySlice(categories, 9, 2);
+
     const eventsToInsert = events.map((event, index) => ({
         ...event,
-        categories: [categories[index % categories.length]._id],
+        categories: categoryAssignments[index],
         author: randomUserId(),
         type: randomEventTypeId(),
     }));
