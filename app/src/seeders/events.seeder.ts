@@ -1,6 +1,7 @@
 import { Event } from "@/models/event/Event";
 import { EventType } from "@/models/EventType";
 import { Category } from "@/models/category/Category";
+import { RSVP } from "@/models/rsvp/RSVP";
 import { User } from "@/models/user/User";
 
 const EVENT_HOURS = [18, 19, 20, 9, 16, 17, 12, 15, 14, 21];
@@ -137,6 +138,9 @@ export function buildSeedEventDates(
 }
 
 export async function seed() {
+    await RSVP.deleteMany({});
+    await Event.deleteMany({});
+
     const eventTypes = await EventType.find({}, { _id: 1 }).lean();
 
     if (!eventTypes.length) {
