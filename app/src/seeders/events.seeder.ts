@@ -1,5 +1,6 @@
 import { Event } from "@/models/event/Event";
 import { EventType } from "@/models/EventType";
+import { Category } from "@/models/category/Category";
 import { User } from "@/models/user/User";
 
 const EVENT_HOURS = [18, 19, 20, 9, 16, 17, 12, 15, 14, 21];
@@ -142,6 +143,12 @@ export async function seed() {
         throw new Error("No event types found");
     }
 
+    const categories = await Category.find({}, { _id: 1 }).sort({ _id: 1 }).lean();
+
+    if (!categories.length) {
+        throw new Error("No categories found");
+    }
+
     const users = await User.find({}, { _id: 1 }).lean();
 
     if (!users.length) {
@@ -153,6 +160,8 @@ export async function seed() {
 
     const randomEventTypeId = () =>
         eventTypes[Math.floor(Math.random() * eventTypes.length)]._id;
+
+    const getSeedImageUrl = (fileName: string) => `uploads/seed-events/${fileName}`;
 
     const eventDates = buildSeedEventDates();
 
@@ -166,11 +175,11 @@ export async function seed() {
                 type: "Point",
                 coordinates: [-122.4194, 37.7749],
             },
-            imageUrl: "https://example.com/images/startup-networking.jpg",
+            imageUrl: getSeedImageUrl("city-connections.svg"),
             maxAttendees: 120,
             fee: {
                 amount: 25,
-                currence: "USD",
+                currency: "USD",
             },
             active: true
         },
@@ -183,11 +192,11 @@ export async function seed() {
                 type: "Point",
                 coordinates: [-122.4862, 37.7694],
             },
-            imageUrl: "https://example.com/images/yoga-park.jpg",
+            imageUrl: getSeedImageUrl("outdoor-gathering.svg"),
             maxAttendees: 50,
             fee: {
                 amount: 10,
-                currence: "USD",
+                currency: "USD",
             },
             active: true
         },
@@ -200,11 +209,11 @@ export async function seed() {
                 type: "Point",
                 coordinates: [-122.3977, 37.7897],
             },
-            imageUrl: "https://example.com/images/js-workshop.jpg",
+            imageUrl: getSeedImageUrl("creative-session.svg"),
             maxAttendees: 80,
             fee: {
                 amount: 99,
-                currence: "USD",
+                currency: "USD",
             },
             active: true
         },
@@ -217,11 +226,11 @@ export async function seed() {
                 type: "Point",
                 coordinates: [-122.4041, 37.7841],
             },
-            imageUrl: "https://example.com/images/art-exhibition.jpg",
+            imageUrl: getSeedImageUrl("creative-session.svg"),
             maxAttendees: 200,
             fee: {
                 amount: 15,
-                currence: "USD",
+                currency: "USD",
             },
             active: true
         },
@@ -234,11 +243,11 @@ export async function seed() {
                 type: "Point",
                 coordinates: [-122.4107, 37.8087],
             },
-            imageUrl: "https://example.com/images/food-truck-festival.jpg",
-            maxAttendees: 500,
+            imageUrl: getSeedImageUrl("outdoor-gathering.svg"),
+            maxAttendees: 200,
             fee: {
                 amount: 5,
-                currence: "USD",
+                currency: "USD",
             },
             active: true
         },
@@ -251,11 +260,11 @@ export async function seed() {
                 type: "Point",
                 coordinates: [-122.3933, 37.7955],
             },
-            imageUrl: "https://example.com/images/photo-walk.jpg",
+            imageUrl: getSeedImageUrl("city-connections.svg"),
             maxAttendees: 30,
             fee: {
                 amount: 20,
-                currence: "USD",
+                currency: "USD",
             },
             active: true
         },
@@ -268,11 +277,11 @@ export async function seed() {
                 type: "Point",
                 coordinates: [-122.4181, 37.7793],
             },
-            imageUrl: "https://example.com/images/jazz-night.jpg",
+            imageUrl: getSeedImageUrl("city-connections.svg"),
             maxAttendees: 100,
             fee: {
                 amount: 30,
-                currence: "USD",
+                currency: "USD",
             },
             active: true
         },
@@ -285,11 +294,11 @@ export async function seed() {
                 type: "Point",
                 coordinates: [-122.4009, 37.7827],
             },
-            imageUrl: "https://example.com/images/pitch-competition.jpg",
+            imageUrl: getSeedImageUrl("creative-session.svg"),
             maxAttendees: 150,
             fee: {
                 amount: 40,
-                currence: "USD",
+                currency: "USD",
             },
             active: true
         },
@@ -302,11 +311,11 @@ export async function seed() {
                 type: "Point",
                 coordinates: [-122.3949, 37.7648],
             },
-            imageUrl: "https://example.com/images/italian-cooking.jpg",
+            imageUrl: getSeedImageUrl("creative-session.svg"),
             maxAttendees: 25,
             fee: {
                 amount: 75,
-                currence: "USD",
+                currency: "USD",
             },
             active: true
         },
@@ -319,17 +328,18 @@ export async function seed() {
                 type: "Point",
                 coordinates: [-122.3999, 37.7886],
             },
-            imageUrl: "https://example.com/images/new-year-party.jpg",
-            maxAttendees: 300,
+            imageUrl: getSeedImageUrl("city-connections.svg"),
+            maxAttendees: 200,
             fee: {
                 amount: 120,
-                currence: "USD",
+                currency: "USD",
             },
             active: false
         },
     ];
-    const eventsToInsert = events.map(event => ({
+    const eventsToInsert = events.map((event, index) => ({
         ...event,
+        categories: [categories[index % categories.length]._id],
         author: randomUserId(),
         type: randomEventTypeId(),
     }));

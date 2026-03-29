@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+<title id="title">City connections placeholder</title>
+<desc id="desc">Abstract city-themed placeholder for seeded events.</desc>
+<defs>
+<linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#17324d"/>
+<stop offset="100%" stop-color="#3b7a9e"/>
+</linearGradient>
+</defs>
+<rect width="1200" height="630" fill="url(#bg)"/>
+<circle cx="180" cy="140" r="74" fill="#f0c674" opacity="0.9"/>
+<circle cx="1020" cy="140" r="54" fill="#f5efe6" opacity="0.35"/>
+<path d="M0 520 L170 430 L300 470 L440 360 L610 430 L770 290 L910 365 L1040 250 L1200 330 L1200 630 L0 630 Z" fill="#0f2236" opacity="0.9"/>
+<path d="M95 630 L95 370 L180 370 L180 630 Z" fill="#2c5773"/>
+<path d="M235 630 L235 315 L335 315 L335 630 Z" fill="#224863"/>
+<path d="M390 630 L390 255 L520 255 L520 630 Z" fill="#18344b"/>
+<path d="M585 630 L585 330 L690 330 L690 630 Z" fill="#2a5f7f"/>
+<path d="M750 630 L750 225 L900 225 L900 630 Z" fill="#17324d"/>
+<path d="M960 630 L960 290 L1085 290 L1085 630 Z" fill="#295270"/>
+<path d="M130 180 L340 110 L530 178 L700 98 L960 180" fill="none" stroke="#f5efe6" stroke-width="8" stroke-linecap="round" opacity="0.75"/>
+<circle cx="130" cy="180" r="13" fill="#f5efe6"/>
+<circle cx="340" cy="110" r="13" fill="#f5efe6"/>
+<circle cx="530" cy="178" r="13" fill="#f5efe6"/>
+<circle cx="700" cy="98" r="13" fill="#f5efe6"/>
+<circle cx="960" cy="180" r="13" fill="#f5efe6"/>
+<text x="90" y="92" fill="#f8f3ea" font-size="46" font-family="Helvetica, Arial, sans-serif" font-weight="700">Seed Event</text>
+<text x="90" y="138" fill="#f8f3ea" font-size="24" font-family="Helvetica, Arial, sans-serif">City meetup placeholder</text>
+</svg>
