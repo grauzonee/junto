@@ -41,7 +41,11 @@ export async function list(data: RequestData) {
         buildFilterQuery<IEvent>(data.dbFilter),
         buildSearchQuery<IEvent>(['title', 'description'], data.search)
     );
-    const result = await Event.find(query).sort(buildSortQuery(data.sort)).paginate(data.pagination.offset, data.pagination.limit)
+    const result = await Event.find(query)
+        .populate('categories')
+        .populate('type')
+        .sort(buildSortQuery(data.sort))
+        .paginate(data.pagination.offset, data.pagination.limit)
     return result;
 }
 
@@ -68,7 +72,11 @@ export async function create(data: CreateEventInput, author: string) {
 export async function geoSearch(coordinates: CoordinatesInput, data: RequestData) {
     const query = combineQueries<IEvent>({ active: true }, buildGeosearchQuery(coordinates))
     try {
-        const result = await Event.find(query).sort(buildSortQuery(data.sort)).paginate(data.pagination.offset, data.pagination.limit);
+        const result = await Event.find(query)
+            .populate('categories')
+            .populate('type')
+            .sort(buildSortQuery(data.sort))
+            .paginate(data.pagination.offset, data.pagination.limit);
         return result;
     } catch (error) {
         logger.error("Error performing geosearch on events:", error)
