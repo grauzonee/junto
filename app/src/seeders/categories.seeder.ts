@@ -61,7 +61,6 @@ export async function seed() {
     await createCategories(categories);
 
     if (!process.env.JEST_WORKER_ID) {
-        // eslint-disable-next-line
         console.log("Categories seeding done.");
     }
 }
@@ -77,7 +76,6 @@ async function createCategories(categories: SeedCategory[]) {
         }
 
         if (!process.env.JEST_WORKER_ID) {
-            // eslint-disable-next-line
             console.log(`Created: ${item.title}`);
         }
     }

@@ -1,7 +1,12 @@
-import type { NextFunction, Request, Response } from "express";
 // get /
 // put /
 // put /password
+import { NextFunction, Request, Response } from "express";
+import app from "@/app";
+import { createUser } from "../generators/user";
+import request from "supertest";
+import { getUserByToken } from "@/helpers/jwtHelper";
+
 let user: Awaited<ReturnType<typeof createUser>>;
 
 jest.mock('@/middlewares/authMiddleware', () => ({
@@ -13,10 +18,6 @@ jest.mock('@/middlewares/authMiddleware', () => ({
     ),
 }));
 
-import app from "@/app";
-import { createUser } from "../generators/user";
-import request from "supertest";
-import { getUserByToken } from "@/helpers/jwtHelper";
 jest.mock("@/helpers/jwtHelper")
 
 
@@ -26,7 +27,7 @@ beforeAll(async () => {
 
 describe("GET /api/user", () => {
     it("Should return the user's profile", async () => {
-        (getUserByToken as jest.Mock).mockResolvedValue(user);
+        jest.mocked(getUserByToken).mockResolvedValue(user);
         const res = await request(app).get('/api/user');
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('data');

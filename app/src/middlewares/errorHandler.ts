@@ -7,8 +7,8 @@ import * as z from "zod"
 import { parseMongooseValidationError, setErrorResponse } from "@/helpers/requestHelper";
 import { logger } from "@/config/loggerConfig";
 
-//eslint-disable-next-line @typescript-eslint/no-unused-vars 
-export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
+export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction) {
+    void _next;
     if (err instanceof HttpError) {
         setErrorResponse(res, err.statusCode, err.fieldErrors || {}, err.formErrors || []);
         return;

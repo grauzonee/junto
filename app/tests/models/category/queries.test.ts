@@ -1,4 +1,5 @@
-import { Category, type HydratedCategoryDoc } from "@/models/category/Category";
+import { Category } from "@/models/category/Category";
+import { Types } from "mongoose";
 
 describe("getRoots() method", () => {
     it("should return only root categories", async () => {
@@ -12,29 +13,27 @@ describe("getRoots() method", () => {
 });
 
 describe("getSubcategories() method", () => {
-    let parentCategory: HydratedCategoryDoc | null;
+    let parentCategoryId: Types.ObjectId;
+
     beforeAll(async () => {
-        parentCategory = await Category.findOne({ parent: null });
+        const parentCategory = await Category.findOne({ parent: null });
         if (!parentCategory) {
             throw new Error("No root category found, please check your seeder");
         }
+        parentCategoryId = parentCategory._id;
         await Category.create({
             title: "Test Subcategory",
-            parent: parentCategory._id
+            parent: parentCategoryId
         });
     });
     afterAll(async () => {
         await Category.deleteMany({ title: "Test Subcategory" });
     });
     it("should return only subcategories of the specified parent", async () => {
-        const rootCategory = parentCategory;
-        if (!rootCategory) {
-            throw new Error("No root category found, please check your seeder");
-        }
-        const subcategories = await Category.find().getSubcategories(rootCategory._id);
+        const subcategories = await Category.find().getSubcategories(parentCategoryId);
         expect(subcategories).toBeInstanceOf(Array);
         subcategories.forEach(subcategory => {
-            expect(subcategory.parent?.toString()).toBe(rootCategory._id.toString());
+            expect(subcategory.parent?.toString()).toBe(parentCategoryId.toString());
         });
     });
 });

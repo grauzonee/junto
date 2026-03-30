@@ -15,12 +15,10 @@ export async function seed() {
     for (const item of eventTypes) {
         await EventType.create(item);
         if (!process.env.JEST_WORKER_ID) {
-            // eslint-disable-next-line
             console.log(`Created event type: ${item.title}`);
         }
     }
     if (!process.env.JEST_WORKER_ID) {
-        // eslint-disable-next-line
         console.log("Event types seeding done.");
     }
 }

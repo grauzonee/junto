@@ -17,7 +17,7 @@ describe("listRsvps() success", () => {
             await createFakeRSVP({ toJSON: jest.fn() }),
             await createFakeRSVP({ toJSON: jest.fn() })
         ];
-        (getForEvent as jest.Mock).mockResolvedValue(rsvps);
+        jest.mocked(getForEvent).mockResolvedValue(rsvps as never);
         const req = getMockedRequest({}, { eventId: "mockEventId" });
         const res = getMockedResponse();
         await listRsvps(req as Request, res as Response, next);

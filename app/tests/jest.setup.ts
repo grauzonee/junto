@@ -1,5 +1,4 @@
 import dotenv from "dotenv";
-dotenv.config({ path: ".env.test", quiet: true });
 jest.mock("@/models/rsvp/validators");
 import mongoose from "mongoose"
 import { MongoMemoryServer } from "mongodb-memory-server"
@@ -8,6 +7,8 @@ import { seed as seedInterests } from "@/seeders/interests.seeder"
 import { seed as seedUsers } from "@/seeders/users.seeder"
 import { seed as seedEventTypes } from "@/seeders/eventtypes.seeder"
 import { seed as seedEvents } from "@/seeders/events.seeder"
+
+dotenv.config({ path: ".env.test", quiet: true });
 
 let mongoServer: MongoMemoryServer
 

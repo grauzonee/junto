@@ -369,7 +369,6 @@ export async function seed() {
     await Event.insertMany(eventsToInsert);
 
     if (!process.env.JEST_WORKER_ID) {
-        // eslint-disable-next-line
         console.log("Events seeding done.");
     }
 }

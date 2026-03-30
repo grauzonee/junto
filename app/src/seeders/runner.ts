@@ -49,7 +49,6 @@ async function run() {
   const seederName = process.argv[2];
 
   if (!seederName) {
-    // eslint-disable-next-line
     console.error("Please specify a seeder name!");
     process.exit(1);
   }
@@ -79,12 +78,12 @@ async function runSeeder(seederName: string) {
     if (seederName in resetters) {
       await resetters[seederName as keyof typeof resetters]();
     }
-    const { seed } = await import(`./${seederName}.seeder`);
+    const seederModule = await import(`./${seederName}.seeder`);
+    const { seed } = seederModule;
     await seed();
   } catch (err) {
-    // eslint-disable-next-line
     console.error(`Seeder ${seederName} not found or failed:`, err);
     throw err;
   }
 }
-run();
+void run();
