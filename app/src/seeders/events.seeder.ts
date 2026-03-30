@@ -3,10 +3,15 @@ import { EventType } from "@/models/EventType";
 import { Category } from "@/models/category/Category";
 import { RSVP } from "@/models/rsvp/RSVP";
 import { User } from "@/models/user/User";
+import { Types } from "mongoose";
 
 const EVENT_HOURS = [18, 19, 20, 9, 16, 17, 12, 15, 14, 21];
 
 type RandomFn = () => number;
+
+interface IdOnlyDocument {
+    _id: Types.ObjectId;
+}
 
 function startOfWeek(value: Date): Date {
     const result = new Date(value.getFullYear(), value.getMonth(), value.getDate());
@@ -48,7 +53,7 @@ function shuffle<T>(values: T[], random: RandomFn): T[] {
     return result;
 }
 
-function getCategorySlice(categories: { _id: unknown }[], start: number, count: number) {
+function getCategorySlice(categories: IdOnlyDocument[], start: number, count: number): Types.ObjectId[] {
     return Array.from({ length: count }, (_, offset) => categories[(start + offset) % categories.length]._id);
 }
 
@@ -145,19 +150,19 @@ export async function seed() {
     await RSVP.deleteMany({});
     await Event.deleteMany({});
 
-    const eventTypes = await EventType.find({}, { _id: 1 }).lean();
+    const eventTypes = await EventType.find({}, { _id: 1 }).lean() as IdOnlyDocument[];
 
     if (!eventTypes.length) {
         throw new Error("No event types found");
     }
 
-    const categories = await Category.find({}, { _id: 1 }).sort({ _id: 1 }).lean();
+    const categories = await Category.find({}, { _id: 1 }).sort({ _id: 1 }).lean() as IdOnlyDocument[];
 
     if (!categories.length) {
         throw new Error("No categories found");
     }
 
-    const users = await User.find({}, { _id: 1 }).lean();
+    const users = await User.find({}, { _id: 1 }).lean() as IdOnlyDocument[];
 
     if (!users.length) {
         throw new Error("No users found to assign as authors");
@@ -345,7 +350,9 @@ export async function seed() {
             active: false
         },
     ];
-    const categoryAssignments = events.map((_, index) => [categories[index % categories.length]._id]);
+    const categoryAssignments: Types.ObjectId[][] = events.map(
+        (_, index) => [categories[index % categories.length]._id]
+    );
 
     categoryAssignments[0] = getCategorySlice(categories, 0, 4);
     categoryAssignments[1] = getCategorySlice(categories, 4, 3);
