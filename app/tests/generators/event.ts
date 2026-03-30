@@ -1,6 +1,6 @@
 import { IEvent, Event } from "@/models/event/Event";
 import { Types } from "mongoose";
-import { getOneCategory, getOneEventType } from "../getters";
+import { getOneCategory, getOneEventType, getOneUser } from "@tests/getters";
 
 type FakeEvent = Omit<IEvent, "date" | "categories" | "type" | "author"> & {
     date: number;
@@ -19,6 +19,10 @@ export async function createFakeEvent(overrides: Partial<FakeEvent> = {}, save =
         const type = await getOneEventType();
         overrides.type = type._id.toString();
     }
+    if (save && !overrides.author) {
+        const author = await getOneUser({ active: true });
+        overrides.author = author._id.toString();
+    }
     const eventData = {
         title: "Sample Event " + Math.random().toString(36).substring(7),
         description: "This is a test event for unit testing.",
@@ -31,8 +35,8 @@ export async function createFakeEvent(overrides: Partial<FakeEvent> = {}, save =
         },
         imageUrl: "https://example.com/test-image.jpg",
         author: new Types.ObjectId().toString(),
-        ...overrides,
-        active: true
+        active: true,
+        ...overrides
     };
     if (save) {
         const event = await Event.create(eventData);

@@ -12,7 +12,8 @@ jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/Event")
 
 let res: Partial<Response>;
-let mockEvent: Awaited<ReturnType<typeof createFakeEvent>> & { toJSON(): any };
+type MockEvent = Awaited<ReturnType<typeof createFakeEvent>> & { toJSON(): unknown };
+let mockEvent: MockEvent;
 let result: typeof mockEvent[] = [];
 const next = jest.fn() as NextFunction;
 const coordinates = {
@@ -22,7 +23,7 @@ const coordinates = {
 };
 beforeAll(async () => {
     const event = await createFakeEvent();
-    mockEvent = { ...event, toJSON: jest.fn().mockReturnThis() } as any;
+    mockEvent = { ...event, toJSON: jest.fn().mockReturnThis() } as MockEvent;
     result = [mockEvent, mockEvent];
 });
 

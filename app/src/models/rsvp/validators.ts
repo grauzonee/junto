@@ -9,7 +9,7 @@ export async function eventValidator(value: Types.ObjectId) {
         return false;
     }
     const rsvpCount = await RSVP.countDocuments({ event: value, status: STATUS_CONFIRMED });
-    return rsvpCount < event.maxAttendees;
+    return event.maxAttendees < 0 || rsvpCount < event.maxAttendees;
 }
 
 export function statusValidator(value: string) {

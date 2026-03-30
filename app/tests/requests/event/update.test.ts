@@ -3,9 +3,8 @@ import { update as updateEvent } from "@/services/eventService";
 import { getMockedRequest, getMockedResponse } from "../../utils";
 import mongoose from "mongoose";
 import { createFakeEvent } from "../../generators/event"
-import { parseMongooseValidationError, setErrorResponse, setSuccessResponse } from "@/helpers/requestHelper";
+import { setSuccessResponse } from "@/helpers/requestHelper";
 import { update } from "@/requests/event/update";
-import { before } from "node:test";
 
 jest.mock("@/services/eventService")
 jest.mock("@/helpers/requestHelper")
@@ -13,11 +12,11 @@ jest.mock("@/helpers/requestHelper")
 
 let res: Partial<Response>;
 const next = jest.fn() as NextFunction;
-let mockEvent: Awaited<ReturnType<typeof createFakeEvent>> & { toJSON(): any };
-//const mockEvent = { ...createFakeEvent(), toJSON: jest.fn().mockReturnThis() }
+type MockEvent = Awaited<ReturnType<typeof createFakeEvent>> & { toJSON(): unknown };
+let mockEvent: MockEvent;
 beforeAll(async () => {
     const event = await createFakeEvent();
-    mockEvent = { ...event, toJSON: jest.fn().mockReturnThis() } as any;
+    mockEvent = { ...event, toJSON: jest.fn().mockReturnThis() } as MockEvent;
 })
 beforeEach(() => {
     jest.resetAllMocks();
@@ -30,10 +29,11 @@ describe("update() SUCCESS", () => {
     it("Should call editEvent method", async () => {
         const editData = { title: "Updated Title" }
         const eventId = new mongoose.Types.ObjectId().toString();
-        const req = getMockedRequest(editData, { eventId }, { user: { id: new mongoose.Types.ObjectId().toString() } });
+        const userId = new mongoose.Types.ObjectId().toString();
+        const req = getMockedRequest(editData, { eventId }, { user: { id: userId } });
         await update(req as Request, res as Response, next);
         expect(updateEvent).toHaveBeenCalledTimes(1);
-        expect(updateEvent).toHaveBeenCalledWith(editData, eventId, req.user.id);
+        expect(updateEvent).toHaveBeenCalledWith(editData, eventId, userId);
     })
     it("Should call setSuccessResponse method", async () => {
         const editData = { title: "Updated Title" }

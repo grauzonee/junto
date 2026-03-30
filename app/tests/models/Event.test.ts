@@ -35,9 +35,16 @@ describe("Validation", () => {
         }
         const event = await createFakeEvent({ categories: categories.map(i => i._id.toString()) }, true);
         const foundDocNum = await Event.findById(event._id);
+        if (!foundDocNum) {
+            throw new Error("Expected saved event to exist");
+        }
         expect(foundDocNum).toHaveProperty("categories");
-        foundDocNum!.categories.forEach((categoryId, index) => {
-            expect(categoryId.toString()).toBe(event.categories![index].toString());
+        if (!event.categories) {
+            throw new Error("Expected event categories to be present");
+        }
+        const eventCategories = event.categories.map(categoryId => categoryId.toString());
+        foundDocNum.categories.forEach((categoryId, index) => {
+            expect(categoryId.toString()).toBe(eventCategories[index]);
         });
     })
 

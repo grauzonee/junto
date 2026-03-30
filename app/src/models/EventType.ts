@@ -1,6 +1,7 @@
 import mongoose, { Schema, Model, HydratedDocument } from "mongoose";
 import { type Filterable, type FilterableField } from "@/types/Filter";
 import { PaginateQueryHelper, paginatePlugin } from "@/models/plugins/paginate";
+import { registerDeleteHooks } from "@/models/eventType/hooks";
 
 export interface IEventType {
     title: string;
@@ -33,6 +34,8 @@ EventTypeSchema.set("toJSON", {
     getters: true,
     versionKey: false
 });
+
+registerDeleteHooks(EventTypeSchema);
 
 EventTypeSchema.plugin(paginatePlugin<IEventType>);
 

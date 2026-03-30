@@ -3,6 +3,9 @@ import { paginatePlugin } from "@/models/plugins/paginate";
 import { getTree } from "@/models/category/statics";
 import { CategoryQueryHelpers } from "@/models/category/queries";
 import { getRoots, getSubcategories } from "@/models/category/queries";
+import messages from "@/constants/errorMessages";
+import { registerDeleteHooks } from "@/models/category/hooks";
+import { parentValidator } from "@/models/category/validators";
 
 export interface ICategory {
     title: string;
@@ -10,7 +13,6 @@ export interface ICategory {
 }
 
 export type HydratedCategoryDoc = HydratedDocument<ICategory>;
-
 
 export interface CategoryModelType extends Model<ICategory, CategoryQueryHelpers> {
     getTree(offset?: number, limit?: number): Promise<(ICategory & { _id: Types.ObjectId; subcategories: ICategory[] })[]>
@@ -40,6 +42,13 @@ export const CategorySchema = new Schema<
 
 CategorySchema.query.getRoots = getRoots;
 CategorySchema.query.getSubcategories = getSubcategories;
+
+CategorySchema.path("parent").validate({
+    validator: parentValidator,
+    message: messages.validation.NOT_EXISTS("category")
+});
+
+registerDeleteHooks(CategorySchema);
 
 CategorySchema.set("toJSON", {
     getters: true,

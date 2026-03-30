@@ -2,9 +2,8 @@ import mongoose, { Schema, Model, HydratedDocument, Types } from "mongoose";
 import { getConfigValue } from "@/helpers/configHelper";
 import { interestValidator } from "@/models/user/validators";
 import messages from "@/constants/errorMessages"
-import { UserMethods } from "@/models/user/methods";
-import { updatePassword, matchPassword, updateProfile } from "@/models/user/methods";
-import { preSaveHook } from "@/models/user/hooks";
+import { UserMethods, updatePassword, matchPassword, updateProfile } from "@/models/user/methods";
+import { registerSaveHooks } from "@/models/user/hooks";
 
 export interface IUser {
     username: string;
@@ -12,6 +11,8 @@ export interface IUser {
     password: string;
     avatarUrl: string | undefined;
     interests: Types.ObjectId[];
+    active: boolean;
+    deletedAt?: Date;
 }
 export type HydratedUserDoc = HydratedDocument<IUser> & UserMethods;
 
@@ -45,7 +46,15 @@ export const UserSchema = new Schema<IUser, UserModelType, UserMethods>(
                 required: false,
                 ref: 'Interest'
             }
-        ]
+        ],
+        active: {
+            type: Boolean,
+            default: true
+        },
+        deletedAt: {
+            type: Date,
+            required: false
+        }
     },
     {
         timestamps: true,
@@ -57,7 +66,7 @@ export const UserSchema = new Schema<IUser, UserModelType, UserMethods>(
     }
 );
 
-UserSchema.pre('save', preSaveHook)
+registerSaveHooks(UserSchema);
 
 UserSchema.set('toJSON', {
     getters: true,
@@ -66,6 +75,7 @@ UserSchema.set('toJSON', {
     transform: (_, ret: Partial<IUser>) => {
         delete ret.password;
         ret.avatarUrl = ret.avatarUrl ? getConfigValue('HOST') + '/' + ret.avatarUrl : undefined
+        delete ret.deletedAt;
 
         return ret;
     }

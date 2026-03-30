@@ -1,12 +1,13 @@
 import request from "supertest";
 import { createUser } from "../generators/user";
+import type { NextFunction, Request, Response } from "express";
 
 let user: Awaited<ReturnType<typeof createUser>>;
 
 jest.mock("@/middlewares/authMiddleware", () => ({
     authMiddleware: jest.fn(
-        async (req: any, _res: any, next: any) => {
-            req.user = { _id: user._id };
+        async (req: Request, _res: Response, next: NextFunction) => {
+            req.user = user;
             next();
         }
     ),
@@ -85,7 +86,6 @@ describe("PUT /rsvp/:id", () => {
         const updateMaybeRes = await request(app).put(`/api/rsvp/${authorRsvpId}`).send({
             status: STATUS_MAYBE
         });
-        console.log(updateMaybeRes.body);
         expect(updateMaybeRes.statusCode).toBe(400);
         expect(updateMaybeRes.body.success).toBe(false);
         expect(updateMaybeRes.body.data.fieldErrors).toEqual({ "user": messages.validation.CANNOT_MODIFY("Event authors RSVP status") });

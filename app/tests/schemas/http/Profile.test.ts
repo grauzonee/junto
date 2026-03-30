@@ -26,7 +26,7 @@ describe("UpdateProfileSchema", () => {
         } catch (e) {
             expect(e).toBeInstanceOf(ZodError);
             const error = e as ZodError;
-            expect(error!.issues[0].message).toBe(messages.http.UNIQUE_VALUES("Interests"));
+            expect(error.issues[0]?.message).toBe(messages.http.UNIQUE_VALUES("Interests"));
         }
     });
 
@@ -41,7 +41,7 @@ describe("UpdateProfileSchema", () => {
         } catch (e) {
             expect(e).toBeInstanceOf(ZodError);
             const error = e as ZodError;
-            expect(error!.issues[0].message).toBe(messages.http.INVALID_ID("Interests"));
+            expect(error.issues[0]?.message).toBe(messages.http.INVALID_ID("Interests"));
         }
     });
 
@@ -72,7 +72,7 @@ describe("UpdateProfileSchema", () => {
         } catch (e) {
             expect(e).toBeInstanceOf(ZodError);
             const error = e as ZodError;
-            expect(error!.issues[0].message).toBe(messages.http.NO_FIELDS);
+            expect(error.issues[0]?.message).toBe(messages.http.NO_FIELDS);
         }
     });
 });

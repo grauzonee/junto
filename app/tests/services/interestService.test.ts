@@ -1,7 +1,4 @@
 import { list } from "@/services/interestService"
-import { Request } from "express"
-
-let req: Partial<Request>
 
 describe("List interests tests SUCCESS", () => {
     it("Should return exactly 3 interests when limit parameter specified", async () => {

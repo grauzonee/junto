@@ -1,5 +1,6 @@
 import { Event } from "@/models/event/Event";
 import { createFakeEvent } from "@tests/generators/event";
+import { createUser } from "@tests/generators/user";
 
 describe("Event model date handling", () => {
     beforeEach(async () => {
@@ -8,7 +9,8 @@ describe("Event model date handling", () => {
 
     it("should preserve Date inputs and serialize them as unix seconds", async () => {
         const eventDate = new Date("2026-03-27T12:13:23.000Z");
-        const eventData = await createFakeEvent();
+        const author = await createUser({}, true);
+        const eventData = await createFakeEvent({ author: author._id.toString() });
 
         const event = await Event.create({
             ...eventData,

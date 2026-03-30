@@ -40,7 +40,7 @@ export const verifyToken = (token: string): JwtPayload => {
 export const getUserByToken = async (req: Request) => {
     const token: string = req.headers.authorization?.replace('Bearer ', '') ?? '';
     const decoded = verifyToken(token);
-    const user = await User.findById(decoded.id);
+    const user = await User.findOne({ _id: decoded.id, active: true });
     if (!user) {
         throw new Error("User not found");
     }

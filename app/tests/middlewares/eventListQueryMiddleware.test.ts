@@ -27,7 +27,7 @@ describe("eventListQueryMiddleware", () => {
     });
 
     it("rejects non-string search payloads", () => {
-        req.query = { search: { $ne: "anything" } } as any;
+        req.query = { search: { $ne: "anything" } } as Request["query"];
 
         eventListQueryMiddleware(req as Request, res as Response, next);
 

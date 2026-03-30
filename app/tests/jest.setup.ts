@@ -1,4 +1,5 @@
-require("dotenv").config({ path: ".env.test", quiet: true });
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.test", quiet: true });
 jest.mock("@/models/rsvp/validators");
 import mongoose from "mongoose"
 import { MongoMemoryServer } from "mongodb-memory-server"
@@ -28,5 +29,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
     await mongoose.disconnect();
-    await mongoServer.stop();
+    if (mongoServer) {
+        await mongoServer.stop();
+    }
 });

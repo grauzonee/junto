@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { RSVP } from "@/models/rsvp/RSVP";
 import { Event } from "@/models/event/Event";
 import { logger } from "@/config/loggerConfig";
@@ -20,15 +21,24 @@ export async function create(data: CreateRSVPInput, userId: string) {
     try {
         return await RSVP.create({ event: eventId, status, additionalGuests, user: userId, eventDate: event.date });
     } catch (error) {
+        if (error instanceof mongoose.mongo.MongoServerError && error.code === 11000) {
+            throw new BadInputError("user", messages.response.DUPLICATE_ATTEND);
+        }
         logger.error("Error saving RSVP to MongoDB", error)
         throw error;
     }
 }
 
 export async function update(data: UpdateRSVPInput, rsvpId: string, userId: string) {
-    const rsvp = await RSVP.findOne({ _id: rsvpId, user: userId }).populate('event');
+    const rsvp = await RSVP.findOne({ _id: rsvpId, user: userId }).populate({
+        path: 'event',
+        match: { active: true }
+    });
     if (!rsvp) {
         throw new NotFoundError("rsvp");
+    }
+    if (!rsvp.event) {
+        throw new NotFoundError("event");
     }
     await rsvp.setStatus(data.status);
     if (data.additionalGuests !== undefined) {
@@ -40,6 +50,10 @@ export async function update(data: UpdateRSVPInput, rsvpId: string, userId: stri
 }
 
 export async function getForEvent(eventId: string, status: RSVPStatus = STATUS_CONFIRMED) {
+    const event = await Event.findOne({ _id: eventId, active: true });
+    if (!event) {
+        throw new NotFoundError("event");
+    }
     const rsvps = await RSVP.find({ event: eventId, status }).populate('user');
     return rsvps;
 }

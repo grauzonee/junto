@@ -61,7 +61,6 @@ describe("setSuccessResponse() test", () => {
         const data = {
             "interests": ["interest1"],
         }
-        const formErrors = ["Invalid form"];
         setSuccessResponse(res as Response, data, statusCode)
         expect(res.status).toHaveBeenCalledWith(statusCode);
         expect(res.json).toHaveBeenCalledWith({success: true, data});

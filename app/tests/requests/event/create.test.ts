@@ -1,10 +1,10 @@
 import { create } from "@/requests/event/create"
 import { getMockedRequest, getMockedResponse } from "../../utils"
-import mongoose, { Types } from "mongoose"
+import mongoose from "mongoose"
 import { NextFunction, Request, Response } from "express"
 import { create as createEvent } from "@/services/eventService"
 import { createFakeEvent } from "../../generators/event"
-import { setSuccessResponse, setErrorResponse } from "@/helpers/requestHelper"
+import { setSuccessResponse } from "@/helpers/requestHelper"
 import { Category } from "@/models/category/Category"
 import { EventType } from "@/models/EventType"
 import { CreateEventSchema } from "@/schemas/http/Event";
@@ -14,8 +14,8 @@ jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/Event");
 
 let res: Partial<Response>;
-let mockEvent: Awaited<ReturnType<typeof createFakeEvent>> & { toJSON(): any };
-//const mockEvent = { ...createFakeEvent(), toJSON: jest.fn().mockReturnThis() }
+type MockEvent = Awaited<ReturnType<typeof createFakeEvent>> & { toJSON(): unknown };
+let mockEvent: MockEvent;
 let newEvent: Awaited<ReturnType<typeof createFakeEvent>>;
 const next = jest.fn() as NextFunction;
 let categoriesIds: string[];
@@ -23,7 +23,7 @@ let eventTypeId: string;
 
 beforeAll(async () => {
     const event = await createFakeEvent();
-    mockEvent = { ...event, toJSON: jest.fn().mockReturnThis() } as any;
+    mockEvent = { ...event, toJSON: jest.fn().mockReturnThis() } as MockEvent;
     const categories = await Category.find().limit(2);
     const eventType = await EventType.findOne();
     if (!categories || !eventType) {
@@ -43,10 +43,11 @@ beforeEach(() => {
 })
 describe("create() SUCCESS", () => {
     it("Should call createEvent function", async () => {
-        const req = getMockedRequest({ ...newEvent }, {}, { user: { id: new mongoose.Types.ObjectId().toString() } });
+        const userId = new mongoose.Types.ObjectId().toString();
+        const req = getMockedRequest({ ...newEvent }, {}, { user: { id: userId } });
         await create(req as Request, res as Response, next)
         expect(createEvent).toHaveBeenCalledTimes(1)
-        expect(createEvent).toHaveBeenCalledWith(newEvent, req.user.id)
+        expect(createEvent).toHaveBeenCalledWith(newEvent, userId)
     })
     it("Should call setSuccessResponse function", async () => {
         const req = getMockedRequest({ ...newEvent }, {}, { user: { id: new mongoose.Types.ObjectId().toString() } });

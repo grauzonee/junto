@@ -1,3 +1,4 @@
+import type { NextFunction, Request, Response } from "express";
 // get /
 // put /
 // put /password
@@ -5,7 +6,7 @@ let user: Awaited<ReturnType<typeof createUser>>;
 
 jest.mock('@/middlewares/authMiddleware', () => ({
     authMiddleware: jest.fn().mockImplementation(
-        async (req: any, _res: any, next: any) => {
+        async (req: Request, _res: Response, next: NextFunction) => {
             req.user = user;
             next();
         }
@@ -16,7 +17,6 @@ import app from "@/app";
 import { createUser } from "../generators/user";
 import request from "supertest";
 import { getUserByToken } from "@/helpers/jwtHelper";
-import { authMiddleware } from "@/middlewares/authMiddleware";
 jest.mock("@/helpers/jwtHelper")
 
 
