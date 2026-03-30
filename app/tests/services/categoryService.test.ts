@@ -1,9 +1,6 @@
 import { Types } from "mongoose"
 import { list } from "@/services/categoryService"
-import { Request } from "express"
 import { Category } from "@/models/category/Category"
-
-let req: Partial<Request>
 
 describe("List categories tests SUCCESS", () => {
     it("Should call getTree method on Category and pass pagination params", async () => {

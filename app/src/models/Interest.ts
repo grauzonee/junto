@@ -1,6 +1,7 @@
 import mongoose, { Schema, Model, HydratedDocument } from "mongoose";
 import { type Filterable, type FilterableField } from "@/types/Filter";
 import { PaginateQueryHelper, paginatePlugin } from "@/models/plugins/paginate";
+import { registerDeleteHooks } from "@/models/interest/hooks";
 
 export interface IInterest {
     title: string;
@@ -33,6 +34,8 @@ InterestSchema.set("toJSON", {
     getters: true,
     versionKey: false
 });
+
+registerDeleteHooks(InterestSchema);
 
 InterestSchema.plugin(paginatePlugin<IInterest>);
 

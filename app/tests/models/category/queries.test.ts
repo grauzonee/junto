@@ -1,4 +1,4 @@
-import { Category } from "@/models/category/Category";
+import { Category, type HydratedCategoryDoc } from "@/models/category/Category";
 
 describe("getRoots() method", () => {
     it("should return only root categories", async () => {
@@ -12,7 +12,7 @@ describe("getRoots() method", () => {
 });
 
 describe("getSubcategories() method", () => {
-    let parentCategory: any;
+    let parentCategory: HydratedCategoryDoc | null;
     beforeAll(async () => {
         parentCategory = await Category.findOne({ parent: null });
         if (!parentCategory) {
@@ -27,10 +27,14 @@ describe("getSubcategories() method", () => {
         await Category.deleteMany({ title: "Test Subcategory" });
     });
     it("should return only subcategories of the specified parent", async () => {
-        const subcategories = await Category.find().getSubcategories(parentCategory._id);
+        const rootCategory = parentCategory;
+        if (!rootCategory) {
+            throw new Error("No root category found, please check your seeder");
+        }
+        const subcategories = await Category.find().getSubcategories(rootCategory._id);
         expect(subcategories).toBeInstanceOf(Array);
         subcategories.forEach(subcategory => {
-            expect(subcategory.parent?.toString()).toBe(parentCategory._id.toString());
+            expect(subcategory.parent?.toString()).toBe(rootCategory._id.toString());
         });
     });
 });

@@ -1,5 +1,4 @@
-import mongoose, { Document, HydratedDocument, Types } from "mongoose"
-import { Request } from "express"
+import mongoose, { HydratedDocument, Types } from "mongoose"
 import { createFakeEvent } from "@tests/generators/event"
 import { createUser } from "@tests/generators/user"
 
@@ -11,9 +10,10 @@ import { CreateEventInput } from "@/types/services/eventService"
 import { Category } from "@/models/category/Category"
 
 import { Event, type IEvent } from "@/models/event/Event"
+import { RSVP } from "@/models/rsvp/RSVP";
 import { getOneCategory, getOneEventType } from "@tests/getters"
+import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
 
-let req: Partial<Request>
 let eventTypeId: Types.ObjectId;
 let categoryId: Types.ObjectId;
 
@@ -36,14 +36,17 @@ beforeEach(async () => {
 
 describe("create event tests SUCCESS", () => {
     it("Should create event when all input data are correct", async () => {
-        const userId = new mongoose.Types.ObjectId()
+        const user = await createUser({}, true);
         const event = await createFakeEvent({ type: eventTypeId.toString(), categories: [categoryId.toString()] })
-        const result = await createEvent(event as CreateEventInput, userId.toString())
-        expect(result).not.toBe(undefined)
-        expect(result!._id).not.toBe(undefined)
-        expect(result!.author.toString()).toBe(userId.toString())
-        expect(result!.title).toBe(event.title)
-        expect(result!.description).toBe(event.description)
+        const result = await createEvent(event as CreateEventInput, user._id.toString())
+        expect(result).toBeDefined()
+        if (!result) {
+            throw new Error("Event was not created");
+        }
+        expect(result._id).not.toBe(undefined)
+        expect(result.author.toString()).toBe(user._id.toString())
+        expect(result.title).toBe(event.title)
+        expect(result.description).toBe(event.description)
     })
 })
 describe("create event tests FAIL", () => {
@@ -86,21 +89,20 @@ describe("list events tests SUCCESS", () => {
     })
     // TODO: Refactor
     it("Should return event that has been created", async () => {
-        const userId = new mongoose.Types.ObjectId()
+        const user = await createUser({}, true);
         const event = await createFakeEvent({
             type: eventTypeId.toString(), categories: [categoryId.toString()]
         })
-        event.author = userId.toString();
+        event.author = user._id.toString();
         await Event.create(event)
 
         const result = await listEvents(requestData)
         expect(result).not.toBe(undefined)
         expect(result.length).toBe(1)
         expect(result[0].title).toBe(event.title)
-        expect(result[0].author).toEqual(userId)
+        expect(result[0].author).toEqual(user._id)
     })
     it("Should return empty array when there are no events", async () => {
-        req = {} as Request
         const result = await listEvents(requestData)
         expect(result).toEqual([])
     })
@@ -118,7 +120,7 @@ describe("fetchOne tests SUCCESS", () => {
         if (!event._id) {
             throw new Error("Error creating event in test");
         }
-        const result = await fetchOne(event._id?.toString());
+        const result = await fetchOne(event._id.toString());
         if (!result) {
             throw new Error("No event retrieved in test")
         }
@@ -147,13 +149,20 @@ describe("fetchOne tests SUCCESS", () => {
 })
 describe("geosearch events tests SUCCESS", () => {
 
-    const userId = new mongoose.Types.ObjectId()
+    let userId: Types.ObjectId;
     let eventTitle: string;
     // TODO: Refactor to seeder
     beforeAll(async () => {
+        const user = await createUser({}, true);
+        userId = user._id;
+        const eventType = await EventType.findOne();
+        const category = await Category.findOne();
+        if (!eventType || !category) {
+            throw new Error("No event types or categories found, check your seeders");
+        }
         const event = await createFakeEvent({
-            type: eventTypeId.toString(),
-            categories: [categoryId.toString()],
+            type: eventType._id.toString(),
+            categories: [category._id.toString()],
             location: {
                 type: "Point",
                 coordinates: [48.21649, 16.40087]
@@ -171,10 +180,14 @@ describe("geosearch events tests SUCCESS", () => {
             radius: 1,
         };
         const result = await geoSearch(coordinates, requestData)
-        expect(result).not.toBe(undefined)
-        expect(result!.length).toBe(1)
-        expect(result![0].title).toBe(eventTitle)
-        expect(result![0].author).toEqual(userId)
+        expect(result).toBeDefined()
+        expect(result).toHaveLength(1)
+        const [foundEvent] = result;
+        if (!foundEvent) {
+            throw new Error("Expected one event to be returned");
+        }
+        expect(foundEvent.title).toBe(eventTitle)
+        expect(foundEvent.author).toEqual(userId)
     })
 
     it("Should return empty array when there are no events", async () => {
@@ -186,7 +199,7 @@ describe("geosearch events tests SUCCESS", () => {
         };
         const result = await geoSearch(coordinates, requestData)
         expect(result).toEqual([])
-        expect(result!.length).toBe(0)
+        expect(result).toHaveLength(0)
     })
     it("Should throw an exception on invalid coordinates", async () => {
         const coordinates = {
@@ -204,12 +217,14 @@ describe("geosearch events tests SUCCESS", () => {
 })
 
 describe("Edit event SUCCESS", () => {
-    let savedEvent: Document;
+    let savedEvent: HydratedDocument<IEvent>;
     let eventId: Types.ObjectId;
-    const userId = new mongoose.Types.ObjectId()
+    let userId: string;
 
     // TODO: Refactor to seeders
     beforeEach(async () => {
+        const user = await createUser({}, true);
+        userId = user._id.toString();
         const event = await createFakeEvent({
             type: eventTypeId.toString(),
             categories: [categoryId.toString()]
@@ -217,7 +232,7 @@ describe("Edit event SUCCESS", () => {
         await Event.deleteMany({})
         event.author = userId.toString();
         savedEvent = await Event.create(event)
-        eventId = savedEvent.id;
+        eventId = savedEvent._id;
     })
 
     const title = "New title"
@@ -228,10 +243,16 @@ describe("Edit event SUCCESS", () => {
 
     it("Should edit event with PUT payload and return updated object", async () => {
         const editEventData = {
-            ...savedEvent.toJSON(),
             title,
             description,
-            date
+            date,
+            imageUrl: savedEvent.imageUrl,
+            fullAddress: savedEvent.fullAddress,
+            location: savedEvent.location,
+            categories: savedEvent.categories.map(category => category.toString()),
+            type: savedEvent.type.toString(),
+            fee: savedEvent.fee,
+            maxAttendees: savedEvent.maxAttendees
         };
 
         const result = await editEvent(editEventData, eventId.toString(), userId.toString())
@@ -248,12 +269,32 @@ describe("Edit event SUCCESS", () => {
         expect(result.title).toBe(title)
         expect(result.description).toBe(description)
     })
+
+    it("Should sync RSVP event dates when the event date changes", async () => {
+        const attendee = await createUser({}, true);
+        await RSVP.create({
+            event: eventId,
+            user: attendee._id,
+            status: STATUS_CONFIRMED,
+            eventDate: savedEvent.date
+        });
+        const updatedDate = Math.floor((Date.now() + 2 * 60 * 60 * 1000) / 1000);
+
+        await editEvent({ date: updatedDate }, eventId.toString(), userId);
+
+        const rsvps = await RSVP.find({ event: eventId });
+        const expectedDate = new Date(updatedDate * 1000).getTime();
+        expect(rsvps.length).toBeGreaterThan(0);
+        expect(rsvps.every(rsvp => rsvp.eventDate.getTime() === expectedDate)).toBe(true);
+    })
 })
 describe("Edit event FAIL", () => {
     let savedEvent: HydratedDocument<IEvent>;
     let eventId: Types.ObjectId;
-    const userId = new mongoose.Types.ObjectId()
+    let userId: string;
     beforeEach(async () => {
+        const user = await createUser({}, true);
+        userId = user._id.toString();
         const event = await createFakeEvent({
             type: eventTypeId.toString(),
             categories: [categoryId.toString()]
@@ -261,7 +302,7 @@ describe("Edit event FAIL", () => {
         await Event.deleteMany({})
         event.author = userId.toString();
         savedEvent = await Event.create(event)
-        eventId = savedEvent.id;
+        eventId = savedEvent._id;
     })
     it("Should NOT edit event of another user", async () => {
         const title = "New title";

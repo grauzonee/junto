@@ -1,12 +1,13 @@
 import request from "supertest";
 import { createUser } from "../generators/user";
+import type { NextFunction, Request, Response } from "express";
 
 let user: Awaited<ReturnType<typeof createUser>>;
 
 jest.mock("@/middlewares/authMiddleware", () => ({
     authMiddleware: jest.fn(
-        async (req: any, _res: any, next: any) => {
-            req.user = { _id: user._id };
+        async (req: Request, _res: Response, next: NextFunction) => {
+            req.user = user;
             next();
         }
     ),

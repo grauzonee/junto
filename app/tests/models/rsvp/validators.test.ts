@@ -15,10 +15,11 @@ describe("eventValidator", () => {
     });
 
     it("Should return false for inactive event", async () => {
-        const event = await createFakeEvent({ active: false }, true);
+        const event = await createFakeEvent({}, true);
         if (!event._id) {
             throw new Error("Failed to create fake event");
         }
+        await Event.findByIdAndUpdate(event._id, { active: false });
         const isValid = await eventValidator(event._id);
         expect(isValid).toBe(false);
         await Event.findByIdAndDelete(event._id);

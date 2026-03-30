@@ -1,9 +1,8 @@
 import { getMockedRequest, getMockedResponse } from "../../utils"
 import { updateProfile } from "@/requests/user/updateProfile";
 import { NextFunction, Request, Response } from "express"
-import { setErrorResponse, setSuccessResponse } from "@/helpers/requestHelper";
+import { setSuccessResponse } from "@/helpers/requestHelper";
 import { validateUpdateData } from "@/requests/user/utils"
-import messages from "@/constants/errorMessages"
 import mongoose from "mongoose";
 import { parseMongooseValidationError } from "@/helpers/requestHelper";
 import { BadInputError, EmptyBodyError } from "@/types/errors/InputError";
@@ -98,7 +97,7 @@ describe("updateProfile() FAIL", () => {
                 value: "bad@email",
             })
         );
-        const fieldErrors = parseMongooseValidationError(validationError);
+        parseMongooseValidationError(validationError);
         const mockedUser = {
             updateProfile: jest.fn().mockImplementation(() => {
 

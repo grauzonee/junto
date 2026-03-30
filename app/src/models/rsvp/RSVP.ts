@@ -1,10 +1,11 @@
 import mongoose, { HydratedDocument, Schema, Types, SchemaTypes, Model } from "mongoose";
 import messages from "@/constants/errorMessages"
-import * as validators from "@/models/rsvp/validators";
+import { eventValidator, statusValidator } from "@/models/rsvp/validators";
 import { RSVPMethods, setStatus, cancel, confirm, markAsMaybe } from "@/models/rsvp/methods";
 import { RSVPStatus } from "@/models/rsvp/utils";
 import { RSVPQueryHelpers, confirmed, canceled, maybe } from "@/models/rsvp/queries";
 import { isUserAttendingEvent } from "@/models/rsvp/statics";
+import { activeUserValidator } from "@/models/user/validators";
 
 export interface IRSVP {
     event: Types.ObjectId;
@@ -71,14 +72,16 @@ const RSVPSchema = new Schema<IRSVP, RSVPModelType, RSVPMethods, RSVPQueryHelper
 )
 
 RSVPSchema.path("status").validate({
-    validator: validators.statusValidator,
+    validator: statusValidator,
     message: messages.validation.NOT_CORRECT("Rsvp status")
 });
 RSVPSchema.path("event").validate({
-    validator: async function (value) {
-        return await validators.eventValidator(value);
-    },
+    validator: eventValidator,
     message: messages.validation.NOT_CORRECT("event")
+});
+RSVPSchema.path("user").validate({
+    validator: activeUserValidator,
+    message: messages.validation.NOT_EXISTS("user")
 });
 RSVPSchema.set('toJSON', {
     getters: true,
@@ -92,5 +95,7 @@ RSVPSchema.set('toJSON', {
         return ret;
     }
 });
+
+RSVPSchema.index({ event: 1, user: 1 }, { unique: true });
 
 export const RSVP = mongoose.model<IRSVP, RSVPModelType>("RSVP", RSVPSchema);

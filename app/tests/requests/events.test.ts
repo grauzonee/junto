@@ -2,13 +2,14 @@ import request from "supertest";
 import { createUser } from "../generators/user";
 import { createFakeRSVP } from "../generators/rsvp";
 import { Types } from "mongoose";
+import type { NextFunction, Request, Response } from "express";
 
 let user: Awaited<ReturnType<typeof createUser>>;
 
 jest.mock("@/middlewares/authMiddleware", () => ({
     authMiddleware: jest.fn(
-        async (req: any, _res: any, next: any) => {
-            req.user = { _id: user._id };
+        async (req: Request, _res: Response, next: NextFunction) => {
+            req.user = user;
             next();
         }
     ),
@@ -99,7 +100,13 @@ describe("GET /api/event date filters", () => {
         const weekStart = startOfWeek(now);
         const thisWeekendDate = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 5, 12, 0, 0, 0);
         const nextWeekDate = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 7, 12, 0, 0, 0);
-        const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1, 12, 0, 0, 0);
+        let nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1, 12, 0, 0, 0);
+
+        // When the current week spills into the next month, keep this fixture in the
+        // next month but outside the current week so the test assertions stay stable.
+        if (nextMonthDate < nextWeekDate) {
+            nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 8, 12, 0, 0, 0);
+        }
 
         await createFakeEvent({ title: titles.today, date: toUnixSeconds(atNoon(now)) }, true);
         await createFakeEvent({ title: titles.tomorrow, date: toUnixSeconds(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 12, 0, 0, 0)) }, true);
@@ -370,7 +377,6 @@ describe("POST /attend", () => {
 
 describe("GET /:eventId/rsvps", () => {
     let eventId: string;
-    let userId: string;
 
     beforeAll(async () => {
         const author = await getOneUser();
@@ -389,7 +395,6 @@ describe("GET /:eventId/rsvps", () => {
             throw new Error("No events found, check your seeders");
         }
         eventId = event._id.toString();
-        userId = author._id.toString();
     });
 
     it("Should allow a user to get RSVPs for an event", async () => {

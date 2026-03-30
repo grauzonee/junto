@@ -5,9 +5,11 @@ import { authMiddleware } from "@/middlewares/authMiddleware";
 import { getProfile } from "@/requests/user/getProfile";
 import { updatePassword } from "@/requests/user/updatePassword";
 import { updateProfile } from "@/requests/user/updateProfile";
+import { deleteProfile } from "@/requests/user/deleteProfile";
 
 
 export const router = Router()
 router.get('/', authMiddleware, getProfile)
 router.put('/', [authMiddleware, requestSchemaValidate(UpdateProfileSchema)], updateProfile)
 router.put('/password', [authMiddleware, requestSchemaValidate(UpdatePasswordSchema)], updatePassword)
+router.delete('/', authMiddleware, deleteProfile)

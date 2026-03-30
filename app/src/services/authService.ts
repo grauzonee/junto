@@ -5,7 +5,7 @@ import { generateToken } from "@/helpers/jwtHelper";
 import { LoginData, RegisterData } from "@/types/services/authService";
 
 export async function login(data: LoginData) {
-    const userFound = await User.findOne({ email: data.email });
+    const userFound = await User.findOne({ email: data.email, active: true });
     if (!userFound) {
         throw new NotFoundError("user");
     }

@@ -1,9 +1,7 @@
 import { getMockedRequest, getMockedResponse } from "../../utils";
 import { updatePassword } from "@/requests/user/updatePassword";
 import { NextFunction, Request, Response } from "express"
-import messages from "@/constants/errorMessages"
 import { BadInputError } from "@/types/errors/InputError";
-import { setErrorResponse } from "@/helpers/requestHelper";
 
 jest.mock("@/helpers/requestHelper")
 
@@ -66,4 +64,3 @@ describe("updatePassword() FAIL", () => {
     })
 
 })
-

@@ -1,6 +1,6 @@
 import { sortMiddleware } from "@/middlewares/sortMiddleware"
 import { Event } from "@/models/event/Event"
-import { Request, Response, NextFunction } from "express"
+import { Request, Response } from "express"
 
 let req: Partial<Request>
 let res: Partial<Response>

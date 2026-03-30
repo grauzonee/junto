@@ -2,7 +2,7 @@ import { getMockedRequest, getMockedResponse } from "../../utils";
 import { register } from "@/requests/auth/register";
 import messages from "@/constants/errorMessages";
 import { Request, Response, NextFunction } from "express"
-import { setSuccessResponse, setErrorResponse } from "@/helpers/requestHelper";
+import { setSuccessResponse } from "@/helpers/requestHelper";
 import { register as serviceRegister } from "@/services/authService";
 import { BadInputError } from "@/types/errors/InputError";
 jest.mock("@/helpers/requestHelper")

@@ -45,3 +45,11 @@ export class BadInputError extends HttpError {
         Object.setPrototypeOf(this, BadInputError.prototype);
     }
 }
+
+export class ConflictError extends HttpError {
+    constructor(message: string, fieldErrors: Record<string, string> = {}, formErrors: string[] = [message]) {
+        super(message, 409, fieldErrors, formErrors);
+        this.name = "ConflictError";
+        Object.setPrototypeOf(this, ConflictError.prototype);
+    }
+}

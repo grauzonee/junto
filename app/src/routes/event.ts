@@ -16,6 +16,7 @@ import { CreateRSVPSchema } from "@/schemas/http/RSVP";
 import { attend } from "@/requests/event/attend";
 import { listRsvps } from "@/requests/event/listRsvps";
 import { fetchOne } from "@/requests/event/fetchOne";
+import { remove } from "@/requests/event/delete";
 export const router = Router()
 
 router.post('/', [authMiddleware, requestSchemaValidate(CreateEventSchema)], create)
@@ -26,5 +27,6 @@ router.get('/:eventId', [], fetchOne)
 
 router.put('/:eventId', [authMiddleware, requestSchemaValidate(CreateEventSchema)], update)
 router.patch('/:eventId', [authMiddleware, requestSchemaValidate(EditEventSchema)], update)
+router.delete('/:eventId', [authMiddleware], remove)
 router.post('/attend', [authMiddleware, requestSchemaValidate(CreateRSVPSchema)], attend)
 router.get('/:eventId/rsvps', [authMiddleware], listRsvps)

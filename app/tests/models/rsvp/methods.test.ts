@@ -18,13 +18,13 @@ describe("setStatus() method", () => {
 
     it("Should throw error for invalid status", async () => {
         const rsvp = await createFakeRSVP({}, true);
-        rsvp.event = { author: rsvp.user } as any;
+        rsvp.event = { author: rsvp.user } as never;
         rsvp.populate = jest.fn();
         if (typeof rsvp.setStatus !== 'function') {
             throw new Error("setStatus method not found on RSVP");
         }
         try {
-            await rsvp.setStatus("somestatus" as any);
+            await rsvp.setStatus("somestatus");
         } catch (error) {
             expect(error).toBeInstanceOf(BadInputError);
             expect((error as BadInputError).message).toBe(messages.validation.NOT_CORRECT("Rsvp status"));
@@ -34,12 +34,12 @@ describe("setStatus() method", () => {
     it("Should throw error if event author tries to set status other than confirmed", async () => {
         const rsvp = await createFakeRSVP({}, true);
         rsvp.populate = jest.fn();
-        jest.spyOn(rsvp, 'event', 'get').mockReturnValue({ author: rsvp.user } as any);
+        jest.spyOn(rsvp, 'event', 'get').mockReturnValue({ author: rsvp.user } as never);
         if (typeof rsvp.setStatus !== 'function') {
             throw new Error("setStatus method not found on RSVP");
         }
         try {
-            await setStatus.call(rsvp as any, STATUS_CANCELED);
+            await setStatus.call(rsvp as never, STATUS_CANCELED);
         } catch (error) {
             expect(error).toBeInstanceOf(BadInputError);
             expect((error as BadInputError).message).toBe(messages.validation.CANNOT_MODIFY("Event authors RSVP status"));
