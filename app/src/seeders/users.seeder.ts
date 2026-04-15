@@ -26,11 +26,9 @@ export async function seed() {
 
     for (const user of users) {
         const newUser = await register(user.username, user.email, user.password);
-        if (newUser) {
-            if (!process.env.JEST_WORKER_ID) {
-                // eslint-disable-next-line
-                console.log(`Created user: ${user.username}`);
-            }
+        if (newUser && !process.env.JEST_WORKER_ID) {
+            // eslint-disable-next-line
+            console.log(`Created user: ${user.username}`);
         }
     }
     if (!process.env.JEST_WORKER_ID) {
@@ -39,14 +37,6 @@ export async function seed() {
     }
 }
 async function register(username: string, email: string, password: string) {
-    const userExistsEmail = await User.findOne({ email });
-    if (userExistsEmail) {
-        return;
-    }
-    const userExistsUsername = await User.findOne({ username });
-    if (userExistsUsername) {
-        return;
-    }
     const user = await User.create({ username, email, password });
 
     if (user) {

@@ -101,6 +101,12 @@ describe("list events tests SUCCESS", () => {
         expect(result.length).toBe(1)
         expect(result[0].title).toBe(event.title)
         expect(result[0].author).toEqual(user._id)
+        expect(result[0].type).toMatchObject({
+            _id: eventTypeId
+        })
+        expect(result[0].categories[0]).toMatchObject({
+            _id: categoryId
+        })
     })
     it("Should return empty array when there are no events", async () => {
         const result = await listEvents(requestData)
@@ -188,6 +194,12 @@ describe("geosearch events tests SUCCESS", () => {
         }
         expect(foundEvent.title).toBe(eventTitle)
         expect(foundEvent.author).toEqual(userId)
+        expect(foundEvent.type).toMatchObject({
+            _id: eventTypeId
+        })
+        expect(foundEvent.categories[0]).toMatchObject({
+            _id: categoryId
+        })
     })
 
     it("Should return empty array when there are no events", async () => {

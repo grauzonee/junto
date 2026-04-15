@@ -41,11 +41,20 @@ function startOfWeek(value: Date): Date {
 
 describe("GET /:eventId", () => {
     it("Should return event with author, categories and type data", async () => {
-        const event = await getOneEvent();
-        if (!event) {
+        const author = await getOneUser();
+        const type = await getOneEventType();
+        const category = await getOneCategory();
+        const event = await createFakeEvent({
+            author: author._id.toString(),
+            type: type._id.toString(),
+            categories: [category._id.toString()]
+        }, true);
+        if (!event._id) {
             throw new Error("No events in DB!");
         }
-        const expectedDate = Math.floor(event.date.getTime() / 1000);
+        const expectedDate = typeof event.date === "number"
+            ? event.date
+            : Math.floor(event.date.getTime() / 1000);
         const res = await request(app).get(`/api/event/${event._id.toString()}`).send();
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('data');
@@ -58,8 +67,14 @@ describe("GET /:eventId", () => {
         expect(res.body.data.author).toHaveProperty('email');
         expect(res.body.data).toHaveProperty('categories');
         expect(res.body.data).toHaveProperty('type');
-        expect(res.body.data.type).toHaveProperty('_id');
-        expect(res.body.data.type).toHaveProperty('title');
+        expect(res.body.data.type).toMatchObject({
+            _id: type._id.toString(),
+            title: type.title
+        });
+        expect(res.body.data.categories[0]).toMatchObject({
+            _id: category._id.toString(),
+            title: category.title
+        });
         expect(res.body.data).toHaveProperty('description');
         expect(res.body.data).toHaveProperty('date');
         expect(res.body.data.date).toBe(expectedDate);
@@ -201,6 +216,14 @@ describe("GET /api/event filters, search and sorting", () => {
         const res = await request(app).get("/api/event").query({ type_eq: alternateTypeId }).send();
         expect(res.statusCode).toBe(200);
         expect(res.body.data.map((event: { title: string }) => event.title)).toEqual(["Alternate Type Event"]);
+        expect(res.body.data[0].type).toMatchObject({
+            _id: alternateTypeId,
+            title: "Alternate Type"
+        });
+        expect(res.body.data[0].categories[0]).toMatchObject({
+            _id: defaultCategoryId
+        });
+        expect(res.body.data[0].categories[0]).toHaveProperty("title");
     });
 
     it("Should filter events by category", async () => {
@@ -210,6 +233,14 @@ describe("GET /api/event filters, search and sorting", () => {
         const res = await request(app).get("/api/event").query({ categories_in: `[${alternateCategoryId}]` }).send();
         expect(res.statusCode).toBe(200);
         expect(res.body.data.map((event: { title: string }) => event.title)).toEqual(["Alternate Category Event"]);
+        expect(res.body.data[0].type).toMatchObject({
+            _id: defaultTypeId
+        });
+        expect(res.body.data[0].type).toHaveProperty("title");
+        expect(res.body.data[0].categories[0]).toMatchObject({
+            _id: alternateCategoryId,
+            title: "Alternate Category"
+        });
     });
 
     it("Should merge date_after and date_before filters", async () => {
@@ -312,8 +343,12 @@ describe("GET /api/event filters, search and sorting", () => {
     });
 
     it("Should keep geosearch reachable and working as a static route", async () => {
+        const eventType = await getOneEventType();
+        const category = await getOneCategory();
         await createFakeEvent({
             title: "Nearby Event",
+            type: eventType._id.toString(),
+            categories: [category._id.toString()],
             location: {
                 type: "Point",
                 coordinates: [48.21649, 16.40087]
@@ -327,6 +362,15 @@ describe("GET /api/event filters, search and sorting", () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.body.data.map((event: { title: string }) => event.title)).toContain("Nearby Event");
+        const nearbyEvent = res.body.data.find((event: { title: string }) => event.title === "Nearby Event");
+        expect(nearbyEvent.type).toMatchObject({
+            _id: eventType._id.toString(),
+            title: eventType.title
+        });
+        expect(nearbyEvent.categories[0]).toMatchObject({
+            _id: category._id.toString(),
+            title: category.title
+        });
     });
 });
 

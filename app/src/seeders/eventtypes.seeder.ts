@@ -13,13 +13,10 @@ export async function seed() {
     ];
 
     for (const item of eventTypes) {
-        const exists = await EventType.findOne({ title: item.title });
-        if (!exists) {
-            await EventType.create(item);
-            if (!process.env.JEST_WORKER_ID) {
-                // eslint-disable-next-line
-                console.log(`Created event type: ${item.title}`);
-            }
+        await EventType.create(item);
+        if (!process.env.JEST_WORKER_ID) {
+            // eslint-disable-next-line
+            console.log(`Created event type: ${item.title}`);
         }
     }
     if (!process.env.JEST_WORKER_ID) {

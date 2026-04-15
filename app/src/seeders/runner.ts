@@ -1,5 +1,47 @@
 import 'dotenv/config';
 import { connectToMongo } from "@/config/mongoConfig";
+import { Category } from "@/models/category/Category";
+import { Event } from "@/models/event/Event";
+import { EventType } from "@/models/EventType";
+import { Interest } from "@/models/Interest";
+import { RSVP } from "@/models/rsvp/RSVP";
+import { User } from "@/models/user/User";
+
+const seeders = ["categories", "interests", "users", "eventtypes", "events"] as const;
+
+const resetters: Record<(typeof seeders)[number], () => Promise<void>> = {
+  categories: async () => {
+    await RSVP.deleteMany({});
+    await Event.deleteMany({});
+    await Category.deleteMany({});
+  },
+  interests: async () => {
+    await Interest.deleteMany({});
+  },
+  users: async () => {
+    await RSVP.deleteMany({});
+    await Event.deleteMany({});
+    await User.deleteMany({});
+  },
+  eventtypes: async () => {
+    await RSVP.deleteMany({});
+    await Event.deleteMany({});
+    await EventType.deleteMany({});
+  },
+  events: async () => {
+    await RSVP.deleteMany({});
+    await Event.deleteMany({});
+  }
+};
+
+async function resetSeedData() {
+  await RSVP.deleteMany({});
+  await Event.deleteMany({});
+  await User.deleteMany({});
+  await Category.deleteMany({});
+  await Interest.deleteMany({});
+  await EventType.deleteMany({});
+}
 
 async function run() {
   await connectToMongo();
@@ -12,7 +54,7 @@ async function run() {
     process.exit(1);
   }
   if (seederName === "all") {
-    const seeders = ["categories", "interests", "users", "eventtypes", "events"];
+    await resetSeedData();
     for (const name of seeders) {
       try {
         await runSeeder(name);
@@ -34,6 +76,9 @@ async function run() {
 
 async function runSeeder(seederName: string) {
   try {
+    if (seederName in resetters) {
+      await resetters[seederName as keyof typeof resetters]();
+    }
     const { seed } = await import(`./${seederName}.seeder`);
     await seed();
   } catch (err) {
