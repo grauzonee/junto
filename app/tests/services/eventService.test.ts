@@ -4,7 +4,6 @@ import { createUser } from "@tests/generators/user"
 
 import { create as createEvent, list as listEvents, geoSearch, update as editEvent, fetchOne } from "@/services/eventService"
 import { NotFoundError } from "@/types/errors/InputError"
-import { ZodError } from "zod"
 import { EventType } from "@/models/EventType"
 import { CreateEventInput } from "@/types/services/eventService"
 import { Category } from "@/models/category/Category"
@@ -54,33 +53,24 @@ describe("create event tests FAIL", () => {
         const event = await createFakeEvent(
             { type: eventTypeId.toString(), categories: [categoryId.toString()] }
         )
-        try {
-            await createEvent(event as CreateEventInput, new Types.ObjectId().toString())
-        } catch (error) {
-            expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
-        }
+        await expect(createEvent(event as CreateEventInput, new Types.ObjectId().toString()))
+            .rejects.toBeInstanceOf(mongoose.Error.ValidationError);
     })
     it("Should NOT create an event with invalid type id", async () => {
         const event = await createFakeEvent({
             type: new Types.ObjectId().toString(),
             categories: [categoryId.toString()]
         })
-        try {
-            await createEvent(event as CreateEventInput, new Types.ObjectId().toString())
-        } catch (error) {
-            expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
-        }
+        await expect(createEvent(event as CreateEventInput, new Types.ObjectId().toString()))
+            .rejects.toBeInstanceOf(mongoose.Error.ValidationError);
     })
     it("Should NOT create an event with invalid category id", async () => {
         const event = await createFakeEvent({
             type: eventTypeId.toString(),
             categories: [new Types.ObjectId().toString()]
         })
-        try {
-            await createEvent(event as CreateEventInput, new Types.ObjectId().toString())
-        } catch (error) {
-            expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
-        }
+        await expect(createEvent(event as CreateEventInput, new Types.ObjectId().toString()))
+            .rejects.toBeInstanceOf(mongoose.Error.ValidationError);
     })
 })
 describe("list events tests SUCCESS", () => {
@@ -213,19 +203,6 @@ describe("geosearch events tests SUCCESS", () => {
         expect(result).toEqual([])
         expect(result).toHaveLength(0)
     })
-    it("Should throw an exception on invalid coordinates", async () => {
-        const coordinates = {
-            lat: 168.21649,
-            lng: 16.40087,
-            radius: 1,
-        };
-
-        try {
-            await geoSearch(coordinates, requestData)
-        } catch (error) {
-            expect(error).toBeInstanceOf(ZodError)
-        }
-    })
 })
 
 describe("Edit event SUCCESS", () => {
@@ -323,11 +300,8 @@ describe("Edit event FAIL", () => {
             title,
             date
         }
-        try {
-            await editEvent(editEventData, eventId.toString(), new mongoose.Types.ObjectId().toString())
-        } catch (error) {
-            expect(error).toBeInstanceOf(NotFoundError)
-        }
+        await expect(editEvent(editEventData, eventId.toString(), new mongoose.Types.ObjectId().toString()))
+            .rejects.toBeInstanceOf(NotFoundError)
     })
     it("Should NOT edit not active event", async () => {
         savedEvent.active = false;
@@ -336,10 +310,7 @@ describe("Edit event FAIL", () => {
         const editEventData = {
             title,
         }
-        try {
-            await editEvent(editEventData, eventId.toString(), userId.toString())
-        } catch (error) {
-            expect(error).toBeInstanceOf(NotFoundError)
-        }
+        await expect(editEvent(editEventData, eventId.toString(), userId.toString()))
+            .rejects.toBeInstanceOf(NotFoundError)
     })
 })

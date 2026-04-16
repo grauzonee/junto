@@ -38,12 +38,7 @@ describe("create() method FAIL", () => {
             additionalGuests: 0
         }
         const user = await getOneUser();
-        try {
-            await create(body, user._id.toString())
-        } catch (error) {
-            expect(error).toBeInstanceOf(Error);
-            expect((error as Error).message).toBe("Mock error");
-        }
+        await expect(create(body, user._id.toString())).rejects.toThrow("Mock error");
         spyCreate.mockRestore();
         spyFind.mockRestore();
     })

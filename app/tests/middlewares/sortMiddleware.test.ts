@@ -16,35 +16,19 @@ beforeEach(() => {
     next = jest.fn()
 })
 describe("SortMiddleware test SUCCESS", () => {
-    it("Should populate req object on valid ASC data", () => {
+    it.each([
+        [{ sortByAsc: 'date' }, { sortByAsc: 'date' }],
+        [{ sortByDesc: 'date' }, { sortByDesc: 'date' }],
+    ])("Should populate req object on valid sort data %j", (query, expectedSort) => {
         req = {
-            query: {
-                sortByAsc: 'date'
-            },
+            query,
             sort: {}
         }
 
         const middleware = sortMiddleware(Event)
         middleware(req as Request, res as Response, next)
         expect(next).toHaveBeenCalledTimes(1)
-        expect(req.sort).toEqual({
-            sortByAsc: 'date'
-        })
-    })
-    it("Should populate req object on valid DESC data", () => {
-        req = {
-            query: {
-                sortByDesc: 'date'
-            },
-            sort: {}
-        }
-
-        const middleware = sortMiddleware(Event)
-        middleware(req as Request, res as Response, next)
-        expect(next).toHaveBeenCalledTimes(1)
-        expect(req.sort).toEqual({
-            sortByDesc: 'date'
-        })
+        expect(req.sort).toEqual(expectedSort)
     })
 })
 describe("SortMiddleware test FAIL", () => {

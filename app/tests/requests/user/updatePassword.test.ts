@@ -2,6 +2,8 @@ import { getMockedRequest, getMockedResponse } from "../../utils";
 import { updatePassword } from "@/requests/user/updatePassword";
 import { NextFunction, Request, Response } from "express"
 import { BadInputError } from "@/types/errors/InputError";
+import { setSuccessResponse } from "@/helpers/requestHelper";
+import successMessages from "@/constants/successMessages";
 
 jest.mock("@/helpers/requestHelper")
 
@@ -32,8 +34,8 @@ describe("updatePassword() SUCCESS", () => {
         }
         const req = getMockedRequest({ password }, {}, { user: mockedUser })
         await updatePassword(req as Request, res as Response, next);
-        expect(mockedUser.updatePassword).toHaveBeenCalledTimes(1)
-        expect(mockedUser.updatePassword).toHaveBeenCalledWith({ password })
+        expect(setSuccessResponse).toHaveBeenCalledTimes(1)
+        expect(setSuccessResponse).toHaveBeenCalledWith(res, { message: successMessages.response.PASSWORD_UPDATED })
     })
 })
 describe("updatePassword() FAIL", () => {

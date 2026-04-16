@@ -13,20 +13,14 @@ describe("Validation", () => {
         expect(foundDocNum).toBe(1);
     })
     it("Categories: Should throw exception if category doesn't exist", async () => {
-        try {
-            await createFakeEvent({ categories: [new Types.ObjectId().toString()] }, true);
-        } catch (error) {
-            expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
-        }
+        await expect(createFakeEvent({ categories: [new Types.ObjectId().toString()] }, true))
+            .rejects.toBeInstanceOf(mongoose.Error.ValidationError);
     })
     it("Categories: Should throw exception if one of categories doesn't exist", async () => {
 
         const category = await getOneCategory();
-        try {
-            await createFakeEvent({ categories: [category._id.toString(), new Types.ObjectId().toString()] }, true);
-        } catch (error) {
-            expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
-        }
+        await expect(createFakeEvent({ categories: [category._id.toString(), new Types.ObjectId().toString()] }, true))
+            .rejects.toBeInstanceOf(mongoose.Error.ValidationError);
     })
     it("Categories: Should update categories if categories array is valid", async () => {
         const categories = await Category.find().limit(2);
@@ -49,11 +43,8 @@ describe("Validation", () => {
     })
 
     it("Type: Should throw exception if type doesn't exist", async () => {
-        try {
-            await createFakeEvent({ type: new Types.ObjectId().toString() }, true);
-        } catch (error) {
-            expect(error).toBeInstanceOf(mongoose.Error.ValidationError);
-        }
+        await expect(createFakeEvent({ type: new Types.ObjectId().toString() }, true))
+            .rejects.toBeInstanceOf(mongoose.Error.ValidationError);
     })
     it("RSVP: Should create RSVP for author when event is created", async () => {
         const user = await createUser({}, true);

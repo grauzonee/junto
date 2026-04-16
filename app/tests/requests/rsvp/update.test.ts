@@ -1,110 +1,71 @@
-import { createFakeRSVP } from "../../generators/rsvp";
-import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
-import { getOneUser } from "../../getters";
-import { RSVP } from "@/models/rsvp/RSVP";
-import { update } from "@/services/RSVPService";
+import { update } from "@/requests/rsvp/update";
+import { update as updateRSVP } from "@/services/RSVPService";
+import { UpdateRSVPSchema } from "@/schemas/http/RSVP";
+import { setSuccessResponse } from "@/helpers/requestHelper";
+import { getMockedRequest, getMockedResponse, withToJSON } from "../../utils";
+import { NextFunction, Request, Response } from "express";
 import { Types } from "mongoose";
+import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
 
-describe("update() success", () => {
-    it("Should call RSVP.setStatus and save methods", async () => {
-        const mockRSVP = await createFakeRSVP({}, true);
-        if (!mockRSVP._id) {
-            throw new Error("Mock RSVP must have an _id");
-        }
-        const setStatusSpy = jest.spyOn(mockRSVP, "setStatus");
-        const saveSpy = jest.spyOn(mockRSVP, "save").mockResolvedValue(mockRSVP as never);
+jest.mock("@/services/RSVPService");
+jest.mock("@/helpers/requestHelper");
+jest.mock("@/schemas/http/RSVP");
 
-        const populateMock = jest.fn().mockReturnValue(mockRSVP);
+const next = jest.fn() as NextFunction;
 
-        jest.spyOn(RSVP, "findOne").mockReturnValue({
-            populate: populateMock,
-        } as never);
-        const body = {
+beforeEach(() => {
+    jest.resetAllMocks();
+});
+
+describe("update() request handler", () => {
+    it("Should parse request data, call updateRSVP, and return the updated RSVP", async () => {
+        const rsvpId = new Types.ObjectId().toString();
+        const userId = new Types.ObjectId().toString();
+        const requestBody = {
             status: STATUS_CONFIRMED,
             additionalGuests: 2
-        }
-        const user = await getOneUser();
-        await update(body, mockRSVP._id.toString(), user._id.toString())
-
-        expect(setStatusSpy).toHaveBeenCalledTimes(1);
-        expect(setStatusSpy).toHaveBeenCalledWith(body.status);
-        expect(saveSpy).toHaveBeenCalledTimes(1);
-
-        setStatusSpy.mockRestore();
-        saveSpy.mockRestore();
-    });
-    it("Should update additionalGuests if provided", async () => {
-        const mockRSVP = await createFakeRSVP({}, true);
-        if (!mockRSVP._id) {
-            throw new Error("Mock RSVP must have an _id");
-        }
-        const saveSpy = jest.spyOn(mockRSVP, "save").mockResolvedValue(mockRSVP as never);
-
-        const populateMock = jest.fn().mockReturnValue(mockRSVP);
-
-        jest.spyOn(RSVP, "findOne").mockReturnValue({
-            populate: populateMock,
-        } as never);
-        const body = {
-            status: STATUS_CONFIRMED,
-            additionalGuests: 3
-        }
-        const user = await getOneUser();
-        await update(body, mockRSVP._id.toString(), user._id.toString())
-
-        expect(mockRSVP.additionalGuests).toBe(body.additionalGuests);
-        expect(saveSpy).toHaveBeenCalledTimes(1);
-
-        saveSpy.mockRestore();
-    });
-
-    it("Should not update additionalGuests if not provided", async () => {
-        const mockRSVP = await createFakeRSVP({ additionalGuests: 1 }, true);
-        if (!mockRSVP._id) {
-            throw new Error("Mock RSVP must have an _id");
-        }
-        const saveSpy = jest.spyOn(mockRSVP, "save").mockResolvedValue(mockRSVP as never);
-
-        const populateMock = jest.fn().mockReturnValue(mockRSVP);
-
-        jest.spyOn(RSVP, "findOne").mockReturnValue({
-            populate: populateMock,
-        } as never);
-        const body = {
-            status: STATUS_CONFIRMED,
-        }
-        const user = await getOneUser();
-        await update(body, mockRSVP._id.toString(), user._id.toString())
-
-        expect(mockRSVP.additionalGuests).toBe(1);
-        expect(saveSpy).toHaveBeenCalledTimes(1);
-
-        saveSpy.mockRestore();
-    });
-
-    it("Should throw NotFoundError if RSVP not found", async () => {
-        const mockRSVPId = new Types.ObjectId().toString();
-        jest.spyOn(RSVP, "findOne").mockReturnValue({
-            populate: jest.fn(),
-        } as never);
-
-        const body = {
+        };
+        const parsedBody = {
             status: STATUS_CONFIRMED,
             additionalGuests: 2
-        }
-        const user = await getOneUser();
-        let caughtError: Error | null = null;
-        try {
-            await update(body, mockRSVPId, user._id.toString());
-        } catch (error) {
-            caughtError = error as Error;
-        }
+        };
+        const updatedRSVP = withToJSON({
+            _id: rsvpId,
+            status: STATUS_CONFIRMED,
+            additionalGuests: 2
+        });
+        jest.mocked(UpdateRSVPSchema.parse).mockReturnValue(parsedBody);
+        jest.mocked(updateRSVP).mockResolvedValue(updatedRSVP as never);
 
-        expect(caughtError).not.toBeNull();
-        expect(caughtError?.name).toBe("NotFoundError");
+        const req = getMockedRequest(requestBody, { rsvpId }, { user: { id: userId } });
+        const res = getMockedResponse();
+
+        await update(req as Request, res as Response, next);
+
+        expect(UpdateRSVPSchema.parse).toHaveBeenCalledTimes(1);
+        expect(UpdateRSVPSchema.parse).toHaveBeenCalledWith(requestBody);
+        expect(updateRSVP).toHaveBeenCalledTimes(1);
+        expect(updateRSVP).toHaveBeenCalledWith(parsedBody, rsvpId, userId);
+        expect(setSuccessResponse).toHaveBeenCalledTimes(1);
+        expect(setSuccessResponse).toHaveBeenCalledWith(res, updatedRSVP.toJSON(), 200);
+        expect(next).not.toHaveBeenCalled();
     });
 
-    afterEach(async () => {
-        await RSVP.deleteMany({});
-    })
-})
+    it("Should forward service errors to next", async () => {
+        const error = new Error("Update failed");
+        const rsvpId = new Types.ObjectId().toString();
+        const userId = new Types.ObjectId().toString();
+        const parsedBody = { status: STATUS_CONFIRMED };
+        jest.mocked(UpdateRSVPSchema.parse).mockReturnValue(parsedBody);
+        jest.mocked(updateRSVP).mockRejectedValue(error);
+
+        const req = getMockedRequest(parsedBody, { rsvpId }, { user: { id: userId } });
+        const res = getMockedResponse();
+
+        await update(req as Request, res as Response, next);
+
+        expect(next).toHaveBeenCalledTimes(1);
+        expect(next).toHaveBeenCalledWith(error);
+        expect(setSuccessResponse).not.toHaveBeenCalled();
+    });
+});

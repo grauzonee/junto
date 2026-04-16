@@ -1,6 +1,5 @@
 import { createFakeRSVP } from "../../generators/rsvp";
 import { STATUS_CONFIRMED, STATUS_CANCELED } from "@/models/rsvp/utils";
-import { BadInputError } from "@/types/errors/InputError";
 import { RSVP } from "@/models/rsvp/RSVP";
 import messages from "@/constants/errorMessages"
 import { setStatus } from "@/models/rsvp/methods";
@@ -22,12 +21,9 @@ describe("setStatus() method", () => {
         if (typeof rsvp.setStatus !== 'function') {
             throw new Error("setStatus method not found on RSVP");
         }
-        try {
-            await rsvp.setStatus("somestatus");
-        } catch (error) {
-            expect(error).toBeInstanceOf(BadInputError);
-            expect((error as BadInputError).message).toBe(messages.validation.NOT_CORRECT("Rsvp status"));
-        }
+        await expect(rsvp.setStatus("somestatus")).rejects.toMatchObject({
+            message: messages.validation.NOT_CORRECT("Rsvp status")
+        });
     })
 
     it("Should throw error if event author tries to set status other than confirmed", async () => {
@@ -37,12 +33,9 @@ describe("setStatus() method", () => {
         if (typeof rsvp.setStatus !== 'function') {
             throw new Error("setStatus method not found on RSVP");
         }
-        try {
-            await setStatus.call(rsvp as never, STATUS_CANCELED);
-        } catch (error) {
-            expect(error).toBeInstanceOf(BadInputError);
-            expect((error as BadInputError).message).toBe(messages.validation.CANNOT_MODIFY("Event authors RSVP status"));
-        }
+        await expect(setStatus.call(rsvp as never, STATUS_CANCELED)).rejects.toMatchObject({
+            message: messages.validation.CANNOT_MODIFY("Event authors RSVP status")
+        });
     })
 
     afterEach(async () => {

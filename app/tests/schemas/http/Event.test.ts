@@ -1,183 +1,79 @@
 import { CreateEventSchema } from "@/schemas/http/Event";
 import { Types } from "mongoose";
 import messages from "@/constants/errorMessages"
-import * as z from 'zod';
 
 const categoryId = new Types.ObjectId().toString();
 const typeId = new Types.ObjectId().toString();
 
+function validEventInput(overrides: Record<string, unknown> = {}) {
+    return {
+        title: "Sample Event",
+        description: "This is a sample event.",
+        imageUrl: "http://example.com/image.jpg",
+        date: Math.ceil(Date.now() / 1000) + 3600,
+        fullAddress: "123 Main St, Anytown, USA",
+        location: {
+            type: "Point",
+            coordinates: [40.7128, -74.0060]
+        },
+        categories: [categoryId],
+        type: typeId,
+        fee: {
+            amount: 20,
+            currency: "USD"
+        },
+        maxAttendees: 100,
+        ...overrides
+    };
+}
+
+function expectParseError(data: unknown, message: string) {
+    const result = CreateEventSchema.safeParse(data);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+        expect(result.error.issues[0].message).toBe(message);
+    }
+}
+
 describe("CreateEventSchema", () => {
     it("Should pass validation with valid data", () => {
-        const data = {
-            title: "Sample Event",
-            description: "This is a sample event.",
-            imageUrl: "http://example.com/image.jpg",
-            date: Math.ceil(Date.now() / 1000) + 3600,
-            fullAddress: "123 Main St, Anytown, USA",
-            location: {
-                type: "Point",
-                coordinates: [40.7128, -74.0060]
-            },
-            categories: [categoryId],
-            type: typeId,
-            fee: {
-                amount: 20,
-                currency: "USD"
-            },
-            maxAttendees: 100
-        };
-        expect(() => CreateEventSchema.parse(data)).not.toThrow();
-    });
-    it("Should fail validation with date in the past", () => {
-        const data = {
-            title: "Sample Event",
-            description: "This is a sample event.",
-            imageUrl: "http://example.com/image.jpg",
-            date: Math.ceil(Date.now() / 1000) - 3600, // 1 hour in the past
-            fullAddress: "123 Main St, Anytown, USA",
-            location: {
-                type: "Point",
-                coordinates: [40.7128, -74.0060]
-            },
-            categories: [categoryId],
-            type: typeId,
-            fee: {
-                amount: 20,
-                currency: "USD"
-            },
-            maxAttendees: 100
-        };
-        try {
-            CreateEventSchema.parse(data);
-        } catch (e) {
-            const error = e as z.ZodError;
-            expect(error.issues[0].message).toBe(messages.http.DATE_IN_PAST);
-        }
+        expect(() => CreateEventSchema.parse(validEventInput())).not.toThrow();
     });
 
-    it("Should fail validation with invalid coordinates", () => {
-        const data = {
-            title: "Sample Event",
-            description: "This is a sample event.",
-            imageUrl: "http://example.com/image.jpg",
-            date: Math.ceil(Date.now() / 1000) + 3600,
-            fullAddress: "123 Main St, Anytown, USA",
-            location: {
-                type: "Point",
-                coordinates: [100, 200]
-            },
-            categories: [categoryId],
-            type: typeId,
-            fee: {
-                amount: 20,
-                currency: "USD"
-            },
-            maxAttendees: 100
-        };
-        try {
-            CreateEventSchema.parse(data);
-        } catch (e) {
-            const error = e as z.ZodError;
-            expect(error.issues[0].message).toBe(messages.validation.NOT_CORRECT("Coordinates"));
-        }
-    });
-
-    it("Should fail validation with non-unique categories", () => {
-        const data = {
-            title: "Sample Event",
-            description: "This is a sample event.",
-            imageUrl: "http://example.com/image.jpg",
-            date: Math.ceil(Date.now() / 1000) + 3600,
-            fullAddress: "123 Main St, Anytown, USA",
-            location: {
-                type: "Point",
-                coordinates: [40.7128, -74.0060]
-            },
-            categories: [categoryId, categoryId], // Duplicate category IDs
-            type: typeId,
-            fee: {
-                amount: 20,
-                currency: "USD"
-            },
-            maxAttendees: 100
-        };
-        try {
-            CreateEventSchema.parse(data);
-        } catch (e) {
-            const error = e as z.ZodError;
-            expect(error.issues[0].message).toBe(messages.http.UNIQUE_VALUES("Categories"));
-        }
+    it.each([
+        {
+            name: "date in the past",
+            data: validEventInput({ date: Math.ceil(Date.now() / 1000) - 3600 }),
+            message: messages.http.DATE_IN_PAST
+        },
+        {
+            name: "invalid coordinates",
+            data: validEventInput({ location: { type: "Point", coordinates: [100, 200] } }),
+            message: messages.validation.NOT_CORRECT("Coordinates")
+        },
+        {
+            name: "non-unique categories",
+            data: validEventInput({ categories: [categoryId, categoryId] }),
+            message: messages.http.UNIQUE_VALUES("Categories")
+        },
+        {
+            name: "invalid maxAttendees",
+            data: validEventInput({ active: true, maxAttendees: 0 }),
+            message: messages.http.MIN("Max Attendees", 1)
+        },
+    ])("Should fail validation with $name", ({ data, message }) => {
+        expectParseError(data, message);
     });
 
     it("Should pass validation without fee", () => {
-        const data = {
-            title: "Sample Event",
-            description: "This is a sample event.",
-            imageUrl: "http://example.com/image.jpg",
-            date: Math.ceil(Date.now() / 1000) + 3600,
-            fullAddress: "123 Main St, Anytown, USA",
-            location: {
-                type: "Point",
-                coordinates: [40.7128, -74.0060]
-            },
-            categories: [categoryId],
-            type: typeId,
-            maxAttendees: 100,
-        };
+        const data: Record<string, unknown> = validEventInput();
+        delete data.fee;
         expect(() => CreateEventSchema.parse(data)).not.toThrow();
     });
 
     it("Should not pass validation without maxAttendees", () => {
-        const data = {
-            title: "Sample Event",
-            description: "This is a sample event.",
-            imageUrl: "http://example.com/image.jpg",
-            date: Math.ceil(Date.now() / 1000) + 3600,
-            fullAddress: "123 Main St, Anytown, USA",
-            location: {
-                type: "Point",
-                coordinates: [40.7128, -74.0060]
-            },
-            categories: [categoryId],
-            type: typeId,
-            fee: {
-                amount: 20,
-                currency: "USD"
-            },
-            active: true,
-        };
-        try {
-            CreateEventSchema.parse(data);
-        } catch (e) {
-            const error = e as z.ZodError;
-            expect(error.issues[0].message).toBe("Invalid input: expected number, received undefined");
-        }
-    });
-    it("Should not pass validation with invalid maxAttendees", () => {
-        const data = {
-            title: "Sample Event",
-            description: "This is a sample event.",
-            imageUrl: "http://example.com/image.jpg",
-            date: Math.ceil(Date.now() / 1000) + 3600,
-            fullAddress: "123 Main St, Anytown, USA",
-            location: {
-                type: "Point",
-                coordinates: [40.7128, -74.0060]
-            },
-            categories: [categoryId],
-            type: typeId,
-            fee: {
-                amount: 20,
-                currency: "USD"
-            },
-            active: true,
-            maxAttendees: 0
-        };
-        try {
-            CreateEventSchema.parse(data);
-        } catch (e) {
-            const error = e as z.ZodError;
-            expect(error.issues[0].message).toBe(messages.http.MIN("Max Attendees", 1));
-        }
+        const data: Record<string, unknown> = validEventInput({ active: true });
+        delete data.maxAttendees;
+        expectParseError(data, "Invalid input: expected number, received undefined");
     });
 });

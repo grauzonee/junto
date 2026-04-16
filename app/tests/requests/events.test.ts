@@ -130,41 +130,37 @@ describe("GET /api/event date filters", () => {
         await createFakeEvent({ title: titles.nextMonth, date: toUnixSeconds(nextMonthDate) }, true);
     });
 
-    it("Should filter events for today", async () => {
-        const res = await request(app).get("/api/event").query({ date_eq: "today" }).send();
+    it.each([
+        {
+            name: "today",
+            queryValue: "today",
+            included: [titles.today],
+            excluded: [titles.tomorrow, titles.nextWeek, titles.nextMonth]
+        },
+        {
+            name: "this week",
+            queryValue: "this week",
+            included: [titles.today, titles.thisWeekend],
+            excluded: [titles.nextWeek, titles.nextMonth]
+        },
+        {
+            name: "this month",
+            queryValue: "this month",
+            included: [titles.today],
+            excluded: [titles.nextMonth]
+        },
+        {
+            name: "this weekend",
+            queryValue: "this weekend",
+            included: [titles.thisWeekend],
+            excluded: [titles.nextWeek, titles.nextMonth]
+        },
+    ])("Should filter events for $name", async ({ queryValue, included, excluded }) => {
+        const res = await request(app).get("/api/event").query({ date_eq: queryValue }).send();
         expect(res.statusCode).toBe(200);
         const resultTitles = res.body.data.map((event: { title: string }) => event.title);
-        expect(resultTitles).toContain(titles.today);
-        expect(resultTitles).not.toContain(titles.tomorrow);
-        expect(resultTitles).not.toContain(titles.nextWeek);
-        expect(resultTitles).not.toContain(titles.nextMonth);
-    });
-
-    it("Should filter events for this week", async () => {
-        const res = await request(app).get("/api/event").query({ date_eq: "this week" }).send();
-        expect(res.statusCode).toBe(200);
-        const resultTitles = res.body.data.map((event: { title: string }) => event.title);
-        expect(resultTitles).toContain(titles.today);
-        expect(resultTitles).toContain(titles.thisWeekend);
-        expect(resultTitles).not.toContain(titles.nextWeek);
-        expect(resultTitles).not.toContain(titles.nextMonth);
-    });
-
-    it("Should filter events for this month", async () => {
-        const res = await request(app).get("/api/event").query({ date_eq: "this month" }).send();
-        expect(res.statusCode).toBe(200);
-        const resultTitles = res.body.data.map((event: { title: string }) => event.title);
-        expect(resultTitles).toContain(titles.today);
-        expect(resultTitles).not.toContain(titles.nextMonth);
-    });
-
-    it("Should filter events for this weekend", async () => {
-        const res = await request(app).get("/api/event").query({ date_eq: "this weekend" }).send();
-        expect(res.statusCode).toBe(200);
-        const resultTitles = res.body.data.map((event: { title: string }) => event.title);
-        expect(resultTitles).toContain(titles.thisWeekend);
-        expect(resultTitles).not.toContain(titles.nextWeek);
-        expect(resultTitles).not.toContain(titles.nextMonth);
+        included.forEach(title => expect(resultTitles).toContain(title));
+        excluded.forEach(title => expect(resultTitles).not.toContain(title));
     });
 
     it("Should support discover date aliases", async () => {

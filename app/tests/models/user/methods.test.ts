@@ -1,4 +1,3 @@
-import { BadInputError } from "@/types/errors/InputError";
 import messages from "@/constants/errorMessages"
 import bcrypt from 'bcrypt';
 import { Types } from "mongoose";
@@ -45,14 +44,9 @@ describe("User Methods", () => {
                 matchPassword: jest.fn().mockResolvedValue(false),
                 save: jest.fn().mockResolvedValue(true)
             };
-            try {
-                await updatePassword.call(userDoc as never, data);
-            } catch (error) {
-                expect(error).toBeInstanceOf(BadInputError);
-                if (error instanceof BadInputError) {
-                    expect(error.message).toBe(messages.validation.PASSWORDS_EQUAL);
-                }
-            }
+            await expect(updatePassword.call(userDoc as never, data)).rejects.toMatchObject({
+                message: messages.validation.PASSWORDS_EQUAL
+            });
             expect(userDoc.matchPassword).not.toHaveBeenCalled();
             expect(userDoc.save).not.toHaveBeenCalled();
         });
@@ -66,14 +60,9 @@ describe("User Methods", () => {
                 matchPassword: jest.fn().mockResolvedValue(false),
                 save: jest.fn().mockResolvedValue(true)
             };
-            try {
-                await updatePassword.call(userDoc as never, data);
-            } catch (error) {
-                expect(error).toBeInstanceOf(BadInputError);
-                if (error instanceof BadInputError) {
-                    expect(error.message).toBe(messages.validation.NOT_CORRECT("Old password"));
-                }
-            }
+            await expect(updatePassword.call(userDoc as never, data)).rejects.toMatchObject({
+                message: messages.validation.NOT_CORRECT("Old password")
+            });
             expect(userDoc.matchPassword).toHaveBeenCalledWith(data.oldPassword);
             expect(userDoc.save).not.toHaveBeenCalled();
         });
@@ -123,12 +112,9 @@ describe("User Methods", () => {
                 interests: [],
                 save: jest.fn().mockResolvedValue(true)
             };
-            try {
-                await updateProfile.call(userDoc as never, data);
-            } catch (error) {
-                expect(error).toBeInstanceOf(Error);
-                expect((error as Error).message).toBe(messages.validation.IMAGE_NOT_EXISTS("avatar"));
-            }
+            await expect(updateProfile.call(userDoc as never, data)).rejects.toMatchObject({
+                message: messages.validation.IMAGE_NOT_EXISTS("avatar")
+            });
             expect(userDoc.save).not.toHaveBeenCalled();
         });
         it("should not update fields that are not provided", async () => {
