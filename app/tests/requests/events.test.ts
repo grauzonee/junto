@@ -1,8 +1,8 @@
 import request from "supertest";
+import { NextFunction, Request, Response } from "express";
 import { createUser } from "../generators/user";
 import { createFakeRSVP } from "../generators/rsvp";
 import { Types } from "mongoose";
-import type { NextFunction, Request, Response } from "express";
 
 let user: Awaited<ReturnType<typeof createUser>>;
 

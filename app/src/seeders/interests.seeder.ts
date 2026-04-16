@@ -17,12 +17,10 @@ export async function seed() {
     for (const item of interests) {
         await Interest.create(item);
         if (!process.env.JEST_WORKER_ID) {
-            // eslint-disable-next-line
             console.log(`Created: ${item.title}`);
         }
     }
     if (!process.env.JEST_WORKER_ID) {
-        // eslint-disable-next-line
         console.log("Interests seeding done.");
     }
 }

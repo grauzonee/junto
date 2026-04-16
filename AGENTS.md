@@ -138,6 +138,10 @@ Fill in any conventions that agents should follow here.
 - Naming: verbObject
 - Branching: feature-dash-separated
 
+## Git workflow
+
+When told to switch to new branch, always create it from fresh origin/master unless explicitly instructed not to do so.
+
 ## Notes
 
 Don't use deprecated functions in new code.

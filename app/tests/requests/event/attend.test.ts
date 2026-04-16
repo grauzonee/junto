@@ -6,10 +6,10 @@ import { createFakeRSVP } from "../../generators/rsvp";
 import { createUser } from "@tests/generators/user";
 import { attend } from "@/requests/event/attend";
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
-import { Error } from "mongoose";
 import { setSuccessResponse } from "@/helpers/requestHelper";
 import { CreateRSVPSchema } from "@/schemas/http/RSVP";
 import { CreateRSVPInput } from "@/types/services/RSVPService";
+import { MockedJsonDocument, withToJSON } from "../../utils";
 jest.mock("@/services/RSVPService")
 jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/RSVP");
@@ -17,22 +17,18 @@ jest.mock("@/schemas/http/RSVP");
 let user: Awaited<ReturnType<typeof createUser>>;
 let res: Partial<Response>;
 const next = jest.fn() as NextFunction;
-let rsvp: Awaited<ReturnType<typeof createFakeRSVP>>;
-type MockRSVP = Awaited<ReturnType<typeof createFakeRSVP>> & { toJSON(): unknown };
-let mockRSVP: MockRSVP;
+let mockRSVP: MockedJsonDocument<Awaited<ReturnType<typeof createFakeRSVP>>>;
 let mockRSVPData: CreateRSVPInput;
 beforeAll(async () => {
     user = await createUser({}, true);
-    rsvp = await createFakeRSVP();
+    const rsvp = await createFakeRSVP();
     mockRSVPData = {
         eventId: rsvp.event.toString(),
         status: rsvp.status,
         additionalGuests: rsvp.additionalGuests
     };
-    mockRSVP = {
-        ...rsvp, toJSON: jest.fn().mockReturnThis()
-    };
-    (create as jest.Mock).mockResolvedValue(mockRSVP);
+    mockRSVP = withToJSON(rsvp);
+    jest.mocked(create).mockResolvedValue(mockRSVP as never);
 })
 
 beforeEach(() => {
@@ -41,7 +37,7 @@ beforeEach(() => {
 })
 describe("attend() SUCCESS", () => {
     beforeEach(() => {
-        (CreateRSVPSchema.parse as jest.Mock).mockReturnValue(mockRSVPData as CreateRSVPInput);
+        jest.mocked(CreateRSVPSchema.parse).mockReturnValue(mockRSVPData);
     });
     it("Should call, create(), setSuccessResponse() method on correct input data", async () => {
         const req = await getRequest();

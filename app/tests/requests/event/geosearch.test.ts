@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express"
 import { geoSearch as serviceGeoSearch } from "@/services/eventService";
 import { createFakeEvent } from "../../generators/event"
 import { setSuccessResponse } from "@/helpers/requestHelper";
-import { getMockedRequest, getMockedResponse } from "../../utils";
+import { getMockedRequest, getMockedResponse, MockedJsonDocument, withToJSON } from "../../utils";
 import { geosearch } from "@/requests/event/geosearch";
 import { ZodError } from "zod";
 import { CoordinatesSchema } from "@/schemas/http/Event";
@@ -12,8 +12,7 @@ jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/Event")
 
 let res: Partial<Response>;
-type MockEvent = Awaited<ReturnType<typeof createFakeEvent>> & { toJSON(): unknown };
-let mockEvent: MockEvent;
+let mockEvent: MockedJsonDocument<Awaited<ReturnType<typeof createFakeEvent>>>;
 let result: typeof mockEvent[] = [];
 const next = jest.fn() as NextFunction;
 const coordinates = {
@@ -23,14 +22,14 @@ const coordinates = {
 };
 beforeAll(async () => {
     const event = await createFakeEvent();
-    mockEvent = { ...event, toJSON: jest.fn().mockReturnThis() } as MockEvent;
+    mockEvent = withToJSON(event);
     result = [mockEvent, mockEvent];
 });
 
 beforeEach(() => {
     jest.resetAllMocks();
-    (serviceGeoSearch as jest.Mock).mockResolvedValue(result);
-    (CoordinatesSchema.parse as jest.Mock).mockReturnValue(coordinates);
+    jest.mocked(serviceGeoSearch).mockResolvedValue(result as never);
+    jest.mocked(CoordinatesSchema.parse).mockReturnValue(coordinates);
     res = getMockedResponse();
 
 })
@@ -58,17 +57,18 @@ describe("geosearch() FAIL", () => {
                 path: ["lng"],
             },
         ]);
-        (serviceGeoSearch as jest.Mock).mockRejectedValue(error)
+        jest.mocked(serviceGeoSearch).mockRejectedValue(error)
         const req = getMockedRequest({}, coordinates);
         await geosearch(req as Request, res as Response, next);
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(error);
     })
     it("Should return 500 in case of default error", async () => {
-        (serviceGeoSearch as jest.Mock).mockRejectedValue(new Error())
+        const error = new Error();
+        jest.mocked(serviceGeoSearch).mockRejectedValue(error)
         const req = getMockedRequest({}, coordinates);
         await geosearch(req as Request, res as Response, next);
         expect(next).toHaveBeenCalledTimes(1)
-        expect(next).toHaveBeenCalledWith(new Error());
+        expect(next).toHaveBeenCalledWith(error);
     })
 })

@@ -5,7 +5,6 @@ import { RSVP } from "@/models/rsvp/RSVP";
 import messages from "@/constants/errorMessages"
 import { setStatus } from "@/models/rsvp/methods";
 
-
 describe("setStatus() method", () => {
     it("Should set valid status", async () => {
         const rsvp = await createFakeRSVP({}, true);

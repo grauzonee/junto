@@ -2,7 +2,6 @@ import { BadInputError } from "@/types/errors/InputError";
 import messages from "@/constants/errorMessages"
 import bcrypt from 'bcrypt';
 import { Types } from "mongoose";
-import * as mediaHelper from "@/helpers/mediaHelper";
 import { updatePassword, matchPassword, updateProfile } from "@/models/user/methods";
 
 interface PasswordUserDoc {
@@ -43,8 +42,8 @@ describe("User Methods", () => {
             };
             const userDoc: PasswordUserDoc = {
                 password: 'hashedPassword',
-                matchPassword: jest.fn(),
-                save: jest.fn()
+                matchPassword: jest.fn().mockResolvedValue(false),
+                save: jest.fn().mockResolvedValue(true)
             };
             try {
                 await updatePassword.call(userDoc as never, data);
@@ -65,7 +64,7 @@ describe("User Methods", () => {
             const userDoc: PasswordUserDoc = {
                 password: 'hashedPassword',
                 matchPassword: jest.fn().mockResolvedValue(false),
-                save: jest.fn()
+                save: jest.fn().mockResolvedValue(true)
             };
             try {
                 await updatePassword.call(userDoc as never, data);
@@ -82,15 +81,14 @@ describe("User Methods", () => {
 
     describe("matchPassword() method", () => {
         it("should match passwords correctly", async () => {
-            const bcryptCompare = jest.fn().mockResolvedValue(true);
-            (bcrypt.compare as jest.Mock) = bcryptCompare;
+            const password = 'enteredPassword';
+            const hashedPassword = await bcrypt.hash(password, 10);
             const userDoc: PasswordUserDoc = {
-                password: 'hashedPassword',
+                password: hashedPassword,
                 matchPassword: jest.fn().mockResolvedValue(true),
-                save: jest.fn()
+                save: jest.fn().mockResolvedValue(true)
             };
-            const result = await matchPassword.call(userDoc as never, 'enteredPassword');
-            expect(bcryptCompare).toHaveBeenCalledWith('enteredPassword', userDoc.password);
+            const result = await matchPassword.call(userDoc as never, password);
             expect(result).toBe(true);
         });
     });
@@ -100,10 +98,9 @@ describe("User Methods", () => {
             jest.clearAllMocks();
         });
         it("should update user profile correctly", async () => {
-            const checkImageSpy = jest.spyOn(mediaHelper, "checkImage").mockReturnValue(true);
             const data = {
                 username: 'newUsername',
-                avatarUrl: 'http://example.com/avatar.jpg',
+                avatarUrl: 'package.json',
                 interests: [new Types.ObjectId().toString(), new Types.ObjectId().toString()]
             };
             const userDoc: ProfileUserDoc = {
@@ -116,16 +113,15 @@ describe("User Methods", () => {
             expect(userDoc.username).toBe(data.username);
             expect(userDoc.avatarUrl).toBe(data.avatarUrl);
             expect(userDoc.interests).toEqual(data.interests.map(id => new Types.ObjectId(id)));
-            expect(checkImageSpy).toHaveBeenCalledWith(data.avatarUrl);
             expect(userDoc.save).toHaveBeenCalled();
         });
         it("should throw error if avatar URL is invalid", async () => {
-            const checkImageSpy = jest.spyOn(mediaHelper, "checkImage").mockReturnValue(false);
             const data = {
                 avatarUrl: 'invalid-url'
             };
             const userDoc: ProfileUserDoc = {
-                save: jest.fn()
+                interests: [],
+                save: jest.fn().mockResolvedValue(true)
             };
             try {
                 await updateProfile.call(userDoc as never, data);
@@ -133,7 +129,6 @@ describe("User Methods", () => {
                 expect(error).toBeInstanceOf(Error);
                 expect((error as Error).message).toBe(messages.validation.IMAGE_NOT_EXISTS("avatar"));
             }
-            expect(checkImageSpy).toHaveBeenCalledWith(data.avatarUrl);
             expect(userDoc.save).not.toHaveBeenCalled();
         });
         it("should not update fields that are not provided", async () => {

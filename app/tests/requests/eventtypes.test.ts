@@ -1,6 +1,6 @@
 import request from "supertest";
+import { NextFunction, Request, Response } from "express";
 import { createUser } from "../generators/user";
-import type { NextFunction, Request, Response } from "express";
 
 let user: Awaited<ReturnType<typeof createUser>>;
 

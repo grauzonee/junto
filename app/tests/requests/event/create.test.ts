@@ -1,5 +1,5 @@
 import { create } from "@/requests/event/create"
-import { getMockedRequest, getMockedResponse } from "../../utils"
+import { getMockedRequest, getMockedResponse, MockedJsonDocument, withToJSON } from "../../utils"
 import mongoose from "mongoose"
 import { NextFunction, Request, Response } from "express"
 import { create as createEvent } from "@/services/eventService"
@@ -14,8 +14,7 @@ jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/Event");
 
 let res: Partial<Response>;
-type MockEvent = Awaited<ReturnType<typeof createFakeEvent>> & { toJSON(): unknown };
-let mockEvent: MockEvent;
+let mockEvent: MockedJsonDocument<Awaited<ReturnType<typeof createFakeEvent>>>;
 let newEvent: Awaited<ReturnType<typeof createFakeEvent>>;
 const next = jest.fn() as NextFunction;
 let categoriesIds: string[];
@@ -23,7 +22,7 @@ let eventTypeId: string;
 
 beforeAll(async () => {
     const event = await createFakeEvent();
-    mockEvent = { ...event, toJSON: jest.fn().mockReturnThis() } as MockEvent;
+    mockEvent = withToJSON(event);
     const categories = await Category.find().limit(2);
     const eventType = await EventType.findOne();
     if (!categories || !eventType) {
@@ -36,8 +35,8 @@ beforeAll(async () => {
 
 beforeEach(() => {
     jest.resetAllMocks();
-    (createEvent as jest.Mock).mockResolvedValue(mockEvent);
-    (CreateEventSchema.parse as jest.Mock).mockReturnValue(newEvent as CreateEventInput);
+    jest.mocked(createEvent).mockResolvedValue(mockEvent as never);
+    jest.mocked(CreateEventSchema.parse).mockReturnValue(newEvent as CreateEventInput);
     res = getMockedResponse();
 
 })

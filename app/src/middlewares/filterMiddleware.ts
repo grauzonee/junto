@@ -59,7 +59,11 @@ export const filterMiddleware = (entity: Filterable) => {
                 }
                 dbFilter.push(newFilter)
             } catch (error) {
-                res.status(400).json({ success: false, message: error instanceof Error ? error.message : 'Invalid filter value ' + filterValue })
+                const errorMessage = error instanceof Error
+                    ? error.message
+                    : "Invalid filter value";
+
+                res.status(400).json({ success: false, message: errorMessage })
                 return;
             }
         }

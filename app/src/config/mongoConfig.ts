@@ -31,7 +31,7 @@ export const connectToMongo = async () => {
  * Disconnects from the MongoDB database.
  */
 export async function disconnectFromMongo() {
-    if (mongoose.connection.readyState !== 0) {
+    if (mongoose.connection.readyState !== mongoose.ConnectionStates.disconnected) {
         await mongoose.connection.close();
     }
 }
