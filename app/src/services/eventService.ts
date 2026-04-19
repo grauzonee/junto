@@ -1,7 +1,7 @@
 import { logger } from "@/config/loggerConfig";
 import { Event, type HydratedEvent, type IEvent } from "@/models/event/Event"
 import { CreateEventInput, CoordinatesInput, EditEventInput } from "@/types/services/eventService";
-import { NotFoundError } from "@/types/errors/InputError";
+import { ForbiddenError, NotFoundError } from "@/types/errors/InputError";
 import { EventType } from "@/models/EventType";
 import { buildGeosearchQuery, buildFilterQuery, buildSearchQuery, buildSortQuery, combineQueries } from "@/helpers/queryBuilder";
 import { RequestData } from "@/types/common";
@@ -108,9 +108,12 @@ export async function update(data: EditEventInput, eventId: string, userId: stri
 
 export async function deleteEvent(eventId: string, userId: string) {
     try {
-        const event = await Event.findOne({ _id: eventId, author: userId, active: true });
+        const event = await Event.findOne({ _id: eventId, active: true });
         if (!event) {
             throw new NotFoundError("event");
+        }
+        if (event.author.toString() !== userId) {
+            throw new ForbiddenError("Only the event author can delete this event");
         }
 
         await softDeleteEvent(event);

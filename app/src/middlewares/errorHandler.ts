@@ -8,7 +8,6 @@ import { parseMongooseValidationError, setErrorResponse } from "@/helpers/reques
 import { logger } from "@/config/loggerConfig";
 
 export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction) {
-    void _next;
     if (err instanceof HttpError) {
         setErrorResponse(res, err.statusCode, err.fieldErrors || {}, err.formErrors || []);
         return;

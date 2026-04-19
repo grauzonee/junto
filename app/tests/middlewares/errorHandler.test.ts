@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { EmptyBodyError, NotFoundError } from "@/types/errors/InputError";
+import { EmptyBodyError, ForbiddenError, NotFoundError } from "@/types/errors/InputError";
 import { parseMongooseValidationError } from "@/helpers/requestHelper";
 import mongoose from "mongoose";
 import messages from "@/constants/errorMessages"
@@ -37,6 +37,22 @@ describe("errorHandler middleware", () => {
             data: {
                 formErrors: [],
                 fieldErrors: { field: "Invalid field" }
+            },
+        });
+    });
+
+    it("Should return status 403 in ForbiddenError", () => {
+        const req = getMockedRequest();
+        const res = getMockedResponse();
+        const next = jest.fn() as NextFunction;
+        const err = new ForbiddenError("Forbidden");
+        errorHandler(err, req as Request, res as Response, next);
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.json).toHaveBeenCalledWith({
+            success: false,
+            data: {
+                formErrors: [err.message],
+                fieldErrors: {}
             },
         });
     });
