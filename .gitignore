@@ -2,3 +2,4 @@ init-mongo.js
 .env
 dump.rdb
 .DS_Store
+history

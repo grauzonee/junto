@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import * as z from "zod";
 import { ZodError } from "zod";
-import { EventListQuerySchema } from "@/schemas/http/Event";
+import { SearchQuerySchema } from "@/schemas/http/Search";
 import messages from "@/constants/errorMessages";
 
-export function eventListQueryMiddleware(req: Request, res: Response, next: NextFunction) {
+export function searchNormalizer(req: Request, res: Response, next: NextFunction) {
     try {
-        const query = EventListQuerySchema.parse(req.query);
+        const query = SearchQuerySchema.parse(req.query);
         req.search = query.search;
         next();
     } catch (error) {

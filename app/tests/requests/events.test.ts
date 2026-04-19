@@ -22,7 +22,7 @@ import messages from "@/constants/errorMessages"
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
 import { createFakeEvent } from "@tests/generators/event";
 import { getOneCategory, getOneEvent, getOneEventType, getOneUser } from "@tests/getters";
-import { SEARCH_QUERY_MAX_LENGTH } from "@/schemas/http/Event";
+import { SEARCH_QUERY_MAX_LENGTH } from "@/schemas/http/Search";
 
 function toUnixSeconds(value: Date): number {
     return Math.floor(value.getTime() / 1000);
@@ -370,6 +370,21 @@ describe("GET /api/event filters, search and sorting", () => {
         expect(nearbyEvent.categories[0]).toMatchObject({
             _id: category._id.toString(),
             title: category.title
+        });
+    });
+
+    it("Should reject invalid geosearch query before the handler runs", async () => {
+        await createFakeEvent({ title: "Query Validation Fixture" }, true);
+
+        const res = await request(app).get("/api/event/geosearch").query({
+            lat: 100,
+            lng: 16.40087
+        }).send();
+
+        expect(res.statusCode).toBe(400);
+        expect(res.body.success).toBe(false);
+        expect(res.body.data.fieldErrors).toEqual({
+            lat: ["Latitude must be maximum 90"]
         });
     });
 });

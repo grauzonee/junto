@@ -1,8 +1,8 @@
-import { eventListQueryMiddleware } from "@/middlewares/eventListQueryMiddleware";
-import { SEARCH_QUERY_MAX_LENGTH } from "@/schemas/http/Event";
+import { searchNormalizer } from "@/middlewares/searchNormalizer";
+import { SEARCH_QUERY_MAX_LENGTH } from "@/schemas/http/Search";
 import { NextFunction, Request, Response } from "express";
 
-describe("eventListQueryMiddleware", () => {
+describe("searchNormalizer", () => {
     let req: Partial<Request>;
     let res: Partial<Response>;
     let next: NextFunction;
@@ -20,7 +20,7 @@ describe("eventListQueryMiddleware", () => {
     it("normalizes valid search input", () => {
         req.query = { search: "   community    meetup   " };
 
-        eventListQueryMiddleware(req as Request, res as Response, next);
+        searchNormalizer(req as Request, res as Response, next);
 
         expect(next).toHaveBeenCalledTimes(1);
         expect(req.search).toBe("community meetup");
@@ -29,7 +29,7 @@ describe("eventListQueryMiddleware", () => {
     it("rejects non-string search payloads", () => {
         req.query = { search: { $ne: "anything" } } as Request["query"];
 
-        eventListQueryMiddleware(req as Request, res as Response, next);
+        searchNormalizer(req as Request, res as Response, next);
 
         expect(next).not.toHaveBeenCalled();
         expect(statusMock).toHaveBeenCalledWith(400);
@@ -47,7 +47,7 @@ describe("eventListQueryMiddleware", () => {
     it("rejects oversized search input", () => {
         req.query = { search: "a".repeat(SEARCH_QUERY_MAX_LENGTH + 1) };
 
-        eventListQueryMiddleware(req as Request, res as Response, next);
+        searchNormalizer(req as Request, res as Response, next);
 
         expect(next).not.toHaveBeenCalled();
         expect(statusMock).toHaveBeenCalledWith(400);

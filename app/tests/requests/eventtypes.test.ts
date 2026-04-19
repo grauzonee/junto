@@ -14,7 +14,7 @@ jest.mock("@/middlewares/authMiddleware", () => ({
 }));
 import app from "@/app";
 
-describe("GET /api/eventtypes", () => {
+describe("GET /api/event/types", () => {
     beforeAll(async () => {
         user = await createUser({}, true);
         if (!user) {
@@ -23,12 +23,19 @@ describe("GET /api/eventtypes", () => {
     });
 
     it("Should return a list of event types", async () => {
-        const res = await request(app).get('/api/eventtypes');
+        const res = await request(app).get('/api/event/types');
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('data');
         expect(Array.isArray(res.body.data)).toBe(true);
         const eventType = res.body.data[0];
         expect(eventType).toHaveProperty('_id');
         expect(eventType).toHaveProperty('title');
+    });
+
+    it("Should filter event types by title", async () => {
+        const res = await request(app).get('/api/event/types').query({ title_contains: "work" });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.data.map((eventType: { title: string }) => eventType.title)).toEqual(["Workshop"]);
     });
 });

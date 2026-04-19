@@ -10,8 +10,9 @@ import { paginateMiddleware } from "@/middlewares/paginateMiddleware";
 import { authMiddleware } from "@/middlewares/authMiddleware";
 import { filterMiddleware } from "@/middlewares/filterMiddleware";
 import { sortMiddleware } from "@/middlewares/sortMiddleware";
-import { eventListQueryMiddleware } from "@/middlewares/eventListQueryMiddleware";
+import { searchNormalizer } from "@/middlewares/searchNormalizer";
 import { Event } from "@/models/event/Event";
+import { EventType } from "@/models/EventType";
 import { CreateRSVPSchema } from "@/schemas/http/RSVP";
 import { attend } from "@/requests/event/attend";
 import { listRsvps } from "@/requests/event/listRsvps";
@@ -20,13 +21,13 @@ import { remove } from "@/requests/event/delete";
 export const router = Router()
 
 router.post('/', [authMiddleware, requestSchemaValidate(CreateEventSchema)], create)
-router.get('/', [eventListQueryMiddleware, paginateMiddleware, sortMiddleware(Event), filterMiddleware(Event)], list)
-router.get('/types', [paginateMiddleware, filterMiddleware(Event)], getEventTypes)
+router.get('/', [searchNormalizer, paginateMiddleware, sortMiddleware(Event), filterMiddleware(Event)], list)
+router.get('/types', [paginateMiddleware, filterMiddleware(EventType)], getEventTypes)
 router.get('/geosearch', [paginateMiddleware, sortMiddleware(Event)], geosearch)
-router.get('/:eventId', [], fetchOne)
+router.get('/:eventId', fetchOne)
 
 router.put('/:eventId', [authMiddleware, requestSchemaValidate(CreateEventSchema)], update)
 router.patch('/:eventId', [authMiddleware, requestSchemaValidate(EditEventSchema)], update)
 router.delete('/:eventId', [authMiddleware], remove)
 router.post('/attend', [authMiddleware, requestSchemaValidate(CreateRSVPSchema)], attend)
-router.get('/:eventId/rsvps', [authMiddleware], listRsvps)
+router.get('/:eventId/rsvps', listRsvps)

@@ -35,6 +35,14 @@ export class NotFoundError extends HttpError {
     }
 }
 
+export class ForbiddenError extends HttpError {
+    constructor(message = "Forbidden") {
+        super(message, 403, {}, [message]);
+        this.name = "ForbiddenError";
+        Object.setPrototypeOf(this, ForbiddenError.prototype);
+    }
+}
+
 export class BadInputError extends HttpError {
     field: string;
 

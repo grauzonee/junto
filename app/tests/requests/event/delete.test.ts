@@ -49,4 +49,22 @@ describe("DELETE /api/event/:eventId", () => {
         expect(fetchDeletedRes.statusCode).toBe(404);
         expect(listRes.body.data.some((listedEvent: { _id: string }) => listedEvent._id === eventId)).toBe(false);
     });
+
+    it("Should return 403 when a non-author tries to delete the event", async () => {
+        const author = await createUser({}, true);
+        user = await createUser({}, true);
+        const event = await createFakeEvent({ author: author._id.toString() }, true);
+        if (!event._id) {
+            throw new Error("Expected saved event to have an _id");
+        }
+
+        const res = await request(app).delete(`/api/event/${event._id.toString()}`).send();
+
+        expect(res.statusCode).toBe(403);
+        expect(res.body.success).toBe(false);
+        expect(res.body.data.formErrors).toEqual(["Only the event author can delete this event"]);
+
+        const storedEvent = await Event.findById(event._id);
+        expect(storedEvent?.active).toBe(true);
+    });
 });

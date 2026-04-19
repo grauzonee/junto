@@ -9,7 +9,7 @@ import { deleteProfile } from "@/requests/user/deleteProfile";
 
 
 export const router = Router()
-router.get('/', authMiddleware, getProfile)
+router.get('/', [authMiddleware], getProfile)
 router.put('/', [authMiddleware, requestSchemaValidate(UpdateProfileSchema)], updateProfile)
 router.put('/password', [authMiddleware, requestSchemaValidate(UpdatePasswordSchema)], updatePassword)
-router.delete('/', authMiddleware, deleteProfile)
+router.delete('/', [authMiddleware], deleteProfile)
