@@ -1,5 +1,5 @@
-import path from "path";
-import Module from "module";
+import path from "node:path";
+import Module from "node:module";
 
 type ResolveFilename = (
     request: string,

@@ -10,7 +10,7 @@
 import express, { Request, Response } from "express";
 import { router } from "@/routes/main";
 import cors from "cors";
-import path from "path";
+import path from "node:path";
 import { errorHandler } from "@/middlewares/errorHandler";
 
 /**
