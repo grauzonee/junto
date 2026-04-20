@@ -3,7 +3,7 @@
 // put /password
 import { NextFunction, Request, Response } from "express";
 import app from "@/app";
-import { createUser } from "../generators/user";
+import { createUser, getDefaultUserPassword } from "../generators/user";
 import request from "supertest";
 import { getUserByToken } from "@/helpers/jwtHelper";
 
@@ -54,7 +54,7 @@ describe("PUT /api/user", () => {
 describe("PUT /api/user/password", () => {
     it("Should update the user's password", async () => {
         const newPassword = "newPassword123";
-        const res = await request(app).put('/api/user/password').send({ oldPassword: "password123", newPassword });
+        const res = await request(app).put('/api/user/password').send({ oldPassword: getDefaultUserPassword(), newPassword });
         expect(res.statusCode).toBe(200);
     });
 });

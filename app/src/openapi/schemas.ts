@@ -85,8 +85,10 @@ interface AuthResponseExample {
     updatedAt: string;
 }
 
+const exampleAuthToken = "example-auth-token";
+
 const loginAuthExample: AuthResponseExample = {
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZTIyYjEzYmExYmFhMTdiMTUxYWU0MyIsImlhdCI6MTc3NjQzMTMxMywiZXhwIjoxNzc2NDM0OTEzfQ.WeP1NfXHxeJHIJVha5mZfI6nqK-UtXzOEGV5id2NowA",
+    token: exampleAuthToken,
     _id: "69e22b13ba1baa17b151ae43",
     username: "ArtSoul",
     email: "artsoul123@test.com",
@@ -97,7 +99,7 @@ const loginAuthExample: AuthResponseExample = {
 };
 
 const registerAuthExample: AuthResponseExample = {
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZTIzMTMxOGE2N2ViNGU3ZmM1ZGQ0ZSIsImlhdCI6MTc3NjQzMTQwOSwiZXhwIjoxNzc2NDM1MDA5fQ.GyOYSqvFG0pMbNgOdbP98FP0n6iUXwN5WcApBtfBpvI",
+    token: exampleAuthToken,
     _id: "69e231318a67eb4e7fc5dd4e",
     username: "ffffff",
     email: "admin123@gmail.com",
