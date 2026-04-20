@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { EmptyBodyError, ForbiddenError, NotFoundError } from "@/types/errors/InputError";
+import { EmptyBodyError, ForbiddenError, NotFoundError, BadInputError } from "@/types/errors/InputError";
 import { parseMongooseValidationError } from "@/helpers/requestHelper";
 import mongoose from "mongoose";
 import messages from "@/constants/errorMessages"
 import { ZodError } from "zod";
-import { BadInputError } from "@/types/errors/InputError";
 import { errorHandler } from "@/middlewares/errorHandler";
 import { getMockedRequest, getMockedResponse } from "../utils";
 

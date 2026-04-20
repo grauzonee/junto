@@ -1,8 +1,6 @@
-import { Types } from "mongoose";
-import { QueryWithHelpers } from "mongoose";
-import { ICategory } from "@/models/category/Category";
+import { Types, QueryWithHelpers } from "mongoose";
+import { ICategory, HydratedCategoryDoc } from "@/models/category/Category";
 import { PaginateQueryHelper } from "@/models/plugins/paginate";
-import { HydratedCategoryDoc } from "@/models/category/Category";
 
 export interface CategoryQueryHelpers extends PaginateQueryHelper<ICategory> {
     getRoots(): QueryWithHelpers<HydratedCategoryDoc[], HydratedCategoryDoc, CategoryQueryHelpers>;
