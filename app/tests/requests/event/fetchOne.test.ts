@@ -2,7 +2,7 @@ import { fetchOne } from "@/requests/event/fetchOne";
 import { getMockedResponse, getMockedRequest } from "@tests/utils";
 import { fetchOne as fetchOneEvent } from "@/services/eventService";
 import { Types } from "mongoose";
-import { Request, Response, NextFunction } from "express";
+import { NextFunction } from "express";
 import { setSuccessResponse } from "@/helpers/requestHelper"
 jest.mock("@/helpers/requestHelper")
 jest.mock("@/services/eventService")
@@ -22,13 +22,13 @@ describe("fetchOne()", () => {
         const eventId = new Types.ObjectId().toString();
         const req = getMockedRequest({}, { eventId });
 
-        await fetchOne(req as Request, res as Response, next);
+        await fetchOne(req, res, next);
         expect(fetchOneEvent).toHaveBeenCalledTimes(1)
         expect(fetchOneEvent).toHaveBeenCalledWith(eventId);
     })
     it("Should call setSuccessResponse method", async () => {
         const req = getMockedRequest();
-        await fetchOne(req as Request, res as Response, next);
+        await fetchOne(req, res, next);
         expect(setSuccessResponse).toHaveBeenCalledTimes(1)
         expect(setSuccessResponse).toHaveBeenCalledWith(res, mockedEvent.toJSON())
 

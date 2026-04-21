@@ -1,6 +1,6 @@
 import { getMockedRequest, getMockedResponse } from "../../utils"
 import { Event } from "@/models/event/Event";
-import { Response, Request, NextFunction } from "express";
+import { NextFunction } from "express";
 import { create } from "@/services/RSVPService"
 import { createFakeRSVP } from "../../generators/rsvp";
 import { createUser } from "@tests/generators/user";
@@ -15,7 +15,7 @@ jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/RSVP");
 
 let user: Awaited<ReturnType<typeof createUser>>;
-let res: Partial<Response>;
+let res = getMockedResponse();
 const next = jest.fn() as NextFunction;
 let mockRSVP: MockedJsonDocument<Awaited<ReturnType<typeof createFakeRSVP>>>;
 let mockRSVPData: CreateRSVPInput;
@@ -41,7 +41,7 @@ describe("attend() SUCCESS", () => {
     });
     it("Should call, create(), setSuccessResponse() method on correct input data", async () => {
         const req = await getRequest();
-        await attend(req as Request, res as Response, next);
+        await attend(req, res, next);
         expect(create).toHaveBeenCalledTimes(1)
         expect(create).toHaveBeenCalledWith(mockRSVPData, user._id.toString())
         expect(setSuccessResponse).toHaveBeenCalledTimes(1)

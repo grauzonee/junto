@@ -8,11 +8,11 @@ type ResolveFilename = (
     options?: unknown
 ) => string;
 
-const moduleWithResolver = Module as typeof Module & { _resolveFilename: ResolveFilename };
-const originalResolveFilename = moduleWithResolver._resolveFilename;
+const originalResolveFilename: ResolveFilename = Reflect.get(Module, "_resolveFilename");
 const sourceRoot = path.resolve(__dirname, "..");
 
-moduleWithResolver._resolveFilename = function resolveFilename(
+Reflect.set(Module, "_resolveFilename", function resolveFilename(
+    this: typeof Module,
     request: string,
     parent: NodeJS.Module | undefined,
     isMain: boolean,
@@ -29,4 +29,4 @@ moduleWithResolver._resolveFilename = function resolveFilename(
     }
 
     return originalResolveFilename.call(this, request, parent, isMain, options);
-};
+});

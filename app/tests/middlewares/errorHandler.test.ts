@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction } from "express";
 import { EmptyBodyError, ForbiddenError, NotFoundError, BadInputError } from "@/types/errors/InputError";
 import { parseMongooseValidationError } from "@/helpers/requestHelper";
 import mongoose from "mongoose";
@@ -13,7 +13,7 @@ describe("errorHandler middleware", () => {
         const res = getMockedResponse();
         const next = jest.fn() as NextFunction;
         const err = new NotFoundError("resource");
-        errorHandler(err, req as Request, res as Response, next);
+        errorHandler(err, req, res, next);
         expect(res.status).toHaveBeenCalledWith(404);
         expect(res.json).toHaveBeenCalledWith({
             success: false,
@@ -29,7 +29,7 @@ describe("errorHandler middleware", () => {
         const res = getMockedResponse();
         const next = jest.fn() as NextFunction;
         const err = new BadInputError("field", "Invalid field");
-        errorHandler(err, req as Request, res as Response, next);
+        errorHandler(err, req, res, next);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
             success: false,
@@ -45,7 +45,7 @@ describe("errorHandler middleware", () => {
         const res = getMockedResponse();
         const next = jest.fn() as NextFunction;
         const err = new ForbiddenError("Forbidden");
-        errorHandler(err, req as Request, res as Response, next);
+        errorHandler(err, req, res, next);
         expect(res.status).toHaveBeenCalledWith(403);
         expect(res.json).toHaveBeenCalledWith({
             success: false,
@@ -71,7 +71,7 @@ describe("errorHandler middleware", () => {
             })
         );
         const parsedError = parseMongooseValidationError(validationError);
-        errorHandler(validationError, req as Request, res as Response, next);
+        errorHandler(validationError, req, res, next);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
             success: false,
@@ -92,7 +92,7 @@ describe("errorHandler middleware", () => {
             path: ["field"],
             message: "Invalid field"
         }]);
-        errorHandler(zodError, req as Request, res as Response, next);
+        errorHandler(zodError, req, res, next);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
             success: false,
@@ -108,7 +108,7 @@ describe("errorHandler middleware", () => {
         const res = getMockedResponse();
         const next = jest.fn() as NextFunction;
         const err = new Error("Server error");
-        errorHandler(err, req as Request, res as Response, next);
+        errorHandler(err, req, res, next);
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({
             success: false,
@@ -124,7 +124,7 @@ describe("errorHandler middleware", () => {
         const res = getMockedResponse();
         const next = jest.fn() as NextFunction;
         const err = new EmptyBodyError();
-        errorHandler(err, req as Request, res as Response, next);
+        errorHandler(err, req, res, next);
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
             success: false,

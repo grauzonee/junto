@@ -1,10 +1,11 @@
 import { requestSchemaValidate } from "@/middlewares/requestSchemaValidate";
 import * as z from "zod"
-import { Request, Response, NextFunction } from "express";
+import { NextFunction } from "express";
+import { getMockedRequest, getMockedResponse } from "../utils";
 
 describe("requestSchemaValidate middleware", () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
+    let req = getMockedRequest();
+    let res = getMockedResponse();
     let next: NextFunction;
     let jsonMock: jest.Mock;
     let statusMock: jest.Mock;
@@ -13,8 +14,9 @@ describe("requestSchemaValidate middleware", () => {
         jsonMock = jest.fn();
         statusMock = jest.fn(() => ({ json: jsonMock }));
 
-        req = { body: {} };
-        res = { status: statusMock };
+        req = getMockedRequest();
+        req.body = {};
+        res = { status: statusMock, json: jsonMock } as unknown as ReturnType<typeof getMockedResponse>;
         next = jest.fn();
     });
 
@@ -26,7 +28,7 @@ describe("requestSchemaValidate middleware", () => {
         req.body = { name: "John" };
 
         const middleware = requestSchemaValidate(schema);
-        middleware(req as Request, res as Response, next);
+        middleware(req, res, next);
 
         expect(next).toHaveBeenCalled();
         expect(statusMock).not.toHaveBeenCalled();
@@ -40,7 +42,7 @@ describe("requestSchemaValidate middleware", () => {
 
         req.body = {};
         const middleware = requestSchemaValidate(schema);
-        middleware(req as Request, res as Response, next);
+        middleware(req, res, next);
 
         expect(next).not.toHaveBeenCalled();
         expect(statusMock).toHaveBeenCalledWith(400);
@@ -63,7 +65,7 @@ describe("requestSchemaValidate middleware", () => {
 
         req.body = {};
         const middleware = requestSchemaValidate(schema);
-        middleware(req as Request, res as Response, next);
+        middleware(req, res, next);
 
         expect(next).not.toHaveBeenCalled();
         expect(statusMock).toHaveBeenCalledWith(400);
@@ -79,4 +81,3 @@ describe("requestSchemaValidate middleware", () => {
         });
     });
 });
-

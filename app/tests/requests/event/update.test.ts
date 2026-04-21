@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express"
+import { NextFunction } from "express"
 import { update as updateEvent } from "@/services/eventService";
 import { getMockedRequest, getMockedResponse, MockedJsonDocument, withToJSON } from "../../utils";
 import mongoose from "mongoose";
@@ -10,7 +10,7 @@ jest.mock("@/services/eventService")
 jest.mock("@/helpers/requestHelper")
 
 
-let res: Partial<Response>;
+let res = getMockedResponse();
 const next = jest.fn() as NextFunction;
 let mockEvent: MockedJsonDocument<Awaited<ReturnType<typeof createFakeEvent>>>;
 beforeAll(async () => {
@@ -30,7 +30,7 @@ describe("update() SUCCESS", () => {
         const eventId = new mongoose.Types.ObjectId().toString();
         const userId = new mongoose.Types.ObjectId().toString();
         const req = getMockedRequest(editData, { eventId }, { user: { id: userId } });
-        await update(req as Request, res as Response, next);
+        await update(req, res, next);
         expect(updateEvent).toHaveBeenCalledTimes(1);
         expect(updateEvent).toHaveBeenCalledWith(editData, eventId, userId);
     })
@@ -38,7 +38,7 @@ describe("update() SUCCESS", () => {
         const editData = { title: "Updated Title" }
         const eventId = new mongoose.Types.ObjectId().toString();
         const req = getMockedRequest(editData, { eventId }, { user: { id: new mongoose.Types.ObjectId().toString() } });
-        await update(req as Request, res as Response, next);
+        await update(req, res, next);
         expect(setSuccessResponse).toHaveBeenCalledTimes(1);
         expect(setSuccessResponse).toHaveBeenCalledWith(res, mockEvent.toJSON());
     })
@@ -60,7 +60,7 @@ describe("update() FAIL", () => {
         const editData = { title: "Updated Title" }
         const eventId = new mongoose.Types.ObjectId().toString();
         const req = getMockedRequest(editData, { eventId }, { user: { id: new mongoose.Types.ObjectId().toString() } });
-        await update(req as Request, res as Response, next);
+        await update(req, res, next);
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(validationError)
     })
@@ -70,7 +70,7 @@ describe("update() FAIL", () => {
         const editData = { title: "Updated Title" }
         const eventId = new mongoose.Types.ObjectId().toString();
         const req = getMockedRequest(editData, { eventId }, { user: { id: new mongoose.Types.ObjectId().toString() } });
-        await update(req as Request, res as Response, next);
+        await update(req, res, next);
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(error)
     })

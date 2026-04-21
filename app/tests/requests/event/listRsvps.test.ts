@@ -3,7 +3,7 @@ jest.mock("@/services/RSVPService");
 import { createFakeRSVP } from "../../generators/rsvp";
 import { getMockedRequest, getMockedResponse } from "../../utils";
 import { listRsvps } from "@/requests/event/listRsvps";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction } from "express";
 import { RSVP } from "@/models/rsvp/RSVP";
 import { setSuccessResponse } from "@/helpers/requestHelper";
 import { BadInputError } from "@/types/errors/InputError";
@@ -20,7 +20,7 @@ describe("listRsvps() success", () => {
         jest.mocked(getForEvent).mockResolvedValue(rsvps as never);
         const req = getMockedRequest({}, { eventId: "mockEventId" });
         const res = getMockedResponse();
-        await listRsvps(req as Request, res as Response, next);
+        await listRsvps(req, res, next);
         expect(getForEvent).toHaveBeenCalledWith("mockEventId");
         expect(setSuccessResponse).toHaveBeenCalledTimes(1)
         expect(setSuccessResponse).toHaveBeenCalledWith(res, { total: 2, entities: rsvps.map(rsvp => rsvp.toJSON?.()) });
@@ -29,7 +29,7 @@ describe("listRsvps() success", () => {
     it("Should call next with BadInputError if eventId is missing", async () => {
         const req = getMockedRequest();
         const res = getMockedResponse();
-        await listRsvps(req as Request, res as Response, next);
+        await listRsvps(req, res, next);
         expect(next).toHaveBeenCalledTimes(1);
         expect(next).toHaveBeenCalledWith(new BadInputError("eventId", "Event ID is required"));
     });

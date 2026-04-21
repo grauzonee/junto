@@ -1,11 +1,11 @@
 import { getMockedRequest, getMockedResponse } from "../../utils";
 import { updatePassword } from "@/requests/user/updatePassword";
-import { NextFunction, Request, Response } from "express"
+import { NextFunction } from "express"
 import { BadInputError } from "@/types/errors/InputError";
 
 jest.mock("@/helpers/requestHelper")
 
-let res: Partial<Response>;
+let res = getMockedResponse();
 const password = "newPassword"
 const field = "password"
 const message = "message"
@@ -22,7 +22,7 @@ describe("updatePassword() SUCCESS", () => {
             updatePassword: jest.fn()
         }
         const req = getMockedRequest({ password }, {}, { user: mockedUser })
-        await updatePassword(req as Request, res as Response, next);
+        await updatePassword(req, res, next);
         expect(mockedUser.updatePassword).toHaveBeenCalledTimes(1)
         expect(mockedUser.updatePassword).toHaveBeenCalledWith({ password })
     })
@@ -31,7 +31,7 @@ describe("updatePassword() SUCCESS", () => {
             updatePassword: jest.fn()
         }
         const req = getMockedRequest({ password }, {}, { user: mockedUser })
-        await updatePassword(req as Request, res as Response, next);
+        await updatePassword(req, res, next);
         expect(mockedUser.updatePassword).toHaveBeenCalledTimes(1)
         expect(mockedUser.updatePassword).toHaveBeenCalledWith({ password })
     })
@@ -47,7 +47,7 @@ describe("updatePassword() FAIL", () => {
             })
         }
         const req = getMockedRequest({ password }, {}, { user: mockedUser })
-        await updatePassword(req as Request, res as Response, next);
+        await updatePassword(req, res, next);
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(new BadInputError(field, message))
     })
@@ -58,7 +58,7 @@ describe("updatePassword() FAIL", () => {
             })
         }
         const req = getMockedRequest({ password }, {}, { user: mockedUser })
-        await updatePassword(req as Request, res as Response, next);
+        await updatePassword(req, res, next);
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(new Error(message))
     })

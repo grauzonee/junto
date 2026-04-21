@@ -1,7 +1,7 @@
 import { create } from "@/requests/event/create"
 import { getMockedRequest, getMockedResponse, MockedJsonDocument, withToJSON } from "../../utils"
 import mongoose from "mongoose"
-import { NextFunction, Request, Response } from "express"
+import { NextFunction } from "express"
 import { create as createEvent } from "@/services/eventService"
 import { createFakeEvent } from "../../generators/event"
 import { setSuccessResponse } from "@/helpers/requestHelper"
@@ -13,7 +13,7 @@ jest.mock("@/services/eventService")
 jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/Event");
 
-let res: Partial<Response>;
+let res = getMockedResponse();
 let mockEvent: MockedJsonDocument<Awaited<ReturnType<typeof createFakeEvent>>>;
 let newEvent: Awaited<ReturnType<typeof createFakeEvent>>;
 const next = jest.fn() as NextFunction;
@@ -44,13 +44,13 @@ describe("create() SUCCESS", () => {
     it("Should call createEvent function", async () => {
         const userId = new mongoose.Types.ObjectId().toString();
         const req = getMockedRequest({ ...newEvent }, {}, { user: { id: userId } });
-        await create(req as Request, res as Response, next)
+        await create(req, res, next)
         expect(createEvent).toHaveBeenCalledTimes(1)
         expect(createEvent).toHaveBeenCalledWith(newEvent, userId)
     })
     it("Should call setSuccessResponse function", async () => {
         const req = getMockedRequest({ ...newEvent }, {}, { user: { id: new mongoose.Types.ObjectId().toString() } });
-        await create(req as Request, res as Response, next)
+        await create(req, res, next)
         expect(setSuccessResponse).toHaveBeenCalledTimes(1)
         expect(setSuccessResponse).toHaveBeenCalledWith(res, mockEvent.toJSON(), 201)
 
@@ -71,7 +71,7 @@ describe("create() FAIL", () => {
         );
         (createEvent as jest.Mock).mockRejectedValue(validationError)
         const req = getMockedRequest({ ...newEvent }, {}, { user: { id: new mongoose.Types.ObjectId().toString() } });
-        await create(req as Request, res as Response, next)
+        await create(req, res, next)
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(validationError)
 
@@ -80,7 +80,7 @@ describe("create() FAIL", () => {
 
         (createEvent as jest.Mock).mockRejectedValue(new Error())
         const req = getMockedRequest({ ...newEvent }, {}, { user: { id: new mongoose.Types.ObjectId().toString() } });
-        await create(req as Request, res as Response, next)
+        await create(req, res, next)
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(new Error())
     })

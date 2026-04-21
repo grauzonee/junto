@@ -1,39 +1,36 @@
 import { searchNormalizer } from "@/middlewares/searchNormalizer";
 import { SEARCH_QUERY_MAX_LENGTH } from "@/schemas/http/Search";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction } from "express";
+import { getMockedRequest, getMockedResponse } from "../utils";
 
 describe("searchNormalizer", () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
+    let req = getMockedRequest({}, {}, { query: {} });
+    let res = getMockedResponse();
     let next: NextFunction;
-    let jsonMock: jest.Mock;
-    let statusMock: jest.Mock;
 
     beforeEach(() => {
-        jsonMock = jest.fn();
-        statusMock = jest.fn(() => ({ json: jsonMock }));
-        req = { query: {} };
-        res = { status: statusMock };
+        req = getMockedRequest({}, {}, { query: {} });
+        res = getMockedResponse();
         next = jest.fn();
     });
 
     it("normalizes valid search input", () => {
         req.query = { search: "   community    meetup   " };
 
-        searchNormalizer(req as Request, res as Response, next);
+        searchNormalizer(req, res, next);
 
         expect(next).toHaveBeenCalledTimes(1);
         expect(req.search).toBe("community meetup");
     });
 
     it("rejects non-string search payloads", () => {
-        req.query = { search: { $ne: "anything" } } as Request["query"];
+        req.query = { search: { $ne: "anything" } } as never;
 
-        searchNormalizer(req as Request, res as Response, next);
+        searchNormalizer(req, res, next);
 
         expect(next).not.toHaveBeenCalled();
-        expect(statusMock).toHaveBeenCalledWith(400);
-        expect(jsonMock).toHaveBeenCalledWith({
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
             success: false,
             data: {
                 formErrors: [],
@@ -47,11 +44,11 @@ describe("searchNormalizer", () => {
     it("rejects oversized search input", () => {
         req.query = { search: "a".repeat(SEARCH_QUERY_MAX_LENGTH + 1) };
 
-        searchNormalizer(req as Request, res as Response, next);
+        searchNormalizer(req, res, next);
 
         expect(next).not.toHaveBeenCalled();
-        expect(statusMock).toHaveBeenCalledWith(400);
-        expect(jsonMock).toHaveBeenCalledWith({
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
             success: false,
             data: {
                 formErrors: [],

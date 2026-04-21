@@ -1,24 +1,20 @@
 import { Event } from "@/models/event/Event"
-import { Request, Response, NextFunction } from "express"
+import { NextFunction } from "express"
 import { filterMiddleware } from "@/middlewares/filterMiddleware"
 import { type FilterValue } from "@/types/Filter"
+import { getMockedRequest, getMockedResponse } from "../utils"
 
-const req: Partial<Request> = {
-    query: {
-        "author_eq": "123"
-    },
+const req = getMockedRequest({}, {}, {
+    query: {} as Record<string, string | string[]>,
     dbFilter: undefined
-}
+})
 
-let res: Partial<Response>
+let res = getMockedResponse()
 let next: NextFunction
 
 
 beforeAll(() => {
-    res = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-    }
+    res = getMockedResponse()
     next = jest.fn()
 
 })
@@ -32,21 +28,21 @@ describe("FilterMiddleware tests SUCCESS", () => {
     it("should populate STRING request.dbFilter parameter with EQ operator", () => {
         req.query = { 'author_eq': "123" }
         const middleware = filterMiddleware(Event)
-        middleware(req as Request, res as Response, next)
+        middleware(req, res, next)
         expect(next).toHaveBeenCalledTimes(1)
         expect(req.dbFilter).toEqual([{ prefix: 'eq', value: '123', field: 'author' }])
     })
     it("should populate STRING request.dbFilter parameter with MAX operator", () => {
         req.query = { 'author_max': "123" }
         const middleware = filterMiddleware(Event)
-        middleware(req as Request, res as Response, next)
+        middleware(req, res, next)
         expect(next).toHaveBeenCalledTimes(1)
         expect(req.dbFilter).toEqual([{ prefix: 'max', value: '123', field: 'author' }])
     })
     it("should populate ARRAY request.dbFilter parameter", () => {
         req.query = { 'author_in': "[34,123]" }
         const middleware = filterMiddleware(Event)
-        middleware(req as Request, res as Response, next)
+        middleware(req, res, next)
         expect(next).toHaveBeenCalledTimes(1)
         expect(req.dbFilter).toEqual([{ prefix: 'in', value: ['34', '123'], field: 'author' }])
     })
@@ -55,7 +51,7 @@ describe("FilterMiddleware tests SUCCESS", () => {
         jest.spyOn(Event, "getFilterableFields").mockReturnValue([{ field: 'date', preprocess: (value: FilterValue) => new Date(value as string) }])
         req.query = { 'date_before': inputDate }
         const middleware = filterMiddleware(Event)
-        middleware(req as Request, res as Response, next)
+        middleware(req, res, next)
         expect(next).toHaveBeenCalledTimes(1)
         expect(req.dbFilter).toEqual([{ prefix: 'before', value: new Date(inputDate), field: 'date' }])
     })
@@ -68,7 +64,7 @@ describe("FilterMiddleware tests SUCCESS", () => {
         }])
         req.query = { 'date_eq': "today" }
         const middleware = filterMiddleware(Event)
-        middleware(req as Request, res as Response, next)
+        middleware(req, res, next)
         expect(next).toHaveBeenCalledTimes(1)
         expect(req.dbFilter).toEqual([{
             prefix: 'eq',
@@ -81,14 +77,14 @@ describe("FilterMiddleware tests SUCCESS", () => {
         jest.spyOn(Event, "getFilterableFields").mockReturnValue([{ field: 'topics', options: 'i' }])
         req.query = { 'topics_contains': inputTopic }
         const middleware = filterMiddleware(Event)
-        middleware(req as Request, res as Response, next)
+        middleware(req, res, next)
         expect(next).toHaveBeenCalledTimes(1)
         expect(req.dbFilter).toEqual([{ prefix: 'contains', value: inputTopic, field: 'topics', options: 'i' }])
     })
     it("should ignore non-filter search query parameters", () => {
         req.query = { search: "community meetup" }
         const middleware = filterMiddleware(Event)
-        middleware(req as Request, res as Response, next)
+        middleware(req, res, next)
         expect(next).toHaveBeenCalledTimes(1)
         expect(req.dbFilter).toEqual([])
     })
@@ -98,7 +94,7 @@ describe("FilterMiddleware tests FAIL", () => {
     it("should NOT populate request.dbFilter parameter with invalid operator", () => {
         req.query = { 'author_eqv': "123" }
         const middleware = filterMiddleware(Event)
-        middleware(req as Request, res as Response, next)
+        middleware(req, res, next)
         expect(next).toHaveBeenCalledTimes(0)
         expect(req.dbFilter).toBe(undefined)
         expect(res.status).toHaveBeenCalledWith(400)
@@ -107,7 +103,7 @@ describe("FilterMiddleware tests FAIL", () => {
     it("should NOT populate request.dbFilter parameter with invalid field", () => {
         req.query = { 'authord_eq': "123" }
         const middleware = filterMiddleware(Event)
-        middleware(req as Request, res as Response, next)
+        middleware(req, res, next)
         expect(next).toHaveBeenCalledTimes(0)
         expect(req.dbFilter).toBe(undefined)
         expect(res.status).toHaveBeenCalledWith(400)
@@ -116,7 +112,7 @@ describe("FilterMiddleware tests FAIL", () => {
     it("should NOT populate request.dbFilter parameter if filterValue is array for a not array prefix", () => {
         req.query = { 'author_eq': "[123, 45]" }
         const middleware = filterMiddleware(Event)
-        middleware(req as Request, res as Response, next)
+        middleware(req, res, next)
         expect(next).toHaveBeenCalledTimes(0)
         expect(req.dbFilter).toBe(undefined)
         expect(res.status).toHaveBeenCalledWith(400)
