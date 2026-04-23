@@ -1,6 +1,6 @@
 import "./registerTsPaths";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { generateOpenApiSpec } from "../openapi/generate";
 
 const outputPath = path.resolve(__dirname, "..", "..", "docs", "openapi.json");

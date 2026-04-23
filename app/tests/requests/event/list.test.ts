@@ -1,5 +1,5 @@
 import { list as listEvents } from "@/services/eventService"
-import { NextFunction, Request, Response } from "express";
+import { NextFunction } from "express";
 import { setSuccessResponse } from "@/helpers/requestHelper"
 import { list } from "@/requests/event/list"
 import { getMockedRequest, getMockedResponse } from "../../utils"
@@ -29,13 +29,13 @@ describe("list() SUCCESS", () => {
         }
         const req = getMockedRequest({ offset: 0, limit: 10 });
 
-        await list(req as Request, res as Response, next);
+        await list(req, res, next);
         expect(listEvents).toHaveBeenCalledTimes(1)
         expect(listEvents).toHaveBeenCalledWith(requestData)
     })
     it("Should pass normalized search data to the service", async () => {
         const req = getMockedRequest({}, {}, { search: "community meetup" });
-        await list(req as Request, res as Response, next);
+        await list(req, res, next);
         expect(listEvents).toHaveBeenCalledWith({
             dbFilter: undefined,
             sort: undefined,
@@ -48,7 +48,7 @@ describe("list() SUCCESS", () => {
     })
     it("Should call setSuccessResponse method", async () => {
         const req = getMockedRequest();
-        await list(req as Request, res as Response, next);
+        await list(req, res, next);
         expect(setSuccessResponse).toHaveBeenCalledTimes(1)
         expect(setSuccessResponse).toHaveBeenCalledWith(res, result.map(event => event.toJSON()))
 

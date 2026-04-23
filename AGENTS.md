@@ -8,13 +8,9 @@ This file gives coding agents a quick operating guide for this repository.
 - Primary app: `app/`
 - Stack: TypeScript, Node.js, Express, Mongoose, Jest
 
-## Goals
+## Agents
 
-Describe the primary product and engineering goals here.
-
-- Goal 1: `TODO`
-- Goal 2: `TODO`
-- Goal 3: `TODO`
+Use the typescript-pro agent when writing or modifying TypeScript code.
 
 ## Repository Layout
 

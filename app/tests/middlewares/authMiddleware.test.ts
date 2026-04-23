@@ -1,29 +1,27 @@
 import { authMiddleware } from "@/middlewares/authMiddleware";
 import { getUserByToken } from "@/helpers/jwtHelper";
-import { Request, Response, NextFunction } from "express";
+import { NextFunction } from "express";
 import { HydratedUserDoc } from "@/models/user/User";
+import { getMockedRequest, getMockedResponse } from "../utils";
 
 jest.mock("@/helpers/jwtHelper", () => ({
     getUserByToken: jest.fn(),
 }));
 
 describe("authMiddleware", () => {
-    let req: Partial<Request>;
-    let res: Partial<Response>;
+    let req = getMockedRequest({}, {}, { headers: {} });
+    let res = getMockedResponse();
     let next: NextFunction;
 
     beforeEach(() => {
-        req = { headers: {} };
-        res = {
-            status: jest.fn().mockReturnThis(),
-            json: jest.fn(),
-        };
+        req = getMockedRequest({}, {}, { headers: {} });
+        res = getMockedResponse();
         next = jest.fn();
         jest.clearAllMocks();
     });
 
     it("should return 401 if no authorization header", async () => {
-        await authMiddleware(req as Request, res as Response, next);
+        await authMiddleware(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.json).toHaveBeenCalledWith({
@@ -39,7 +37,7 @@ describe("authMiddleware", () => {
 
         req.headers = { authorization: "Bearer validtoken" };
 
-        await authMiddleware(req as Request, res as Response, next);
+        await authMiddleware(req, res, next);
 
         expect(getUserByToken).toHaveBeenCalledWith(req);
         expect(req.user).toEqual(mockUser);
@@ -50,7 +48,7 @@ describe("authMiddleware", () => {
         (getUserByToken as jest.Mock).mockRejectedValue(new Error("Invalid token"));
         req.headers = { authorization: "Bearer invalidtoken" };
 
-        await authMiddleware(req as Request, res as Response, next);
+        await authMiddleware(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(401);
         expect(res.json).toHaveBeenCalledWith({
@@ -60,4 +58,3 @@ describe("authMiddleware", () => {
         expect(next).not.toHaveBeenCalled();
     });
 });
-

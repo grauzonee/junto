@@ -10,9 +10,9 @@
  */
 
 import multer from "multer"
-import path from 'path';
+import path from 'node:path';
 import { Request } from 'express';
-import fs from 'fs';
+import fs from 'node:fs';
 import crypto from "node:crypto"
 
 /**

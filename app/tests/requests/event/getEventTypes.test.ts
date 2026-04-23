@@ -1,5 +1,5 @@
 import { getEventTypes } from "@/requests/event/getEventTypes";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction } from "express";
 import { Types } from "mongoose"
 import { getMockedRequest, getMockedResponse } from "../../utils";
 
@@ -9,7 +9,7 @@ const next = jest.fn() as NextFunction;
 
 describe("getEventTypes request handler tests", () => {
     it("Should return '_id' and 'title' fields", async () => {
-        await getEventTypes(req as Request, res as Response, next);
+        await getEventTypes(req, res, next);
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
             data: expect.arrayContaining([
@@ -23,7 +23,7 @@ describe("getEventTypes request handler tests", () => {
     })
     it("Should paginate", async () => {
         req.limit = 2;
-        await getEventTypes(req as Request, res as Response, next);
+        await getEventTypes(req, res, next);
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({
             data: [

@@ -1,6 +1,6 @@
 import { getMockedRequest, getMockedResponse } from "../../utils"
 import { updateProfile } from "@/requests/user/updateProfile";
-import { NextFunction, Request, Response } from "express"
+import { NextFunction } from "express"
 import { setSuccessResponse } from "@/helpers/requestHelper";
 import { validateUpdateData } from "@/requests/user/utils"
 import mongoose from "mongoose";
@@ -27,7 +27,7 @@ describe("updateProfile() SUCCESS", () => {
     it("Should call 'validateUpdateData' function", async () => {
         const req = getMockedRequest({ username });
 
-        await updateProfile(req as Request, res as Response, next);
+        await updateProfile(req, res, next);
         expect(validateUpdateData).toHaveBeenCalledTimes(1);
         expect(validateUpdateData).toHaveBeenCalledWith(req);
     })
@@ -36,7 +36,7 @@ describe("updateProfile() SUCCESS", () => {
             updateProfile: jest.fn()
         }
         const req = getMockedRequest({ username }, {}, { user: mockedUser })
-        await updateProfile(req as Request, res as Response, next);
+        await updateProfile(req, res, next);
         expect(mockedUser.updateProfile).toHaveBeenCalledTimes(1)
         expect(mockedUser.updateProfile).toHaveBeenCalledWith(req.body)
     })
@@ -46,7 +46,7 @@ describe("updateProfile() SUCCESS", () => {
             toJSON: jest.fn()
         }
         const req = getMockedRequest({ username }, {}, { user: mockedUser })
-        await updateProfile(req as Request, res as Response, next);
+        await updateProfile(req, res, next);
         expect(setSuccessResponse).toHaveBeenCalledTimes(1)
         expect(mockedUser.toJSON).toHaveBeenCalledTimes(1)
 
@@ -58,7 +58,7 @@ describe("updateProfile() FAIL", () => {
     })
     it("Should return 400 status code when request body is empty", async () => {
         const req = getMockedRequest(undefined);
-        await updateProfile(req as Request, res as Response, next);
+        await updateProfile(req, res, next);
         expect(next).toHaveBeenCalledTimes(1);
         expect(next).toHaveBeenCalledWith(new EmptyBodyError());
     })
@@ -68,7 +68,7 @@ describe("updateProfile() FAIL", () => {
             return returnError;
         });
         const req = getMockedRequest({ username });
-        await updateProfile(req as Request, res as Response, next);
+        await updateProfile(req, res, next);
         expect(next).toHaveBeenCalledTimes(1);
         expect(next).toHaveBeenCalledWith(new BadInputError(returnError.field, returnError.error));
 
@@ -81,7 +81,7 @@ describe("updateProfile() FAIL", () => {
             }),
         }
         const req = getMockedRequest({ username }, {}, { user: mockedUser })
-        await updateProfile(req as Request, res as Response, next);
+        await updateProfile(req, res, next);
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(new Error("Error"))
     })
@@ -103,7 +103,7 @@ describe("updateProfile() FAIL", () => {
             }),
         }
         const req = getMockedRequest({ username }, {}, { user: mockedUser })
-        await updateProfile(req as Request, res as Response, next);
+        await updateProfile(req, res, next);
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(validationError)
     })

@@ -2,7 +2,6 @@ import { parseMongooseValidationError, setErrorResponse, setSuccessResponse } fr
 import mongoose from "mongoose"
 import messages from "@/constants/errorMessages"
 import { getMockedResponse } from "../utils";
-import { Response } from "express";
 
 describe("parseMongooseValidationError() tests", () => {
     it("Should convert mongoose ValidationError to [field: message] record", () => {
@@ -49,7 +48,7 @@ describe("setErrorResponse() test", () => {
             "interests": [messages.validation.NOT_CORRECT("interests")],
         }
         const formErrors = ["Invalid form"];
-        setErrorResponse(res as Response, statusCode, fieldErrors, formErrors)
+        setErrorResponse(res, statusCode, fieldErrors, formErrors)
         expect(res.status).toHaveBeenCalledWith(statusCode);
         expect(res.json).toHaveBeenCalledWith({success: false, data: {formErrors, fieldErrors}});
     })
@@ -61,7 +60,7 @@ describe("setSuccessResponse() test", () => {
         const data = {
             "interests": ["interest1"],
         }
-        setSuccessResponse(res as Response, data, statusCode)
+        setSuccessResponse(res, data, statusCode)
         expect(res.status).toHaveBeenCalledWith(statusCode);
         expect(res.json).toHaveBeenCalledWith({success: true, data});
     })

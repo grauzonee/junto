@@ -1,6 +1,6 @@
 import { login as serviceLogin } from "@/services/authService";
 import { login } from "@/requests/auth/login";
-import { NextFunction, Request, Response } from "express"
+import { NextFunction } from "express"
 import messages from "@/constants/errorMessages";
 import { getMockedRequest, getMockedResponse } from "../../utils";
 import { BadInputError, NotFoundError } from "@/types/errors/InputError";
@@ -8,7 +8,7 @@ import { setSuccessResponse } from "@/helpers/requestHelper";
 jest.mock("@/helpers/requestHelper")
 jest.mock("@/services/authService")
 
-let res: Partial<Response>;
+let res = getMockedResponse();
 const email = "email@email.com"
 const password = "SeCrEtPassWORD"
 const next = jest.fn() as NextFunction;
@@ -26,14 +26,14 @@ describe("login SUCCESS", () => {
     })
     it("Should call serviceLogin function", async () => {
         const req = getMockedRequest({ ...requestData })
-        await login(req as Request, res as Response, next);
+        await login(req, res, next);
         expect(serviceLogin).toHaveBeenCalledTimes(1)
         expect(serviceLogin).toHaveBeenCalledWith(requestData)
 
     })
     it("Should call setSuccessResponse function", async () => {
         const req = getMockedRequest({ ...requestData })
-        await login(req as Request, res as Response, next);
+        await login(req, res, next);
         expect(setSuccessResponse).toHaveBeenCalledTimes(1)
         expect(setSuccessResponse).toHaveBeenCalledWith(res, requestData)
 
@@ -47,7 +47,7 @@ describe("login FAIL", () => {
             new NotFoundError("user")
         );
         const req = getMockedRequest({ ...requestData })
-        await login(req as Request, res as Response, next);
+        await login(req, res, next);
         expect(setSuccessResponse).not.toHaveBeenCalled()
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(new NotFoundError("user"))
@@ -60,7 +60,7 @@ describe("login FAIL", () => {
             new BadInputError(errorField, errorMessage)
         );
         const req = getMockedRequest({ ...requestData })
-        await login(req as Request, res as Response, next);
+        await login(req, res, next);
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(new BadInputError(errorField, errorMessage))
 
@@ -71,7 +71,7 @@ describe("login FAIL", () => {
             new Error()
         );
         const req = getMockedRequest({ ...requestData })
-        await login(req as Request, res as Response, next);
+        await login(req, res, next);
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(new Error())
 

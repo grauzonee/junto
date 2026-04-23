@@ -1,14 +1,14 @@
 import { getMockedRequest, getMockedResponse } from "../../utils";
 import { register } from "@/requests/auth/register";
 import messages from "@/constants/errorMessages";
-import { Request, Response, NextFunction } from "express"
+import { NextFunction } from "express"
 import { setSuccessResponse } from "@/helpers/requestHelper";
 import { register as serviceRegister } from "@/services/authService";
 import { BadInputError } from "@/types/errors/InputError";
 jest.mock("@/helpers/requestHelper")
 jest.mock("@/services/authService")
 
-let res: Partial<Response>;
+let res = getMockedResponse();
 const username = "Username";
 const email = "email@email.com"
 const password = "SeCrEtPassWORD"
@@ -26,13 +26,13 @@ describe("register SUCCESS", () => {
     })
     it("Should call serviceRegister function", async () => {
         const req = getMockedRequest({ ...requestData })
-        await register(req as Request, res as Response, next);
+        await register(req, res, next);
         expect(serviceRegister).toHaveBeenCalledTimes(1)
         expect(serviceRegister).toHaveBeenCalledWith(requestData)
     })
     it("Should call setSuccessResponse function", async () => {
         const req = getMockedRequest({ ...requestData })
-        await register(req as Request, res as Response, next);
+        await register(req, res, next);
         expect(setSuccessResponse).toHaveBeenCalledTimes(1)
         expect(setSuccessResponse).toHaveBeenCalledWith(res, requestData, 201)
 
@@ -47,7 +47,7 @@ describe("register FAIL", () => {
             new BadInputError(errorField, errorMessage)
         );
         const req = getMockedRequest({ ...requestData })
-        await register(req as Request, res as Response, next);
+        await register(req, res, next);
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(new BadInputError(errorField, errorMessage))
 
@@ -58,7 +58,7 @@ describe("register FAIL", () => {
             new Error("error")
         );
         const req = getMockedRequest({ ...requestData })
-        await register(req as Request, res as Response, next);
+        await register(req, res, next);
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(new Error("error"))
     })

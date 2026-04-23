@@ -10,6 +10,7 @@
     "lint:tests": "eslint tests --ext .ts --max-warnings 0",
     "lint": "npm run lint:src && npm run lint:tests",
     "lint:fix": "eslint src tests --ext .ts --fix",
+    "ci": "npm run lint && npm run build && npm run test:ci",
     "start": "ts-node -r tsconfig-paths/register src/index.ts",
     "test": "jest",
     "test:ci": "jest --coverage --ci --runInBand",
