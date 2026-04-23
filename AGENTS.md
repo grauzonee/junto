@@ -10,7 +10,7 @@ This file gives coding agents a quick operating guide for this repository.
 
 ## Agents
 
-Use typescript-pro agent to complete typescript tasks.
+Use the typescript-pro agent when writing or modifying TypeScript code.
 
 ## Repository Layout
 

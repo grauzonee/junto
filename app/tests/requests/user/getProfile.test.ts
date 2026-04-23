@@ -18,7 +18,7 @@ describe("getProfile() tests: SUCCESS", () => {
     })
     it("Should call User.findById if ID is provided in request parameters", async () => {
         const spy = jest.spyOn(User, "findById");
-        const id = new mongoose.Types.ObjectId()
+        const id = new mongoose.Types.ObjectId().toString()
         const req = getMockedRequest({}, { id });
         await getProfile(req, res, next);
 

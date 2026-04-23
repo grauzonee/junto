@@ -1,4 +1,5 @@
 import { NextFunction } from "express"
+import { ParsedQs } from "qs";
 import { geoSearch as serviceGeoSearch } from "@/services/eventService";
 import { createFakeEvent } from "../../generators/event"
 import { setSuccessResponse } from "@/helpers/requestHelper";
@@ -20,6 +21,7 @@ const coordinates = {
     lng: -74.0060,
     radius: 3
 };
+const coordinateQuery = coordinates as unknown as ParsedQs;
 beforeAll(async () => {
     const event = await createFakeEvent();
     mockEvent = withToJSON(event);
@@ -36,7 +38,7 @@ beforeEach(() => {
 
 describe("geosearch() SUCCESS", () => {
     it("Should call serviceGeoSearch method", async () => {
-        const req = getMockedRequest({}, coordinates);
+        const req = getMockedRequest({}, {}, { query: coordinateQuery });
         await geosearch(req, res, next);
         expect(serviceGeoSearch).toHaveBeenCalledTimes(1);
         expect(serviceGeoSearch).toHaveBeenCalledWith(coordinates, buildRequestData(req));
@@ -58,7 +60,7 @@ describe("geosearch() FAIL", () => {
             },
         ]);
         jest.mocked(serviceGeoSearch).mockRejectedValue(error)
-        const req = getMockedRequest({}, coordinates);
+        const req = getMockedRequest({}, {}, { query: coordinateQuery });
         await geosearch(req, res, next);
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(error);
@@ -66,7 +68,7 @@ describe("geosearch() FAIL", () => {
     it("Should return 500 in case of default error", async () => {
         const error = new Error();
         jest.mocked(serviceGeoSearch).mockRejectedValue(error)
-        const req = getMockedRequest({}, coordinates);
+        const req = getMockedRequest({}, {}, { query: coordinateQuery });
         await geosearch(req, res, next);
         expect(next).toHaveBeenCalledTimes(1)
         expect(next).toHaveBeenCalledWith(error);
