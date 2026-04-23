@@ -9,6 +9,18 @@ const req = getMockedRequest({}, {}, {
     dbFilter: undefined
 })
 
+type QueryParams = Record<string, string | string[]>
+interface SuccessfulFilterCase {
+    name: string
+    query: QueryParams
+    expectedFilter: unknown[]
+}
+interface FailedFilterCase {
+    name: string
+    query: QueryParams
+    message: string
+}
+
 let res = getMockedResponse()
 let next: NextFunction
 
@@ -25,26 +37,28 @@ beforeEach(() => {
 })
 
 describe("FilterMiddleware tests SUCCESS", () => {
-    it("should populate STRING request.dbFilter parameter with EQ operator", () => {
-        req.query = { 'author_eq': "123" }
+    it.each<SuccessfulFilterCase>([
+        {
+            name: "STRING request.dbFilter parameter with EQ operator",
+            query: { 'author_eq': "123" },
+            expectedFilter: [{ prefix: 'eq', value: '123', field: 'author' }]
+        },
+        {
+            name: "STRING request.dbFilter parameter with MAX operator",
+            query: { 'author_max': "123" },
+            expectedFilter: [{ prefix: 'max', value: '123', field: 'author' }]
+        },
+        {
+            name: "ARRAY request.dbFilter parameter",
+            query: { 'author_in': "[34,123]" },
+            expectedFilter: [{ prefix: 'in', value: ['34', '123'], field: 'author' }]
+        }
+    ])("should populate $name", ({ query, expectedFilter }) => {
+        req.query = query
         const middleware = filterMiddleware(Event)
         middleware(req, res, next)
         expect(next).toHaveBeenCalledTimes(1)
-        expect(req.dbFilter).toEqual([{ prefix: 'eq', value: '123', field: 'author' }])
-    })
-    it("should populate STRING request.dbFilter parameter with MAX operator", () => {
-        req.query = { 'author_max': "123" }
-        const middleware = filterMiddleware(Event)
-        middleware(req, res, next)
-        expect(next).toHaveBeenCalledTimes(1)
-        expect(req.dbFilter).toEqual([{ prefix: 'max', value: '123', field: 'author' }])
-    })
-    it("should populate ARRAY request.dbFilter parameter", () => {
-        req.query = { 'author_in': "[34,123]" }
-        const middleware = filterMiddleware(Event)
-        middleware(req, res, next)
-        expect(next).toHaveBeenCalledTimes(1)
-        expect(req.dbFilter).toEqual([{ prefix: 'in', value: ['34', '123'], field: 'author' }])
+        expect(req.dbFilter).toEqual(expectedFilter)
     })
     it("should populate DATE request.dbFilter parameter", () => {
         const inputDate = "2026-09-21";
@@ -91,31 +105,29 @@ describe("FilterMiddleware tests SUCCESS", () => {
 })
 
 describe("FilterMiddleware tests FAIL", () => {
-    it("should NOT populate request.dbFilter parameter with invalid operator", () => {
-        req.query = { 'author_eqv': "123" }
+    it.each<FailedFilterCase>([
+        {
+            name: "invalid operator",
+            query: { 'author_eqv': "123" },
+            message: "Invalid filter name author_eqv, no such operator"
+        },
+        {
+            name: "invalid field",
+            query: { 'authord_eq': "123" },
+            message: "Invalid filter name authord_eq, this field is not filterable"
+        },
+        {
+            name: "array filterValue for a not array prefix",
+            query: { 'author_eq': "[123, 45]" },
+            message: "Invalid filter value [123, 45]"
+        }
+    ])("should NOT populate request.dbFilter parameter with $name", ({ query, message }) => {
+        req.query = query
         const middleware = filterMiddleware(Event)
         middleware(req, res, next)
         expect(next).toHaveBeenCalledTimes(0)
         expect(req.dbFilter).toBe(undefined)
         expect(res.status).toHaveBeenCalledWith(400)
-        expect(res.json).toHaveBeenCalledWith({ success: false, message: "Invalid filter name author_eqv, no such operator" })
-    })
-    it("should NOT populate request.dbFilter parameter with invalid field", () => {
-        req.query = { 'authord_eq': "123" }
-        const middleware = filterMiddleware(Event)
-        middleware(req, res, next)
-        expect(next).toHaveBeenCalledTimes(0)
-        expect(req.dbFilter).toBe(undefined)
-        expect(res.status).toHaveBeenCalledWith(400)
-        expect(res.json).toHaveBeenCalledWith({ success: false, message: "Invalid filter name authord_eq, this field is not filterable" })
-    })
-    it("should NOT populate request.dbFilter parameter if filterValue is array for a not array prefix", () => {
-        req.query = { 'author_eq': "[123, 45]" }
-        const middleware = filterMiddleware(Event)
-        middleware(req, res, next)
-        expect(next).toHaveBeenCalledTimes(0)
-        expect(req.dbFilter).toBe(undefined)
-        expect(res.status).toHaveBeenCalledWith(400)
-        expect(res.json).toHaveBeenCalledWith({ success: false, message: "Invalid filter value [123, 45]" })
+        expect(res.json).toHaveBeenCalledWith({ success: false, message })
     })
 })
