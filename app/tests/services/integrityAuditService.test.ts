@@ -11,6 +11,34 @@ import { Event } from "@/models/event/Event";
 import { RSVP } from "@/models/rsvp/RSVP";
 import { STATUS_CANCELED, STATUS_CONFIRMED } from "@/models/rsvp/utils";
 
+async function createEventWithAttendeeRsvp() {
+    const author = await createUser({}, true);
+    const attendee = await createUser({}, true);
+    const event = await createFakeEvent({ author: author._id.toString() }, true);
+    if (!event._id) {
+        throw new Error("Expected saved event to have an _id");
+    }
+
+    const rsvp = await createFakeRSVP({
+        event: event._id,
+        user: attendee._id,
+        status: STATUS_CONFIRMED,
+        eventDate: event.date instanceof Date ? event.date : new Date(event.date * 1000)
+    }, true);
+    if (!rsvp._id) {
+        throw new Error("Expected saved RSVP to have an _id");
+    }
+
+    return {
+        author,
+        attendee,
+        event,
+        rsvp,
+        eventId: event._id.toString(),
+        rsvpId: rsvp._id.toString()
+    };
+}
+
 describe("auditIntegrity()", () => {
     it("Should report and fix dangling taxonomy references", async () => {
         const interest = await Interest.create({ title: `Audit interest ${Date.now()}` });
@@ -48,62 +76,33 @@ describe("auditIntegrity()", () => {
     });
 
     it("Should report and fix invalid authors and RSVP users", async () => {
-        const author = await createUser({}, true);
-        const attendee = await createUser({}, true);
-        const event = await createFakeEvent({ author: author._id.toString() }, true);
-        if (!event._id) {
-            throw new Error("Expected saved event to have an _id");
-        }
-        const rsvp = await createFakeRSVP({
-            event: event._id,
-            user: attendee._id,
-            status: STATUS_CONFIRMED,
-            eventDate: event.date instanceof Date ? event.date : new Date(event.date * 1000)
-        }, true);
-        if (!rsvp._id) {
-            throw new Error("Expected saved RSVP to have an _id");
-        }
+        const { author, attendee, eventId, rsvpId } = await createEventWithAttendeeRsvp();
 
         await User.collection.deleteOne({ _id: author._id });
         await User.collection.deleteOne({ _id: attendee._id });
 
         const report = await auditIntegrity();
-        expect(report.invalidEventAuthors).toContain(event._id.toString());
-        expect(report.invalidRsvpUsers).toContain(rsvp._id.toString());
+        expect(report.invalidEventAuthors).toContain(eventId);
+        expect(report.invalidRsvpUsers).toContain(rsvpId);
 
         await auditIntegrity({ fix: true });
 
-        const updatedEvent = await Event.findById(event._id);
-        const deletedRsvp = await RSVP.findById(rsvp._id);
+        const updatedEvent = await Event.findById(eventId);
+        const deletedRsvp = await RSVP.findById(rsvpId);
 
         expect(updatedEvent?.active).toBe(false);
         expect(deletedRsvp).toBeNull();
     });
 
     it("Should ignore canceled RSVPs for soft-deleted users", async () => {
-        const author = await createUser({}, true);
-        const attendee = await createUser({}, true);
-        const event = await createFakeEvent({ author: author._id.toString() }, true);
-        if (!event._id) {
-            throw new Error("Expected saved event to have an _id");
-        }
-
-        const rsvp = await createFakeRSVP({
-            event: event._id,
-            user: attendee._id,
-            status: STATUS_CONFIRMED,
-            eventDate: event.date instanceof Date ? event.date : new Date(event.date * 1000)
-        }, true);
-        if (!rsvp._id) {
-            throw new Error("Expected saved RSVP to have an _id");
-        }
+        const { attendee, rsvpId } = await createEventWithAttendeeRsvp();
 
         await deleteUser(attendee._id.toString());
 
-        const updatedRsvp = await RSVP.findById(rsvp._id);
+        const updatedRsvp = await RSVP.findById(rsvpId);
         expect(updatedRsvp?.status).toBe(STATUS_CANCELED);
 
         const report = await auditIntegrity();
-        expect(report.invalidRsvpUsers).not.toContain(rsvp._id.toString());
+        expect(report.invalidRsvpUsers).not.toContain(rsvpId);
     });
 });

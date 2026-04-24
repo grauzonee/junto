@@ -375,7 +375,7 @@ const createdEventExample = {
     fullAddress: "Prater",
     location: {
         type: "Point",
-        coordinates: [48.21649, 16.40087]
+        coordinates: [16.40087, 48.21649]
     },
     imageUrl: "http://localhost:3000/uploads/1757422084506-7c94cec780e171cbcac050d10e8baf0b.jpg",
     categories: ["6928390fd7389e93704196b7"],
@@ -394,7 +394,7 @@ const createdEventExample = {
 
 const EventLocationResponseSchema = z.looseObject({
     type: z.literal("Point"),
-    coordinates: z.array(z.number())
+    coordinates: z.array(z.number()).meta({ example: [-122.4194, 37.7749] })
 });
 
 const EventFeeResponseSchema = z.looseObject({
