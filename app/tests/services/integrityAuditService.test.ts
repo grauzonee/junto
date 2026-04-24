@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { auditIntegrity } from "@/services/integrityAuditService";
+import { deleteUser } from "@/services/userService";
 import { createUser } from "@tests/generators/user";
 import { createFakeEvent } from "@tests/generators/event";
 import { createFakeRSVP } from "@tests/generators/rsvp";
@@ -8,7 +9,7 @@ import { Interest } from "@/models/Interest";
 import { User } from "@/models/user/User";
 import { Event } from "@/models/event/Event";
 import { RSVP } from "@/models/rsvp/RSVP";
-import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
+import { STATUS_CANCELED, STATUS_CONFIRMED } from "@/models/rsvp/utils";
 
 describe("auditIntegrity()", () => {
     it("Should report and fix dangling taxonomy references", async () => {
@@ -77,5 +78,32 @@ describe("auditIntegrity()", () => {
 
         expect(updatedEvent?.active).toBe(false);
         expect(deletedRsvp).toBeNull();
+    });
+
+    it("Should ignore canceled RSVPs for soft-deleted users", async () => {
+        const author = await createUser({}, true);
+        const attendee = await createUser({}, true);
+        const event = await createFakeEvent({ author: author._id.toString() }, true);
+        if (!event._id) {
+            throw new Error("Expected saved event to have an _id");
+        }
+
+        const rsvp = await createFakeRSVP({
+            event: event._id,
+            user: attendee._id,
+            status: STATUS_CONFIRMED,
+            eventDate: event.date instanceof Date ? event.date : new Date(event.date * 1000)
+        }, true);
+        if (!rsvp._id) {
+            throw new Error("Expected saved RSVP to have an _id");
+        }
+
+        await deleteUser(attendee._id.toString());
+
+        const updatedRsvp = await RSVP.findById(rsvp._id);
+        expect(updatedRsvp?.status).toBe(STATUS_CANCELED);
+
+        const report = await auditIntegrity();
+        expect(report.invalidRsvpUsers).not.toContain(rsvp._id.toString());
     });
 });

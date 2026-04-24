@@ -3,6 +3,7 @@ import { Event } from "@/models/event/Event";
 import { EventType } from "@/models/EventType";
 import { Interest } from "@/models/Interest";
 import { RSVP } from "@/models/rsvp/RSVP";
+import { STATUS_CANCELED } from "@/models/rsvp/utils";
 import { User } from "@/models/user/User";
 
 export interface IntegrityAuditReport {
@@ -31,7 +32,7 @@ export async function auditIntegrity({ fix = false }: AuditOptions = {}): Promis
         Category.find().select("_id parent").lean(),
         EventType.find().select("_id").lean(),
         Event.find().select("_id author categories type active").lean(),
-        RSVP.find().select("_id event user").lean(),
+        RSVP.find().select("_id event user status").lean(),
         Interest.find().select("_id").lean()
     ]);
 
@@ -42,10 +43,10 @@ export async function auditIntegrity({ fix = false }: AuditOptions = {}): Promis
     const interestIds = toIdSet(interests);
 
     const invalidRsvpEventIds = rsvps
-        .filter(rsvp => !eventIds.has(String(rsvp.event)))
+        .filter(rsvp => rsvp.status !== STATUS_CANCELED && !eventIds.has(String(rsvp.event)))
         .map(rsvp => String(rsvp._id));
     const invalidRsvpUserIds = rsvps
-        .filter(rsvp => !activeUserIds.has(String(rsvp.user)))
+        .filter(rsvp => rsvp.status !== STATUS_CANCELED && !activeUserIds.has(String(rsvp.user)))
         .map(rsvp => String(rsvp._id));
     const invalidEventAuthors = events
         .filter(event => event.active && !activeUserIds.has(String(event.author)))
