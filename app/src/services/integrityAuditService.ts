@@ -3,7 +3,6 @@ import { Event } from "@/models/event/Event";
 import { EventType } from "@/models/EventType";
 import { Interest } from "@/models/Interest";
 import { RSVP } from "@/models/rsvp/RSVP";
-import { STATUS_CANCELED } from "@/models/rsvp/utils";
 import { User } from "@/models/user/User";
 
 export interface IntegrityAuditReport {
@@ -57,7 +56,7 @@ export async function auditIntegrity({ fix = false }: AuditOptions = {}): Promis
     const eventsWithMissingCategories = events
         .map(event => {
             const missingCategoryIds = (event.categories ?? [])
-                .map(categoryId => String(categoryId))
+                .map(String)
                 .filter(categoryId => !categoryIds.has(categoryId));
 
             return {
@@ -72,7 +71,7 @@ export async function auditIntegrity({ fix = false }: AuditOptions = {}): Promis
     const usersWithMissingInterests = existingUsers
         .map(user => {
             const missingInterestIds = (user.interests ?? [])
-                .map(interestId => String(interestId))
+                .map(String)
                 .filter(interestId => !interestIds.has(interestId));
 
             return {
@@ -91,7 +90,7 @@ export async function auditIntegrity({ fix = false }: AuditOptions = {}): Promis
         const eventIdsToSoftDelete = [...new Set([...invalidEventAuthors, ...eventsWithMissingType])];
         for (const eventId of eventIdsToSoftDelete) {
             await Event.updateOne({ _id: eventId }, { active: false, deletedAt: new Date() });
-            await RSVP.updateMany({ event: eventId }, { status: STATUS_CANCELED });
+            await RSVP.cancelForEvent(eventId);
         }
 
         for (const { eventId, missingCategoryIds } of eventsWithMissingCategories) {

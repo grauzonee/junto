@@ -31,7 +31,7 @@ export async function createFakeEvent(overrides: Partial<FakeEvent> = {}, save =
         location: {
             type: "Point",
             coordinates:
-                [Math.random() * 180 - 90, Math.random() * 180 - 90],
+                [Math.random() * 360 - 180, Math.random() * 180 - 90],
         },
         imageUrl: "https://example.com/test-image.jpg",
         author: new Types.ObjectId().toString(),

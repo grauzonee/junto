@@ -5,34 +5,10 @@ import { ForbiddenError, NotFoundError } from "@/types/errors/InputError";
 import { EventType } from "@/models/EventType";
 import { buildGeosearchQuery, buildFilterQuery, buildSearchQuery, buildSortQuery, combineQueries } from "@/helpers/queryBuilder";
 import { RequestData } from "@/types/common";
-import { RSVP } from "@/models/rsvp/RSVP";
-import { STATUS_CANCELED } from "@/models/rsvp/utils";
-
-async function syncEventDateForRsvps(event: HydratedEvent) {
-    await RSVP.updateMany({ event: event._id }, { eventDate: event.date });
-}
-
-async function cancelEventRsvps(event: HydratedEvent) {
-    await RSVP.updateMany({ event: event._id }, { status: STATUS_CANCELED });
-}
+import { softDeleteEventDocument } from "@/models/event/cascade";
 
 export async function softDeleteEvent(event: HydratedEvent) {
-    if (!event.active) {
-        return event;
-    }
-
-    event.active = false;
-    event.deletedAt = new Date();
-    await event.save({ validateBeforeSave: false });
-    await cancelEventRsvps(event);
-    return event;
-}
-
-export async function deleteEventsByAuthor(authorId: string) {
-    const events = await Event.find({ author: authorId, active: true });
-    for (const event of events) {
-        await softDeleteEvent(event);
-    }
+    return softDeleteEventDocument(event);
 }
 
 export async function list(data: RequestData) {
@@ -86,18 +62,16 @@ export async function geoSearch(coordinates: CoordinatesInput, data: RequestData
 
 export async function update(data: EditEventInput, eventId: string, userId: string) {
     try {
-        const event = await Event.findOne({ _id: eventId, author: userId, active: true });
+        const event = await Event.findOne({ _id: eventId, active: true });
         if (!event) {
             throw new NotFoundError("event")
         }
+        if (event.author.toString() !== userId) {
+            throw new ForbiddenError("Only the event author can edit this event");
+        }
 
         event.set(data);
-        const shouldSyncEventDate = event.isModified("date");
         await event.save();
-
-        if (shouldSyncEventDate) {
-            await syncEventDateForRsvps(event);
-        }
 
         return event;
     } catch (error) {

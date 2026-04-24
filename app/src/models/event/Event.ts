@@ -6,7 +6,7 @@ import { toUnixSeconds } from "@/helpers/dateHelper";
 import { type Sortable } from "@/types/Sort";
 import { paginatePlugin, type PaginateQueryHelper } from "@/models/plugins/paginate";
 import messages from "@/constants/errorMessages";
-import { getFilterableFields, getSortableFields } from "@/models/event/statics";
+import { getFilterableFields, getSortableFields, softDeleteByAuthor } from "@/models/event/statics";
 import { categoriesValidator, typeValidator } from "@/models/event/validators";
 import { registerSaveHooks } from "@/models/event/hooks";
 import { normalizeEventDate } from "@/models/event/utils";
@@ -37,9 +37,11 @@ export interface IEvent {
 
 export type HydratedEvent = HydratedDocument<IEvent>;
 
-interface EventModelType extends Model<IEvent, PaginateQueryHelper<IEvent>, object>, Filterable, Sortable { }
+export interface EventModelType extends Model<IEvent, PaginateQueryHelper<IEvent>, object>, Filterable, Sortable {
+    softDeleteByAuthor(authorId: Types.ObjectId | string): Promise<void>;
+}
 
-export const EventSchema = new Schema<IEvent, Model<IEvent>, object, PaginateQueryHelper<IEvent>>(
+export const EventSchema = new Schema<IEvent, EventModelType, object, PaginateQueryHelper<IEvent>>(
     {
         title: {
             type: String,
@@ -120,7 +122,8 @@ export const EventSchema = new Schema<IEvent, Model<IEvent>, object, PaginateQue
         timestamps: true,
         statics: {
             getFilterableFields,
-            getSortableFields
+            getSortableFields,
+            softDeleteByAuthor
         },
     }
 );

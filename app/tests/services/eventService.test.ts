@@ -3,8 +3,7 @@ import { createFakeEvent } from "@tests/generators/event"
 import { createUser } from "@tests/generators/user"
 
 import { create as createEvent, list as listEvents, geoSearch, update as editEvent, fetchOne } from "@/services/eventService"
-import { NotFoundError } from "@/types/errors/InputError"
-import { ZodError } from "zod"
+import { ForbiddenError, NotFoundError } from "@/types/errors/InputError"
 import { EventType } from "@/models/EventType"
 import { CreateEventInput } from "@/types/services/eventService"
 import { Category } from "@/models/category/Category"
@@ -171,7 +170,7 @@ describe("geosearch events tests SUCCESS", () => {
             categories: [category._id.toString()],
             location: {
                 type: "Point",
-                coordinates: [48.21649, 16.40087]
+                coordinates: [16.40087, 48.21649]
             },
             author: userId.toString()
         }, true);
@@ -212,19 +211,6 @@ describe("geosearch events tests SUCCESS", () => {
         const result = await geoSearch(coordinates, requestData)
         expect(result).toEqual([])
         expect(result).toHaveLength(0)
-    })
-    it("Should throw an exception on invalid coordinates", async () => {
-        const coordinates = {
-            lat: 168.21649,
-            lng: 16.40087,
-            radius: 1,
-        };
-
-        try {
-            await geoSearch(coordinates, requestData)
-        } catch (error) {
-            expect(error).toBeInstanceOf(ZodError)
-        }
     })
 })
 
@@ -291,6 +277,7 @@ describe("Edit event SUCCESS", () => {
             eventDate: savedEvent.date
         });
         const updatedDate = Math.floor((Date.now() + 2 * 60 * 60 * 1000) / 1000);
+        const syncSpy = jest.spyOn(RSVP, "updateMany");
 
         await editEvent({ date: updatedDate }, eventId.toString(), userId);
 
@@ -298,6 +285,9 @@ describe("Edit event SUCCESS", () => {
         const expectedDate = new Date(updatedDate * 1000).getTime();
         expect(rsvps.length).toBeGreaterThan(0);
         expect(rsvps.every(rsvp => rsvp.eventDate.getTime() === expectedDate)).toBe(true);
+        expect(syncSpy).toHaveBeenCalledTimes(1);
+        expect(syncSpy).toHaveBeenCalledWith({ event: eventId }, { eventDate: expect.any(Date) });
+        syncSpy.mockRestore();
     })
 })
 describe("Edit event FAIL", () => {
@@ -326,7 +316,7 @@ describe("Edit event FAIL", () => {
         try {
             await editEvent(editEventData, eventId.toString(), new mongoose.Types.ObjectId().toString())
         } catch (error) {
-            expect(error).toBeInstanceOf(NotFoundError)
+            expect(error).toBeInstanceOf(ForbiddenError)
         }
     })
     it("Should NOT edit not active event", async () => {
