@@ -4,7 +4,7 @@ import { eventValidator, statusValidator } from "@/models/rsvp/validators";
 import { RSVPMethods, setStatus, cancel, confirm, markAsMaybe } from "@/models/rsvp/methods";
 import { RSVPStatus } from "@/models/rsvp/utils";
 import { RSVPQueryHelpers, confirmed, canceled, maybe } from "@/models/rsvp/queries";
-import { isUserAttendingEvent } from "@/models/rsvp/statics";
+import { cancelForEvent, cancelForUser, isUserAttendingEvent } from "@/models/rsvp/statics";
 import { activeUserValidator } from "@/models/user/validators";
 
 export interface IRSVP {
@@ -23,6 +23,8 @@ export interface RSVPModelType
         user: string,
         event: string
     ): Promise<HydratedRSVP | null>;
+    cancelForEvent(eventId: Types.ObjectId | string): ReturnType<typeof cancelForEvent>;
+    cancelForUser(userId: Types.ObjectId | string): ReturnType<typeof cancelForUser>;
 }
 
 
@@ -55,6 +57,8 @@ const RSVPSchema = new Schema<IRSVP, RSVPModelType, RSVPMethods, RSVPQueryHelper
     {
         timestamps: true,
         statics: {
+            cancelForEvent,
+            cancelForUser,
             isUserAttendingEvent
         },
         query: {

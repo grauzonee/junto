@@ -1,8 +1,6 @@
-import * as rsvpMethods from "@/services/RSVPService";
 import { Types } from "mongoose";
 import { registerSaveHooks } from "@/models/event/hooks";
-import { RSVP } from "@/models/rsvp/RSVP";
-import { createFakeRSVP } from "@tests/generators/rsvp";
+import * as rsvpCascade from "@/models/rsvp/cascade";
 import type { HydratedEvent } from "@/models/event/Event";
 
 type EventHookDoc = Pick<HydratedEvent, "_id" | "author" | "date" | "isNew" | "isModified" | "$locals">;
@@ -51,63 +49,95 @@ describe("preSaveHook", () => {
         preSaveHook.call(doc as HydratedEvent, jest.fn());
         expect(doc.$locals.wasNew).toBe(false);
     });
+
+    it("should set dateWasModified if the date was changed", () => {
+        const { preSaveHook } = getRegisteredHooks();
+        const doc: EventHookDoc = {
+            _id: new Types.ObjectId(),
+            author: new Types.ObjectId(),
+            date: new Date(),
+            isNew: false,
+            isModified: (path: string) => path === "date",
+            $locals: {}
+        };
+
+        preSaveHook.call(doc as HydratedEvent, jest.fn());
+
+        expect(doc.$locals.dateWasModified).toBe(true);
+    });
 });
 
 describe("postSaveHook", () => {
-    it("should call create with correct parameters if the document was new", async () => {
+    it.each([
+        {
+            name: "should ensure the author RSVP if the document was new",
+            wasNew: true,
+            shouldCall: true
+        },
+        {
+            name: "should not ensure the author RSVP if the document was not new",
+            wasNew: false,
+            shouldCall: false
+        }
+    ])("$name", async ({ wasNew, shouldCall }) => {
         const { postSaveHook } = getRegisteredHooks();
-        const spy = jest.spyOn(rsvpMethods, "create").mockResolvedValue({} as never);
-        const eventId = new Types.ObjectId();
-        const authorId = new Types.ObjectId();
+        const spy = jest.spyOn(rsvpCascade, "ensureAuthorRsvp").mockResolvedValue({} as never);
         const doc: EventHookDoc = {
-            _id: eventId,
-            author: authorId,
+            _id: new Types.ObjectId(),
+            author: new Types.ObjectId(),
             date: new Date(),
             isNew: false,
             isModified: () => false,
             $locals: {
-                wasNew: true
+                wasNew
             }
         };
+
         await postSaveHook.call(doc as HydratedEvent, doc as HydratedEvent);
-        expect(spy).toHaveBeenCalledWith({ eventId: eventId.toString(), status: "confirmed" }, authorId.toString());
+
+        if (shouldCall) {
+            expect(spy).toHaveBeenCalledWith(doc);
+        } else {
+            expect(spy).not.toHaveBeenCalled();
+        }
+
         spy.mockRestore();
     });
 
-    it("should not call create if the document was not new", async () => {
+    it.each([
+        {
+            name: "should update RSVP's eventDate if event.date was updated",
+            dateWasModified: true,
+            shouldCall: true
+        },
+        {
+            name: "should not update RSVP's eventDate if event.date was not updated",
+            dateWasModified: false,
+            shouldCall: false
+        }
+    ])("$name", async ({ dateWasModified, shouldCall }) => {
         const { postSaveHook } = getRegisteredHooks();
-        const spy = jest.spyOn(rsvpMethods, "create").mockResolvedValue({} as never);
+        const spy = jest.spyOn(rsvpCascade, "syncRsvpEventDates").mockResolvedValue({} as never);
         const doc: EventHookDoc = {
             _id: new Types.ObjectId(),
             author: new Types.ObjectId(),
             date: new Date(),
             isNew: false,
             $locals: {
-                wasNew: false
+                wasNew: false,
+                dateWasModified
             },
-            isModified: () => false
+            isModified: () => dateWasModified
         };
+
         await postSaveHook.call(doc as HydratedEvent, doc as HydratedEvent);
-        expect(spy).not.toHaveBeenCalled();
+
+        if (shouldCall) {
+            expect(spy).toHaveBeenCalledWith(doc._id, doc.date);
+        } else {
+            expect(spy).not.toHaveBeenCalled();
+        }
+
         spy.mockRestore();
     });
-
-    it("should update RSVP's eventDate if event.date was updated", async () => {
-        const { postSaveHook } = getRegisteredHooks();
-        const mockRSVP = await createFakeRSVP({});
-        const spy = jest.spyOn(RSVP, "updateMany").mockResolvedValue(mockRSVP as never);
-        const doc: EventHookDoc = {
-            _id: new Types.ObjectId(),
-            author: new Types.ObjectId(),
-            date: new Date(),
-            isNew: false,
-            $locals: {
-                wasNew: false
-            },
-            isModified: () => true
-        };
-        await postSaveHook.call(doc as HydratedEvent, doc as HydratedEvent);
-        expect(spy).toHaveBeenCalledWith({ event: doc._id }, { eventDate: doc.date });
-        spy.mockRestore();
-    })
 });

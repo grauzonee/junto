@@ -252,6 +252,7 @@ export const replaceEventContract: OpenApiRouteContract = {
             schema: successResponse(EventResponseSchema)
         },
         "400": ValidationErrorResponse,
+        "403": ValidationErrorResponse,
         "404": ValidationErrorResponse
     }
 };
@@ -273,6 +274,7 @@ export const updateEventContract: OpenApiRouteContract = {
             schema: successResponse(EventResponseSchema)
         },
         "400": ValidationErrorResponse,
+        "403": ValidationErrorResponse,
         "404": ValidationErrorResponse
     }
 };

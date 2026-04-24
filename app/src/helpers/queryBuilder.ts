@@ -34,7 +34,7 @@ export function buildGeosearchQuery(value: CoordinatesInput): FilterQuery<Event>
             $near:
             {
                 $geometry:
-                    { type: "Point", coordinates: [value.lat, value.lng] },
+                    { type: "Point", coordinates: [value.lng, value.lat] },
                 $minDistance: 0,
                 $maxDistance: value.radius
             }

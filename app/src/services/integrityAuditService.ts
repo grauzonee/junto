@@ -32,7 +32,7 @@ export async function auditIntegrity({ fix = false }: AuditOptions = {}): Promis
         Category.find().select("_id parent").lean(),
         EventType.find().select("_id").lean(),
         Event.find().select("_id author categories type active").lean(),
-        RSVP.find().select("_id event user").lean(),
+        RSVP.find().select("_id event user status").lean(),
         Interest.find().select("_id").lean()
     ]);
 
@@ -43,10 +43,10 @@ export async function auditIntegrity({ fix = false }: AuditOptions = {}): Promis
     const interestIds = toIdSet(interests);
 
     const invalidRsvpEventIds = rsvps
-        .filter(rsvp => !eventIds.has(String(rsvp.event)))
+        .filter(rsvp => rsvp.status !== STATUS_CANCELED && !eventIds.has(String(rsvp.event)))
         .map(rsvp => String(rsvp._id));
     const invalidRsvpUserIds = rsvps
-        .filter(rsvp => !activeUserIds.has(String(rsvp.user)))
+        .filter(rsvp => rsvp.status !== STATUS_CANCELED && !activeUserIds.has(String(rsvp.user)))
         .map(rsvp => String(rsvp._id));
     const invalidEventAuthors = events
         .filter(event => event.active && !activeUserIds.has(String(event.author)))
@@ -57,7 +57,7 @@ export async function auditIntegrity({ fix = false }: AuditOptions = {}): Promis
     const eventsWithMissingCategories = events
         .map(event => {
             const missingCategoryIds = (event.categories ?? [])
-                .map(categoryId => String(categoryId))
+                .map(String)
                 .filter(categoryId => !categoryIds.has(categoryId));
 
             return {
@@ -72,7 +72,7 @@ export async function auditIntegrity({ fix = false }: AuditOptions = {}): Promis
     const usersWithMissingInterests = existingUsers
         .map(user => {
             const missingInterestIds = (user.interests ?? [])
-                .map(interestId => String(interestId))
+                .map(String)
                 .filter(interestId => !interestIds.has(interestId));
 
             return {
@@ -91,7 +91,7 @@ export async function auditIntegrity({ fix = false }: AuditOptions = {}): Promis
         const eventIdsToSoftDelete = [...new Set([...invalidEventAuthors, ...eventsWithMissingType])];
         for (const eventId of eventIdsToSoftDelete) {
             await Event.updateOne({ _id: eventId }, { active: false, deletedAt: new Date() });
-            await RSVP.updateMany({ event: eventId }, { status: STATUS_CANCELED });
+            await RSVP.cancelForEvent(eventId);
         }
 
         for (const { eventId, missingCategoryIds } of eventsWithMissingCategories) {

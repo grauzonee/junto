@@ -351,7 +351,7 @@ describe("GET /api/event filters, search and sorting", () => {
             categories: [category._id.toString()],
             location: {
                 type: "Point",
-                coordinates: [48.21649, 16.40087]
+                coordinates: [16.40087, 48.21649]
             }
         }, true);
 

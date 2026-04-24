@@ -28,8 +28,8 @@ export const CreateEventSchema = z.object({
             .refine(value => value === "Point", { message: messages.validation.NOT_CORRECT("Location type") }),
         coordinates: z.array(z.float64()).length(2).refine(
             (coords) => {
-                const [lat, lng] = coords;
-                return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+                const [lng, lat] = coords;
+                return lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90;
             },
             { message: messages.validation.NOT_CORRECT("Coordinates") }
         )
