@@ -38,46 +38,42 @@ describe("GET /api/event/me", () => {
         const category = await getOneCategory();
         const matchingType = await getOneEventType();
         const otherType = await EventType.create({ title: "Current User Events Other Type" });
+        const currentUserId = currentUser._id.toString();
+        const matchingTypeId = matchingType._id.toString();
+        const categoryIds = [category._id.toString()];
+        const createMatchedEvent = (overrides: Parameters<typeof createFakeEvent>[0]) => createFakeEvent({
+            description: "planning meetup",
+            author: currentUserId,
+            categories: categoryIds,
+            type: matchingTypeId,
+            ...overrides
+        }, true);
 
-        await createFakeEvent({
+        await createMatchedEvent({
             title: "Later Matched Event",
-            description: "planning meetup",
-            author: currentUser._id.toString(),
-            categories: [category._id.toString()],
-            type: matchingType._id.toString(),
             date: Math.floor(new Date("2026-03-30T12:00:00.000Z").getTime() / 1000)
-        }, true);
-        await createFakeEvent({
+        });
+        await createMatchedEvent({
             title: "Earlier Matched Event",
-            description: "planning meetup",
-            author: currentUser._id.toString(),
-            categories: [category._id.toString()],
-            type: matchingType._id.toString(),
             date: Math.floor(new Date("2026-03-29T12:00:00.000Z").getTime() / 1000)
-        }, true);
-        await createFakeEvent({
+        });
+        await createMatchedEvent({
             title: "Wrong Type Event",
-            description: "planning meetup",
-            author: currentUser._id.toString(),
-            categories: [category._id.toString()],
             type: otherType._id.toString(),
             date: Math.floor(new Date("2026-03-28T12:00:00.000Z").getTime() / 1000)
-        }, true);
-        await createFakeEvent({
+        });
+        await createMatchedEvent({
             title: "Search Miss Event",
             description: "different words",
-            author: currentUser._id.toString(),
-            categories: [category._id.toString()],
-            type: matchingType._id.toString(),
             date: Math.floor(new Date("2026-03-27T12:00:00.000Z").getTime() / 1000)
-        }, true);
+        });
 
         const res = await request(app)
             .get("/api/event/me")
             .set("Authorization", `Bearer ${token}`)
             .query({
                 search: "planning",
-                type_eq: matchingType._id.toString(),
+                type_eq: matchingTypeId,
                 sortByAsc: "date"
             })
             .send();
