@@ -14,6 +14,7 @@ describe("generateOpenApiSpec", () => {
         expect(spec.openapi).toBe("3.1.0");
         expect(spec.paths).toHaveProperty("/status");
         expect(spec.paths).toHaveProperty("/api/auth/login");
+        expect(spec.paths).toHaveProperty("/api/event/me");
         expect(spec.paths).toHaveProperty("/api/event/{eventId}");
         expect(spec.paths).toHaveProperty("/api/event/{eventId}/rsvps");
         expect(spec.paths).toHaveProperty("/api/user/password");
@@ -60,6 +61,22 @@ describe("generateOpenApiSpec", () => {
         expect(interestsParameters.map(parameter => parameter.name)).toEqual(expect.arrayContaining([
             "title_eq",
             "title_contains"
+        ]));
+    });
+
+    it("documents current user events as an authenticated event list", () => {
+        const spec = generateOpenApiSpec();
+        const currentUserEventsOperation = asRecord(asRecord(spec.paths["/api/event/me"]).get);
+        const parameters = currentUserEventsOperation.parameters as { name: string }[];
+
+        expect(currentUserEventsOperation.security).toEqual([{ bearerAuth: [] }]);
+        expect(parameters.map(parameter => parameter.name)).toEqual(expect.arrayContaining([
+            "date_eq",
+            "categories_in",
+            "type_eq",
+            "sortByAsc",
+            "sortByDesc",
+            "search"
         ]));
     });
 });
