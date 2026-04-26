@@ -18,6 +18,7 @@ import messages from "@/constants/errorMessages"
 import { RSVP } from "@/models/rsvp/RSVP";
 import { STATUS_CANCELED, STATUS_CONFIRMED, STATUS_MAYBE } from "@/models/rsvp/utils";
 import { Types } from "mongoose";
+import { getOneEvent } from "@tests/getters";
 import { createFakeEvent } from "../generators/event";
 
 describe("PUT /rsvp/:id", () => {
@@ -111,5 +112,30 @@ describe("PUT /rsvp/:id", () => {
         expect(res.statusCode).toBe(400);
         expect(res.body.success).toBe(false);
         expect(res.body.data.fieldErrors).toEqual({ "status": [messages.validation.NOT_CORRECT("Status")] });
+    });
+
+    it("Should reject increasing additional guests above event capacity", async () => {
+        user = await createUser({}, true);
+        const event = await getOneEvent({ active: true });
+        const originalMaxAttendees = event.maxAttendees;
+        await Event.findByIdAndUpdate(event._id, { maxAttendees: 1 });
+        const rsvp = await RSVP.create({
+            event: event._id,
+            user: user._id,
+            status: STATUS_CONFIRMED,
+            additionalGuests: 0,
+            eventDate: event.date
+        });
+        const requestBody = {
+            status: STATUS_CONFIRMED,
+            additionalGuests: 1
+        }
+
+        const res = await request(app).put(`/api/rsvp/${rsvp._id.toString()}`).send(requestBody);
+
+        expect(res.statusCode).toBe(400);
+        expect(res.body.success).toBe(false);
+        expect(res.body.data.fieldErrors).toEqual({ event: messages.response.EVENT_FULL });
+        await Event.findByIdAndUpdate(event._id, { maxAttendees: originalMaxAttendees });
     });
 });

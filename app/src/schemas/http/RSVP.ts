@@ -15,7 +15,10 @@ export const CreateRSVPSchema = z.object({
     }, {
         message: messages.validation.NOT_CORRECT("status")
     }),
-    additionalGuests: z.number().min(0, { message: messages.http.MIN("Additional Guests", 0) }).optional()
+    additionalGuests: z.number()
+        .int({ message: messages.http.INTEGER("Additional Guests") })
+        .min(0, { message: messages.http.MIN("Additional Guests", 0) })
+        .optional()
 });
 
 export const UpdateRSVPSchema = z.object({
@@ -24,5 +27,8 @@ export const UpdateRSVPSchema = z.object({
     }, {
         message: messages.validation.NOT_CORRECT("status")
     }),
-    additionalGuests: z.number().min(0, { message: messages.http.MIN("Additional Guests", 0) }).optional()
+    additionalGuests: z.number()
+        .int({ message: messages.http.INTEGER("Additional Guests") })
+        .min(0, { message: messages.http.MIN("Additional Guests", 0) })
+        .optional()
 });

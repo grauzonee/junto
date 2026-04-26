@@ -429,6 +429,25 @@ describe("POST /attend", () => {
         expect(res.body.data.fieldErrors).toEqual({ user: messages.response.DUPLICATE_ATTEND });
     });
 
+    it("Should reject attendance when additional guests exceed event capacity", async () => {
+        user = await createUser({}, true);
+        const event = await getOneEvent({ active: true });
+        const originalMaxAttendees = event.maxAttendees;
+        await Event.findByIdAndUpdate(event._id, { maxAttendees: 1 });
+        const requestBody = {
+            eventId: event._id.toString(),
+            status: STATUS_CONFIRMED,
+            additionalGuests: 1
+        }
+
+        const res = await request(app).post('/api/event/attend').send(requestBody);
+
+        expect(res.statusCode).toBe(400);
+        expect(res.body.success).toBe(false);
+        expect(res.body.data.fieldErrors).toEqual({ event: messages.response.EVENT_FULL });
+        await Event.findByIdAndUpdate(event._id, { maxAttendees: originalMaxAttendees });
+    });
+
     afterAll(async () => {
         await user.deleteOne();
     });
