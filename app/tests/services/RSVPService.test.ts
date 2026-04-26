@@ -1,79 +1,124 @@
 import { Types } from "mongoose"
 import { createFakeRSVP } from "../../tests/generators/rsvp"
-import { getOneUser } from "../../tests/getters"
 import { RSVP } from "@/models/rsvp/RSVP"
 import { Event } from "@/models/event/Event"
+import messages from "@/constants/errorMessages"
+import { BadInputError } from "@/types/errors/InputError"
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils"
 import { create, getForEvent, update } from "@/services/RSVPService"
+import { createUser } from "@tests/generators/user"
+import { createFakeEvent } from "@tests/generators/event"
 
 describe("create() method SUCCESS", () => {
-    it("Should call RSVP.create method", async () => {
-        const mockRSVP = await createFakeRSVP({});
-        const eventDate = new Date();
-        const spyFind = jest.spyOn(Event, "findOne").mockResolvedValue({ date: eventDate })
-        const spyCreate = jest.spyOn(RSVP, 'create').mockResolvedValue(mockRSVP as never);
-        const body = {
-            eventId: new Types.ObjectId().toString(),
-            status: STATUS_CONFIRMED,
-            additionalGuests: 0
+    it("Should create an RSVP when requested seats fit event capacity", async () => {
+        const author = await createUser({}, true);
+        const user = await createUser({}, true);
+        const event = await createFakeEvent({ author: author._id.toString(), maxAttendees: 2 }, true);
+        if (!event._id) {
+            throw new Error("Expected saved event to have an _id");
         }
-        const user = await getOneUser();
-        await create(body, user._id.toString())
-        expect(spyFind).toHaveBeenCalledTimes(1);
-        expect(spyFind).toHaveBeenCalledWith({ _id: body.eventId, active: true });
-        expect(spyCreate).toHaveBeenCalledTimes(1);
-        expect(spyCreate).toHaveBeenCalledWith({ event: body.eventId, status: body.status, additionalGuests: body.additionalGuests, user: user._id.toString(), eventDate });
-        spyCreate.mockRestore();
-        spyFind.mockRestore();
+        const body = {
+            eventId: event._id.toString(),
+            status: STATUS_CONFIRMED,
+            additionalGuests: 1
+        }
+
+        const rsvp = await create(body, user._id.toString())
+
+        expect(rsvp.event.toString()).toBe(body.eventId);
+        expect(rsvp.user.toString()).toBe(user._id.toString());
+        expect(rsvp.status).toBe(STATUS_CONFIRMED);
+        expect(rsvp.additionalGuests).toBe(1);
     })
 })
+
 describe("create() method FAIL", () => {
-    it("Should rethrow error", async () => {
-        const eventDate = new Date();
-        const spyFind = jest.spyOn(Event, "findOne").mockResolvedValue({ date: eventDate })
-        const spyCreate = jest.spyOn(RSVP, "create").mockRejectedValue(new Error("Mock error"));
+    it("Should reject an RSVP when additional guests exceed event capacity", async () => {
+        const author = await createUser({}, true);
+        const user = await createUser({}, true);
+        const event = await createFakeEvent({ author: author._id.toString(), maxAttendees: 1 }, true);
+        if (!event._id) {
+            throw new Error("Expected saved event to have an _id");
+        }
         const body = {
-            eventId: new Types.ObjectId().toString(),
+            eventId: event._id.toString(),
             status: STATUS_CONFIRMED,
-            additionalGuests: 0
+            additionalGuests: 1
         }
-        const user = await getOneUser();
-        try {
-            await create(body, user._id.toString())
-        } catch (error) {
-            expect(error).toBeInstanceOf(Error);
-            expect((error as Error).message).toBe("Mock error");
-        }
-        spyCreate.mockRestore();
-        spyFind.mockRestore();
+
+        await expect(create(body, user._id.toString())).rejects.toMatchObject({
+            field: "event",
+            message: messages.response.EVENT_FULL
+        } satisfies Partial<BadInputError>);
     })
 });
 
 describe("update() method SUCCESS", () => {
-    it("Should call RSVP.setStatus and save methods", async () => {
-        const mockRSVP = await createFakeRSVP({}, true);
+    it("Should update RSVP additional guests when requested seats fit event capacity", async () => {
+        const author = await createUser({}, true);
+        const user = await createUser({}, true);
+        const event = await createFakeEvent({ author: author._id.toString(), maxAttendees: 3 }, true);
+        const mockRSVP = await createFakeRSVP({
+            event: event._id,
+            user: user._id,
+            additionalGuests: 0
+        }, true);
         if (!mockRSVP._id) {
             throw new Error("Mock RSVP must have an _id");
         }
-        const setStatusSpy = jest.spyOn(mockRSVP, "setStatus");
-        const saveSpy = jest.spyOn(mockRSVP, "save").mockResolvedValue(mockRSVP as never);
 
-        const populateMock = jest.fn().mockReturnValue(mockRSVP);
-
-        jest.spyOn(RSVP, "findOne").mockReturnValue({
-            populate: populateMock,
-        } as never);
         const body = {
             status: STATUS_CONFIRMED,
             additionalGuests: 2
         }
-        const user = await getOneUser();
 
-        await update(body, mockRSVP._id.toString(), user._id.toString())
-        expect(RSVP.findOne).toHaveBeenCalledTimes(1);
-        expect(setStatusSpy).toHaveBeenCalledTimes(1);
-        expect(setStatusSpy).toHaveBeenCalledWith(body.status);
-        expect(saveSpy).toHaveBeenCalledTimes(1);
+        const result = await update(body, mockRSVP._id.toString(), user._id.toString())
+        expect(result.additionalGuests).toBe(2);
+    })
+
+    it("Should allow reducing additional guests when the event is full", async () => {
+        const author = await createUser({}, true);
+        const user = await createUser({}, true);
+        const event = await createFakeEvent({ author: author._id.toString(), maxAttendees: 2 }, true);
+        const rsvp = await createFakeRSVP({
+            event: event._id,
+            user: user._id,
+            additionalGuests: 1
+        }, true);
+        if (!rsvp._id) {
+            throw new Error("Expected saved RSVP to have an _id");
+        }
+
+        const result = await update({
+            status: STATUS_CONFIRMED,
+            additionalGuests: 0
+        }, rsvp._id.toString(), user._id.toString());
+
+        expect(result.additionalGuests).toBe(0);
+    })
+});
+
+describe("update() method FAIL", () => {
+    it("Should reject increasing additional guests above event capacity", async () => {
+        const author = await createUser({}, true);
+        const user = await createUser({}, true);
+        const event = await createFakeEvent({ author: author._id.toString(), maxAttendees: 1 }, true);
+        const rsvp = await createFakeRSVP({
+            event: event._id,
+            user: user._id,
+            additionalGuests: 0
+        }, true);
+        if (!rsvp._id) {
+            throw new Error("Expected saved RSVP to have an _id");
+        }
+
+        await expect(update({
+            status: STATUS_CONFIRMED,
+            additionalGuests: 1
+        }, rsvp._id.toString(), user._id.toString())).rejects.toMatchObject({
+            field: "event",
+            message: messages.response.EVENT_FULL
+        } satisfies Partial<BadInputError>);
     })
 });
 
