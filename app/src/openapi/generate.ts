@@ -3,6 +3,19 @@ import type { OpenApiRequestLocation, OpenApiRouteContract } from "./types";
 import { openApiContracts } from "./contracts";
 
 type JsonObject = Record<string, unknown>;
+type OpenApiParameterLocation = Exclude<OpenApiRequestLocation, "body">;
+
+enum OpenApiParameterIn {
+    Path = "path",
+    Query = "query",
+    Header = "header"
+}
+
+const requestLocationToParameterIn: Record<OpenApiParameterLocation, OpenApiParameterIn> = {
+    params: OpenApiParameterIn.Path,
+    query: OpenApiParameterIn.Query,
+    headers: OpenApiParameterIn.Header
+};
 
 function isJsonObject(value: unknown): value is JsonObject {
     return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -44,22 +57,10 @@ function getObjectProperties(schema: z.ZodType) {
     return { properties, required };
 }
 
-function getOpenApiParameterLocation(location: Exclude<OpenApiRequestLocation, "body">): string {
-    if (location === "params") {
-        return "path";
-    }
-
-    if (location === "headers") {
-        return "header";
-    }
-
-    return "query";
-}
-
 function buildParameters(contract: OpenApiRouteContract) {
     const parameters: JsonObject[] = [];
     const request = contract.request ?? {};
-    const locations: Exclude<OpenApiRequestLocation, "body">[] = ["params", "query", "headers"];
+    const locations: OpenApiParameterLocation[] = ["params", "query", "headers"];
 
     for (const location of locations) {
         const schema = request[location];
@@ -71,7 +72,7 @@ function buildParameters(contract: OpenApiRouteContract) {
         for (const [name, propertySchema] of Object.entries(properties)) {
             parameters.push({
                 name,
-                in: getOpenApiParameterLocation(location),
+                in: requestLocationToParameterIn[location],
                 required: location === "params" || required.has(name),
                 schema: propertySchema
             });
