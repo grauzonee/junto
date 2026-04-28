@@ -19,6 +19,7 @@ import { listRsvps } from "@/requests/event/listRsvps";
 import { fetchOne } from "@/requests/event/fetchOne";
 import { remove } from "@/requests/event/delete";
 import { listCurrentUser } from "@/requests/event/listCurrentUser";
+import { featured } from "@/requests/event/featured";
 export const router = Router()
 
 router.post('/', [authMiddleware, requestSchemaValidate(CreateEventSchema)], create)
@@ -26,6 +27,7 @@ router.get('/', [searchNormalizer, paginateMiddleware, sortMiddleware(Event), fi
 router.get('/me', [authMiddleware, searchNormalizer, paginateMiddleware, sortMiddleware(Event), filterMiddleware(Event)], listCurrentUser)
 router.get('/types', [paginateMiddleware, filterMiddleware(EventType)], getEventTypes)
 router.get('/geosearch', [paginateMiddleware, sortMiddleware(Event)], geosearch)
+router.get('/featured', featured)
 router.get('/:eventId', fetchOne)
 
 router.put('/:eventId', [authMiddleware, requestSchemaValidate(CreateEventSchema)], update)
