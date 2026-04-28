@@ -357,7 +357,6 @@ export const listInterestsContract: OpenApiRouteContract = {
     operationId: "listInterests",
     summary: "List interests",
     tags: ["Interests"],
-    authenticated: true,
     request: { query: InterestCollectionQuerySchema },
     responses: {
         "200": {
@@ -374,7 +373,6 @@ export const listCategoriesContract: OpenApiRouteContract = {
     operationId: "listCategories",
     summary: "List categories",
     tags: ["Categories"],
-    authenticated: true,
     request: { query: PaginationQuerySchema },
     responses: {
         "200": {

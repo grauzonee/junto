@@ -64,6 +64,17 @@ describe("generateOpenApiSpec", () => {
         ]));
     });
 
+    it("documents taxonomy list endpoints as public", () => {
+        const spec = generateOpenApiSpec();
+        const eventTypesOperation = asRecord(asRecord(spec.paths["/api/event/types"]).get);
+        const interestsOperation = asRecord(asRecord(spec.paths["/api/interests"]).get);
+        const categoriesOperation = asRecord(asRecord(spec.paths["/api/categories"]).get);
+
+        expect(eventTypesOperation).not.toHaveProperty("security");
+        expect(interestsOperation).not.toHaveProperty("security");
+        expect(categoriesOperation).not.toHaveProperty("security");
+    });
+
     it("documents current user events as an authenticated event list", () => {
         const spec = generateOpenApiSpec();
         const currentUserEventsOperation = asRecord(asRecord(spec.paths["/api/event/me"]).get);
