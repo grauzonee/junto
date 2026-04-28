@@ -44,6 +44,18 @@ function getObjectProperties(schema: z.ZodType) {
     return { properties, required };
 }
 
+function getOpenApiParameterLocation(location: Exclude<OpenApiRequestLocation, "body">): string {
+    if (location === "params") {
+        return "path";
+    }
+
+    if (location === "headers") {
+        return "header";
+    }
+
+    return "query";
+}
+
 function buildParameters(contract: OpenApiRouteContract) {
     const parameters: JsonObject[] = [];
     const request = contract.request ?? {};
@@ -59,7 +71,7 @@ function buildParameters(contract: OpenApiRouteContract) {
         for (const [name, propertySchema] of Object.entries(properties)) {
             parameters.push({
                 name,
-                in: location === "params" ? "path" : location === "headers" ? "header" : "query",
+                in: getOpenApiParameterLocation(location),
                 required: location === "params" || required.has(name),
                 schema: propertySchema
             });
@@ -135,10 +147,9 @@ export function generateOpenApiSpec(contracts: OpenApiRouteContract[] = openApiC
 
     for (const contract of contracts) {
         const path = pathToOpenApi(contract.path);
-        paths[path] = {
-            ...(paths[path] ?? {}),
-            [contract.method]: buildOperation(contract)
-        };
+        const pathItem = paths[path] ?? {};
+        pathItem[contract.method] = buildOperation(contract);
+        paths[path] = pathItem;
     }
 
     return {

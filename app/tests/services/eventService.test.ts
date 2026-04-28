@@ -86,7 +86,6 @@ describe("list events tests SUCCESS", () => {
     beforeEach(async () => {
         await Event.deleteMany({});
     })
-    // TODO: Refactor
     it("Should return event that has been created", async () => {
         const user = await createUser({}, true);
         const event = await createFakeEvent({
@@ -156,7 +155,6 @@ describe("geosearch events tests SUCCESS", () => {
 
     let userId: Types.ObjectId;
     let eventTitle: string;
-    // TODO: Refactor to seeder
     beforeAll(async () => {
         const user = await createUser({}, true);
         userId = user._id;
@@ -219,7 +217,6 @@ describe("Edit event SUCCESS", () => {
     let eventId: Types.ObjectId;
     let userId: string;
 
-    // TODO: Refactor to seeders
     beforeEach(async () => {
         const user = await createUser({}, true);
         userId = user._id.toString();
@@ -308,7 +305,7 @@ describe("Edit event FAIL", () => {
     })
     it("Should NOT edit event of another user", async () => {
         const title = "New title";
-        const date = Math.floor((new Date().valueOf() + 1000000) / 1000);
+        const date = Math.floor((Date.now() + 1000000) / 1000);
         const editEventData = {
             title,
             date
