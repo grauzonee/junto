@@ -89,7 +89,7 @@ export function buildFilterQuery<T>(dbFilter: Filter[] | undefined): FilterQuery
 }
 
 export function escapeRegexSearchTerm(value: string): string {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return value.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }
 
 export function buildSearchQuery<T>(fields: string[], search: string | undefined): FilterQuery<T> {

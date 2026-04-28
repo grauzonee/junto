@@ -469,7 +469,7 @@ describe("GET /:eventId/rsvps", () => {
             createFakeRSVP({ event: event._id, user: user3._id, status: STATUS_CONFIRMED }, true)
         ]);
 
-        if (!event || !event._id) {
+        if (!event?._id) {
             throw new Error("No events found, check your seeders");
         }
         eventId = event._id.toString();

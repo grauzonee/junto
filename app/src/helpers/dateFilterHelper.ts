@@ -76,7 +76,7 @@ export function resolveEventDateFilterValue(
 
     const parsedDate = new Date(value);
     if (Number.isNaN(parsedDate.getTime())) {
-        throw new Error("Invalid filter value " + value);
+        throw new TypeError("Invalid filter value " + value);
     }
 
     return parsedDate;

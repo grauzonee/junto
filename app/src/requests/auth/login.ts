@@ -9,9 +9,7 @@ import { asyncHandler } from "@/requests/asyncHandler";
  * @param {Response} res 
  */
 export const login = asyncHandler(async (req: Request, res: Response) => {
-    {
-        const { email, password } = req.body
-        const responseData = await serviceLogin({ email, password });
-        setSuccessResponse(res, responseData);
-    }
+    const { email, password } = req.body
+    const responseData = await serviceLogin({ email, password });
+    setSuccessResponse(res, responseData);
 });

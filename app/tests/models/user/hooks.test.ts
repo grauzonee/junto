@@ -30,29 +30,25 @@ describe("preSaveHook", () => {
         const next = jest.fn();
         const user = await getOneUser();
         user.password = 'plainPassword';
-        const userDoc: Partial<HydratedUserDoc> = {
-            password: 'plainPassword',
-            isModified: jest.fn().mockReturnValue(true)
-        };
-        await preSaveHook.call(userDoc as HydratedUserDoc, next);
+        user.isModified = jest.fn().mockReturnValue(true);
+        await preSaveHook.call(user, next);
 
         expect(bcryptGenSalt).toHaveBeenCalledWith(10);
         expect(bcryptHash).toHaveBeenCalledWith('plainPassword', 'salt');
-        expect(userDoc.password).toBe('hashedPassword');
+        expect(user.password).toBe('hashedPassword');
         expect(next).toHaveBeenCalled();
     });
 
     it("Should call next without hashing if password is not modified", async () => {
         const { preSaveHook } = getRegisteredHooks();
         const next = jest.fn();
-        const userDoc: Partial<HydratedUserDoc> = {
-            password: 'plainPassword',
-            isModified: jest.fn().mockReturnValue(false)
-        };
-        await preSaveHook.call(userDoc as HydratedUserDoc, next);
+        const user = await getOneUser();
+        user.password = 'plainPassword';
+        user.isModified = jest.fn().mockReturnValue(false);
+        await preSaveHook.call(user, next);
         expect(bcryptGenSalt).not.toHaveBeenCalled();
         expect(bcryptHash).not.toHaveBeenCalled();
-        expect(userDoc.password).toBe('plainPassword');
+        expect(user.password).toBe('plainPassword');
         expect(next).toHaveBeenCalled();
     });
 });

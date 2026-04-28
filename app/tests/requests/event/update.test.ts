@@ -65,7 +65,7 @@ describe("update() FAIL", () => {
         expect(next).toHaveBeenCalledWith(validationError)
     })
     it("Should return 500 in case of default error", async () => {
-        const error = new Error();
+        const error = new Error("Update event failed");
         jest.mocked(updateEvent).mockRejectedValue(error)
         const editData = { title: "Updated Title" }
         const eventId = new mongoose.Types.ObjectId().toString();
