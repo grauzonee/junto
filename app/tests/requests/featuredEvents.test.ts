@@ -83,8 +83,8 @@ describe("GET /api/event/featured", () => {
         expect(res.body.data[0]).toHaveProperty("imageUrl");
         expect(res.body.data[0]).toHaveProperty("categories");
         expect(res.body.data[0]).toHaveProperty("type");
-        expect(Object.keys(res.body.data[0].categories[0]).sort()).toEqual(["_id", "title"]);
-        expect(Object.keys(res.body.data[0].type).sort()).toEqual(["_id", "title"]);
+        expect(Object.keys(res.body.data[0].categories[0]).sort((a, b) => a.localeCompare(b))).toEqual(["_id", "title"]);
+        expect(Object.keys(res.body.data[0].type).sort((a, b) => a.localeCompare(b))).toEqual(["_id", "title"]);
         expect(typeof res.body.data[0].date).toBe("number");
         expect(res.body.data.find((event: { title: string }) => event.title === "Inactive Popular Event")).toBeUndefined();
         expect(res.body.data.find((event: { title: string }) => event.title === "No RSVP Event")).toBeUndefined();
