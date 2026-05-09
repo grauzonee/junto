@@ -356,8 +356,9 @@ describe("GET /api/event filters, search and sorting", () => {
         }, true);
 
         const res = await request(app).get("/api/event/geosearch").query({
-            lat: 48.21649,
-            lng: 16.40087
+            lat: "48.21649",
+            lng: "16.40087",
+            radius: "3"
         }).send();
 
         expect(res.statusCode).toBe(200);
@@ -385,6 +386,23 @@ describe("GET /api/event filters, search and sorting", () => {
         expect(res.body.success).toBe(false);
         expect(res.body.data.fieldErrors).toEqual({
             lat: ["Latitude must be maximum 90"]
+        });
+    });
+
+    it.each([
+        ["0", "Too small: expected number to be >=1"],
+        ["16", "Radius must be maximum 15"]
+    ])("Should reject invalid geosearch radius query param %s", async (radius, message) => {
+        const res = await request(app).get("/api/event/geosearch").query({
+            lat: "48.21649",
+            lng: "16.40087",
+            radius
+        }).send();
+
+        expect(res.statusCode).toBe(400);
+        expect(res.body.success).toBe(false);
+        expect(res.body.data.fieldErrors).toEqual({
+            radius: [message]
         });
     });
 });
