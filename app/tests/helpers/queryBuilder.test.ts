@@ -128,15 +128,15 @@ describe("buildSortQuery() tests", () => {
 
 describe("search query helpers", () => {
     it("Should escape regex metacharacters in the search term", () => {
-        expect(escapeRegexSearchTerm("party.*(vip)+?")).toBe("party\\.\\*\\(vip\\)\\+\\?")
+        expect(escapeRegexSearchTerm("party.*(vip)+?")).toBe(String.raw`party\.\*\(vip\)\+\?`)
     })
 
     it("Should build a case-insensitive literal search query", () => {
         const query = buildSearchQuery<Event>(['title', 'description'], 'party.*')
         expect(query).toEqual({
             $or: [
-                { title: { $regex: "party\\.\\*", $options: 'i' } },
-                { description: { $regex: "party\\.\\*", $options: 'i' } }
+                { title: { $regex: String.raw`party\.\*`, $options: 'i' } },
+                { description: { $regex: String.raw`party\.\*`, $options: 'i' } }
             ]
         })
     })

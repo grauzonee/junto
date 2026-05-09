@@ -1,8 +1,7 @@
 import mongoose, { Schema, Model, Types, SchemaTypes, HydratedDocument } from "mongoose";
 import { paginatePlugin } from "@/models/plugins/paginate";
 import { getTree } from "@/models/category/statics";
-import { CategoryQueryHelpers } from "@/models/category/queries";
-import { getRoots, getSubcategories } from "@/models/category/queries";
+import { CategoryQueryHelpers, getRoots, getSubcategories } from "@/models/category/queries";
 import messages from "@/constants/errorMessages";
 import { registerDeleteHooks } from "@/models/category/hooks";
 import { parentValidator } from "@/models/category/validators";

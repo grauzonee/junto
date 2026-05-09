@@ -6,22 +6,85 @@ import { EventType } from "@/models/EventType";
 import { buildGeosearchQuery, buildFilterQuery, buildSearchQuery, buildSortQuery, combineQueries } from "@/helpers/queryBuilder";
 import { RequestData } from "@/types/common";
 import { softDeleteEventDocument } from "@/models/event/cascade";
+import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
+import type { FilterQuery } from "mongoose";
 
 export async function softDeleteEvent(event: HydratedEvent) {
     return softDeleteEventDocument(event);
 }
 
-export async function list(data: RequestData) {
+function listByQuery(data: RequestData, baseQuery: FilterQuery<IEvent>) {
     const query = combineQueries<IEvent>(
-        { active: true },
+        baseQuery,
         buildFilterQuery<IEvent>(data.dbFilter),
         buildSearchQuery<IEvent>(['title', 'description'], data.search)
     );
-    const result = await Event.find(query)
+    return Event.find(query)
         .populate('categories')
         .populate('type')
         .sort(buildSortQuery(data.sort))
         .paginate(data.pagination.offset, data.pagination.limit)
+}
+
+export async function list(data: RequestData) {
+    const result = await listByQuery(data, { active: true });
+    return result;
+}
+
+export async function listFeatured() {
+    const rankedEvents = await Event.aggregate<{ _id: IEvent["_id"] }>([
+        { $match: { active: true } },
+        {
+            $lookup: {
+                from: "rsvps",
+                let: { eventId: "$_id" },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ["$event", "$$eventId"] },
+                                    { $eq: ["$status", STATUS_CONFIRMED] }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            popularity: { $sum: 1 }
+                        }
+                    }
+                ],
+                as: "attendance"
+            }
+        },
+        {
+            $set: {
+                popularity: {
+                    $ifNull: [{ $first: "$attendance.popularity" }, 0]
+                }
+            }
+        },
+        { $sort: { popularity: -1, createdAt: -1, _id: 1 } },
+        { $limit: 3 },
+        { $project: { _id: 1 } }
+    ]);
+
+    const eventIds = rankedEvents.map(event => event._id);
+    const events = await Event.find({ _id: { $in: eventIds }, active: true })
+        .populate('categories', '_id title')
+        .populate('type', '_id title');
+    const eventsById = new Map(events.map(event => [event._id.toString(), event]));
+
+    return eventIds.flatMap(eventId => {
+        const event = eventsById.get(eventId.toString());
+        return event ? [event] : [];
+    });
+}
+
+export async function listCurrentUser(data: RequestData, userId: string) {
+    const result = await listByQuery(data, { active: true, author: userId });
     return result;
 }
 

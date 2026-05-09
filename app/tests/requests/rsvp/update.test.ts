@@ -16,7 +16,9 @@ describe("update() success", () => {
 
         const populateMock = jest.fn().mockReturnValue(mockRSVP);
 
-        jest.spyOn(RSVP, "findOne").mockReturnValue({
+        jest.spyOn(RSVP, "findOne")
+            .mockResolvedValueOnce(mockRSVP)
+            .mockReturnValueOnce({
             populate: populateMock,
         } as never);
         const body = {
@@ -42,7 +44,9 @@ describe("update() success", () => {
 
         const populateMock = jest.fn().mockReturnValue(mockRSVP);
 
-        jest.spyOn(RSVP, "findOne").mockReturnValue({
+        jest.spyOn(RSVP, "findOne")
+            .mockResolvedValueOnce(mockRSVP)
+            .mockReturnValueOnce({
             populate: populateMock,
         } as never);
         const body = {
@@ -67,7 +71,9 @@ describe("update() success", () => {
 
         const populateMock = jest.fn().mockReturnValue(mockRSVP);
 
-        jest.spyOn(RSVP, "findOne").mockReturnValue({
+        jest.spyOn(RSVP, "findOne")
+            .mockResolvedValueOnce(mockRSVP)
+            .mockReturnValueOnce({
             populate: populateMock,
         } as never);
         const body = {
@@ -84,9 +90,7 @@ describe("update() success", () => {
 
     it("Should throw NotFoundError if RSVP not found", async () => {
         const mockRSVPId = new Types.ObjectId().toString();
-        jest.spyOn(RSVP, "findOne").mockReturnValue({
-            populate: jest.fn(),
-        } as never);
+        jest.spyOn(RSVP, "findOne").mockResolvedValueOnce(null);
 
         const body = {
             status: STATUS_CONFIRMED,
@@ -105,6 +109,7 @@ describe("update() success", () => {
     });
 
     afterEach(async () => {
+        jest.restoreAllMocks();
         await RSVP.deleteMany({});
     })
 })

@@ -78,10 +78,11 @@ describe("create() FAIL", () => {
     })
     it("Should return 500 on default error", async () => {
 
-        (createEvent as jest.Mock).mockRejectedValue(new Error())
+        const error = new Error("Create event failed");
+        (createEvent as jest.Mock).mockRejectedValue(error)
         const req = getMockedRequest({ ...newEvent }, {}, { user: { id: new mongoose.Types.ObjectId().toString() } });
         await create(req, res, next)
         expect(next).toHaveBeenCalledTimes(1)
-        expect(next).toHaveBeenCalledWith(new Error())
+        expect(next).toHaveBeenCalledWith(error)
     })
 })

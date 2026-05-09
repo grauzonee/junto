@@ -57,7 +57,7 @@ describe("updateProfile() FAIL", () => {
         jest.resetAllMocks()
     })
     it("Should return 400 status code when request body is empty", async () => {
-        const req = getMockedRequest(undefined);
+        const req = getMockedRequest();
         await updateProfile(req, res, next);
         expect(next).toHaveBeenCalledTimes(1);
         expect(next).toHaveBeenCalledWith(new EmptyBodyError());

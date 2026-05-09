@@ -18,7 +18,7 @@ let result: typeof mockEvent[] = [];
 const next = jest.fn() as NextFunction;
 const coordinates = {
     lat: 40.7128,
-    lng: -74.0060,
+    lng: -74.006,
     radius: 3
 };
 const coordinateQuery = coordinates as unknown as ParsedQs;
@@ -66,7 +66,7 @@ describe("geosearch() FAIL", () => {
         expect(next).toHaveBeenCalledWith(error);
     })
     it("Should return 500 in case of default error", async () => {
-        const error = new Error();
+        const error = new Error("Geosearch failed");
         jest.mocked(serviceGeoSearch).mockRejectedValue(error)
         const req = getMockedRequest({}, {}, { query: coordinateQuery });
         await geosearch(req, res, next);

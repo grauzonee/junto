@@ -186,6 +186,24 @@ export const listEventsContract: OpenApiRouteContract = {
     }
 };
 
+export const listCurrentUserEventsContract: OpenApiRouteContract = {
+    method: "get",
+    path: "/api/event/me",
+    operationId: "listCurrentUserEvents",
+    summary: "List events authored by the current user",
+    tags: ["Events"],
+    authenticated: true,
+    request: { query: EventCollectionQuerySchema },
+    responses: {
+        "200": {
+            description: "Current user event list",
+            schema: successResponse(z.array(EventListItemResponseSchema))
+        },
+        "400": ValidationErrorResponse,
+        "401": ValidationErrorResponse
+    }
+};
+
 export const listEventTypesViaEventContract: OpenApiRouteContract = {
     method: "get",
     path: "/api/event/types",
@@ -339,7 +357,6 @@ export const listInterestsContract: OpenApiRouteContract = {
     operationId: "listInterests",
     summary: "List interests",
     tags: ["Interests"],
-    authenticated: true,
     request: { query: InterestCollectionQuerySchema },
     responses: {
         "200": {
@@ -356,7 +373,6 @@ export const listCategoriesContract: OpenApiRouteContract = {
     operationId: "listCategories",
     summary: "List categories",
     tags: ["Categories"],
-    authenticated: true,
     request: { query: PaginationQuerySchema },
     responses: {
         "200": {
@@ -463,6 +479,7 @@ export const openApiContracts = [
     uploadMediaContract,
     createEventContract,
     listEventsContract,
+    listCurrentUserEventsContract,
     listEventTypesViaEventContract,
     geoSearchEventsContract,
     fetchEventContract,

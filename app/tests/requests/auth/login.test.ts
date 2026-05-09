@@ -67,13 +67,14 @@ describe("login FAIL", () => {
     })
     it("Should return 500 on default error", async () => {
 
+        const error = new Error("Login failed");
         (serviceLogin as jest.Mock).mockRejectedValue(
-            new Error()
+            error
         );
         const req = getMockedRequest({ ...requestData })
         await login(req, res, next);
         expect(next).toHaveBeenCalledTimes(1)
-        expect(next).toHaveBeenCalledWith(new Error())
+        expect(next).toHaveBeenCalledWith(error)
 
     })
 })

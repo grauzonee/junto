@@ -54,6 +54,20 @@ describe("CreateRSVPSchema", () => {
         }
     });
 
+    it("Should fail validation with fractional additionalGuests", () => {
+        const data = {
+            eventId: "60d21b4667d0d8992e610c85",
+            status: "confirmed",
+            additionalGuests: 1.5
+        };
+        try {
+            CreateRSVPSchema.parse(data);
+        } catch (e) {
+            const error = e as z.ZodError;
+            expect(error.issues[0].message).toBe(messages.http.INTEGER("Additional Guests"));
+        }
+    });
+
     it("Should pass validation without additionalGuests", () => {
         const data = {
             eventId: "60d21b4667d0d8992e610c85",
@@ -94,6 +108,19 @@ describe("UpdateRSVPSchema", () => {
         } catch (e) {
             const error = e as z.ZodError;
             expect(error.issues[0].message).toBe(messages.http.MIN("Additional Guests", 0));
+        }
+    });
+
+    it("Should fail validation with fractional additionalGuests", () => {
+        const data = {
+            status: STATUS_CONFIRMED,
+            additionalGuests: 2.25
+        };
+        try {
+            UpdateRSVPSchema.parse(data);
+        } catch (e) {
+            const error = e as z.ZodError;
+            expect(error.issues[0].message).toBe(messages.http.INTEGER("Additional Guests"));
         }
     });
 

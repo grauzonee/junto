@@ -33,6 +33,8 @@ export interface IEvent {
     categories: Types.ObjectId[];
     type: Types.ObjectId;
     deletedAt?: Date;
+    capacityLockId?: string;
+    capacityLockExpiresAt?: Date;
 }
 
 export type HydratedEvent = HydratedDocument<IEvent>;
@@ -116,6 +118,16 @@ export const EventSchema = new Schema<IEvent, EventModelType, object, PaginateQu
         deletedAt: {
             type: Date,
             required: false
+        },
+        capacityLockId: {
+            type: String,
+            required: false,
+            select: false
+        },
+        capacityLockExpiresAt: {
+            type: Date,
+            required: false,
+            select: false
         }
     },
     {

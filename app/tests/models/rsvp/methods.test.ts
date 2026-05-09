@@ -9,7 +9,7 @@ describe("setStatus() method", () => {
     it("Should set valid status", async () => {
         const rsvp = await createFakeRSVP({}, true);
         if (typeof rsvp.setStatus !== 'function') {
-            throw new Error("setStatus method not found on RSVP");
+            throw new TypeError("setStatus method not found on RSVP");
         }
         rsvp.setStatus(STATUS_CONFIRMED);
         expect(rsvp.status).toBe(STATUS_CONFIRMED);
@@ -20,7 +20,7 @@ describe("setStatus() method", () => {
         rsvp.event = { author: rsvp.user } as never;
         rsvp.populate = jest.fn();
         if (typeof rsvp.setStatus !== 'function') {
-            throw new Error("setStatus method not found on RSVP");
+            throw new TypeError("setStatus method not found on RSVP");
         }
         try {
             await rsvp.setStatus("somestatus");
@@ -35,7 +35,7 @@ describe("setStatus() method", () => {
         rsvp.populate = jest.fn();
         jest.spyOn(rsvp, 'event', 'get').mockReturnValue({ author: rsvp.user } as never);
         if (typeof rsvp.setStatus !== 'function') {
-            throw new Error("setStatus method not found on RSVP");
+            throw new TypeError("setStatus method not found on RSVP");
         }
         try {
             await setStatus.call(rsvp as never, STATUS_CANCELED);

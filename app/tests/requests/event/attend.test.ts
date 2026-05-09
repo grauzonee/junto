@@ -1,4 +1,4 @@
-import { getMockedRequest, getMockedResponse } from "../../utils"
+import { getMockedRequest, getMockedResponse, MockedJsonDocument, withToJSON } from "../../utils"
 import { Event } from "@/models/event/Event";
 import { NextFunction } from "express";
 import { create } from "@/services/RSVPService"
@@ -9,7 +9,6 @@ import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
 import { setSuccessResponse } from "@/helpers/requestHelper";
 import { CreateRSVPSchema } from "@/schemas/http/RSVP";
 import { CreateRSVPInput } from "@/types/services/RSVPService";
-import { MockedJsonDocument, withToJSON } from "../../utils";
 jest.mock("@/services/RSVPService")
 jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/RSVP");

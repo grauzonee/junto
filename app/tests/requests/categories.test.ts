@@ -1,28 +1,8 @@
 import request from "supertest";
-import { NextFunction, Request, Response } from "express";
 import app from "@/app";
-import { createUser } from "../generators/user";
-
-let user: Awaited<ReturnType<typeof createUser>>;
-
-jest.mock("@/middlewares/authMiddleware", () => ({
-    authMiddleware: jest.fn(
-        async (req: Request, _res: Response, next: NextFunction) => {
-            req.user = user;
-            next();
-        }
-    ),
-}));
-
-beforeAll(async () => {
-    user = await createUser({}, true);
-    if (!user) {
-        throw new Error("No user could be created, check your seeders");
-    }
-});
 
 describe("GET /api/categories", () => {
-    it("Should return a list of categories", async () => {
+    it("Should return a list of categories without authentication", async () => {
         const res = await request(app).get('/api/categories');
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('data');

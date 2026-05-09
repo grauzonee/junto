@@ -3,6 +3,19 @@ import type { OpenApiRequestLocation, OpenApiRouteContract } from "./types";
 import { openApiContracts } from "./contracts";
 
 type JsonObject = Record<string, unknown>;
+type OpenApiParameterLocation = Exclude<OpenApiRequestLocation, "body">;
+
+enum OpenApiParameterIn {
+    Path = "path",
+    Query = "query",
+    Header = "header"
+}
+
+const requestLocationToParameterIn: Record<OpenApiParameterLocation, OpenApiParameterIn> = {
+    params: OpenApiParameterIn.Path,
+    query: OpenApiParameterIn.Query,
+    headers: OpenApiParameterIn.Header
+};
 
 function isJsonObject(value: unknown): value is JsonObject {
     return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -47,7 +60,7 @@ function getObjectProperties(schema: z.ZodType) {
 function buildParameters(contract: OpenApiRouteContract) {
     const parameters: JsonObject[] = [];
     const request = contract.request ?? {};
-    const locations: Exclude<OpenApiRequestLocation, "body">[] = ["params", "query", "headers"];
+    const locations: OpenApiParameterLocation[] = ["params", "query", "headers"];
 
     for (const location of locations) {
         const schema = request[location];
@@ -59,7 +72,7 @@ function buildParameters(contract: OpenApiRouteContract) {
         for (const [name, propertySchema] of Object.entries(properties)) {
             parameters.push({
                 name,
-                in: location === "params" ? "path" : location === "headers" ? "header" : "query",
+                in: requestLocationToParameterIn[location],
                 required: location === "params" || required.has(name),
                 schema: propertySchema
             });
@@ -135,10 +148,9 @@ export function generateOpenApiSpec(contracts: OpenApiRouteContract[] = openApiC
 
     for (const contract of contracts) {
         const path = pathToOpenApi(contract.path);
-        paths[path] = {
-            ...(paths[path] ?? {}),
-            [contract.method]: buildOperation(contract)
-        };
+        const pathItem = paths[path] ?? {};
+        pathItem[contract.method] = buildOperation(contract);
+        paths[path] = pathItem;
     }
 
     return {

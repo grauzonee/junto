@@ -4,7 +4,7 @@ import { eventValidator, statusValidator } from "@/models/rsvp/validators";
 import { RSVPMethods, setStatus, cancel, confirm, markAsMaybe } from "@/models/rsvp/methods";
 import { RSVPStatus } from "@/models/rsvp/utils";
 import { RSVPQueryHelpers, confirmed, canceled, maybe } from "@/models/rsvp/queries";
-import { cancelForEvent, cancelForUser, isUserAttendingEvent } from "@/models/rsvp/statics";
+import { cancelForEvent, cancelForUser, getConfirmedAttendanceTotal, isUserAttendingEvent } from "@/models/rsvp/statics";
 import { activeUserValidator } from "@/models/user/validators";
 
 export interface IRSVP {
@@ -25,6 +25,11 @@ export interface RSVPModelType
     ): Promise<HydratedRSVP | null>;
     cancelForEvent(eventId: Types.ObjectId | string): ReturnType<typeof cancelForEvent>;
     cancelForUser(userId: Types.ObjectId | string): ReturnType<typeof cancelForUser>;
+    getConfirmedAttendanceTotal(
+        eventId: Types.ObjectId,
+        authorId: Types.ObjectId,
+        excludedRsvpId?: Types.ObjectId
+    ): ReturnType<typeof getConfirmedAttendanceTotal>;
 }
 
 
@@ -47,7 +52,12 @@ const RSVPSchema = new Schema<IRSVP, RSVPModelType, RSVPMethods, RSVPQueryHelper
         additionalGuests: {
             type: Number,
             required: false,
-            default: 0
+            default: 0,
+            min: [0, messages.http.MIN("Additional Guests", 0)],
+            validate: {
+                validator: Number.isInteger,
+                message: messages.http.INTEGER("Additional Guests")
+            }
         },
         eventDate: {
             type: Date,
@@ -59,6 +69,7 @@ const RSVPSchema = new Schema<IRSVP, RSVPModelType, RSVPMethods, RSVPQueryHelper
         statics: {
             cancelForEvent,
             cancelForUser,
+            getConfirmedAttendanceTotal,
             isUserAttendingEvent
         },
         query: {

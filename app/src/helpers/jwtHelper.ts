@@ -28,7 +28,7 @@ export const verifyToken = (token: string): JwtPayload => {
     try {
         return jsonwebtoken.verify(token, getConfigValue('JWT_SECRET')) as JwtPayload;
     } catch {
-        throw Error("Not authorized");
+        throw new Error("Not authorized");
     }
 }
 

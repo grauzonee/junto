@@ -32,6 +32,9 @@ export const getImageUploadPath = (req: Request): string => {
  * Multer upload configuration.
  */
 export const upload = multer({
+    limits: {
+        fileSize: 5 * 1024 * 1024
+    },
     storage: multer.diskStorage({
         destination: (req: Request, file, cb) => {
             cb(null, getImageUploadPath(req));

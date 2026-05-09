@@ -23,6 +23,9 @@ export default {
         },
         MAX(field: string, max: number) {
             return uc_first(field) + ` must be maximum ${max}`;
+        },
+        INTEGER(field: string) {
+            return uc_first(field) + " must be an integer";
         }
     },
     // Errors fro request handlers
@@ -32,6 +35,7 @@ export default {
         IN_USE: (field: string) => uc_first(field) + " already in use",
         INVALID: (field: string) => `Invalid ${field.toLowerCase()}`,
         DUPLICATE_ATTEND: "The user is already attending the event",
+        EVENT_FULL: "Event is at max capacity",
         SERVER_ERROR: (action = "on our side", advice = "try again later") => `Error ${action.toLowerCase()}, ${advice.toLowerCase()}`
     }
 }

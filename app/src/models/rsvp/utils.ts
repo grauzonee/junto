@@ -13,3 +13,7 @@ export type RSVPStatus = typeof RSVP_STATUSES[number];
 export function isRSVPStatus(status: string): status is RSVPStatus {
     return (RSVP_STATUSES as readonly string[]).includes(status);
 }
+
+export function getConfirmedRsvpSeatCount(additionalGuests = 0) {
+    return 1 + additionalGuests;
+}

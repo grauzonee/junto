@@ -6,10 +6,14 @@ COPY package*.json ./
 
 RUN npm install 
 
-COPY . .
+COPY tsconfig*.json ./
+COPY src ./src
+COPY uploads ./uploads
+
+RUN chown -R node:node /usr/src/app
+
+USER node
 
 EXPOSE 3000
 
 CMD ["npm", "run", "dev"]
-
-
