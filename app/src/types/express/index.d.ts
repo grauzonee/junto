@@ -5,6 +5,7 @@ import { type HydratedUserDoc } from "@/models/user/User";
 declare global {
     namespace Express {
         export interface Request {
+            requestId?: string;
             user?: HydratedUserDoc,
             offset?: number;
             limit?: number;

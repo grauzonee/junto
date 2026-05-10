@@ -12,6 +12,7 @@ import { router } from "@/routes/main";
 import cors from "cors";
 import path from "node:path";
 import { errorHandler } from "@/middlewares/errorHandler";
+import { requestLogging } from "@/middlewares/requestLogging";
 
 /**
  * Create the Express application.
@@ -29,6 +30,7 @@ const app = express();
 
 app.disable("x-powered-by");
 app.use(cors());
+app.use(requestLogging);
 app.use(express.json());
 
 /**
