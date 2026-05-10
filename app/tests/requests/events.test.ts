@@ -412,9 +412,9 @@ describe("POST /attend", () => {
     let userId: string;
 
     beforeAll(async () => {
-        const eventRes = await Event.findOne();
+        const eventRes = await createFakeEvent({}, true);
         user = await createUser({}, true);
-        if (!eventRes || !user) {
+        if (!eventRes?._id || !user) {
             throw new Error("No events or users found, check your seeders");
         }
         eventId = eventRes._id.toString();
