@@ -9,7 +9,7 @@ export const CoordinatesSchema = z.object({
     lng: z.coerce.number()
         .min(-180, { message: messages.http.MIN("Longitude", -180) })
         .max(180, { message: messages.http.MAX("Longitude", 180) }),
-    radius: z.number().min(1)
+    radius: z.coerce.number().min(1)
         .max(15, { message: messages.http.MAX("Radius", 15) })
         .default(3)
 })

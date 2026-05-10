@@ -356,8 +356,9 @@ describe("GET /api/event filters, search and sorting", () => {
         }, true);
 
         const res = await request(app).get("/api/event/geosearch").query({
-            lat: 48.21649,
-            lng: 16.40087
+            lat: "48.21649",
+            lng: "16.40087",
+            radius: "3"
         }).send();
 
         expect(res.statusCode).toBe(200);
@@ -387,6 +388,23 @@ describe("GET /api/event filters, search and sorting", () => {
             lat: ["Latitude must be maximum 90"]
         });
     });
+
+    it.each([
+        ["0", "Too small: expected number to be >=1"],
+        ["16", "Radius must be maximum 15"]
+    ])("Should reject invalid geosearch radius query param %s", async (radius, message) => {
+        const res = await request(app).get("/api/event/geosearch").query({
+            lat: "48.21649",
+            lng: "16.40087",
+            radius
+        }).send();
+
+        expect(res.statusCode).toBe(400);
+        expect(res.body.success).toBe(false);
+        expect(res.body.data.fieldErrors).toEqual({
+            radius: [message]
+        });
+    });
 });
 
 describe("POST /attend", () => {
@@ -394,9 +412,9 @@ describe("POST /attend", () => {
     let userId: string;
 
     beforeAll(async () => {
-        const eventRes = await Event.findOne();
+        const eventRes = await createFakeEvent({}, true);
         user = await createUser({}, true);
-        if (!eventRes || !user) {
+        if (!eventRes?._id || !user) {
             throw new Error("No events or users found, check your seeders");
         }
         eventId = eventRes._id.toString();
