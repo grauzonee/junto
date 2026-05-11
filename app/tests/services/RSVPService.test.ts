@@ -5,7 +5,7 @@ import { Event } from "@/models/event/Event"
 import messages from "@/constants/errorMessages"
 import { BadInputError } from "@/types/errors/InputError"
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils"
-import { create, getForEvent, update } from "@/services/RSVPService"
+import { create, getForCurrentUser, getForEvent, update } from "@/services/RSVPService"
 import { createUser } from "@tests/generators/user"
 import { createFakeEvent } from "@tests/generators/event"
 
@@ -125,17 +125,16 @@ describe("update() method FAIL", () => {
 describe("getForEvent() method SUCCESS", () => {
     it("Should call RSVP.find with correct parameters", async () => {
         const eventId = new Types.ObjectId().toString();
-        const status = STATUS_CONFIRMED;
         const eventFindSpy = jest.spyOn(Event, "findOne").mockResolvedValue({ _id: eventId } as never);
         const populateMock = jest.fn().mockReturnValue([]);
         const findSpy = jest.spyOn(RSVP, "find").mockReturnValue({
             populate: populateMock,
         } as never);
 
-        await getForEvent(eventId, status);
+        await getForEvent(eventId);
         expect(Event.findOne).toHaveBeenCalledWith({ _id: eventId, active: true });
         expect(RSVP.find).toHaveBeenCalledTimes(1);
-        expect(RSVP.find).toHaveBeenCalledWith({ event: eventId, status: status });
+        expect(RSVP.find).toHaveBeenCalledWith({ event: eventId, status: STATUS_CONFIRMED });
         expect(populateMock).toHaveBeenCalledWith('user');
 
         findSpy.mockRestore();
@@ -148,10 +147,42 @@ describe("getForEvent() method SUCCESS", () => {
             populate: jest.fn().mockReturnValue(mockRSVPs),
         } as never);
 
-        const result = await getForEvent(new Types.ObjectId().toString(), STATUS_CONFIRMED);
+        const result = await getForEvent(new Types.ObjectId().toString());
         expect(result).toBe(mockRSVPs);
 
         findSpy.mockRestore();
+        eventFindSpy.mockRestore();
+    });
+});
+
+describe("getForCurrentUser() method SUCCESS", () => {
+    it("Should return the matching RSVP for the current user", async () => {
+        const eventId = new Types.ObjectId().toString();
+        const userId = new Types.ObjectId().toString();
+        const eventFindSpy = jest.spyOn(Event, "findOne").mockResolvedValue({ _id: eventId } as never);
+        const findOneSpy = jest.spyOn(RSVP, "findOne").mockResolvedValue({ _id: new Types.ObjectId(), event: eventId, user: userId } as never);
+
+        const result = await getForCurrentUser(eventId, userId);
+
+        expect(Event.findOne).toHaveBeenCalledWith({ _id: eventId, active: true });
+        expect(RSVP.findOne).toHaveBeenCalledWith({ event: eventId, user: userId });
+        expect(result).toMatchObject({ event: eventId, user: userId });
+
+        findOneSpy.mockRestore();
+        eventFindSpy.mockRestore();
+    });
+
+    it("Should return null when no RSVP exists for current user", async () => {
+        const eventId = new Types.ObjectId().toString();
+        const userId = new Types.ObjectId().toString();
+        const eventFindSpy = jest.spyOn(Event, "findOne").mockResolvedValue({ _id: eventId } as never);
+        const findOneSpy = jest.spyOn(RSVP, "findOne").mockResolvedValue(null as never);
+
+        const result = await getForCurrentUser(eventId, userId);
+
+        expect(result).toBeNull();
+
+        findOneSpy.mockRestore();
         eventFindSpy.mockRestore();
     });
 });

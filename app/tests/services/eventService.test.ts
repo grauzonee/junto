@@ -2,7 +2,7 @@ import mongoose, { HydratedDocument, Types } from "mongoose"
 import { createFakeEvent } from "@tests/generators/event"
 import { createUser } from "@tests/generators/user"
 
-import { create as createEvent, list as listEvents, geoSearch, update as editEvent, fetchOne } from "@/services/eventService"
+import { create as createEvent, list as listEvents, geoSearch, update as editEvent, fetchOne, fetchOneWithCapacity } from "@/services/eventService"
 import { ForbiddenError, NotFoundError } from "@/types/errors/InputError"
 import { EventType } from "@/models/EventType"
 import { CreateEventInput } from "@/types/services/eventService"
@@ -149,6 +149,34 @@ describe("fetchOne tests SUCCESS", () => {
     it("Should return null if event not found", async () => {
         const result = await fetchOne(new Types.ObjectId().toString());
         expect(result).toBe(null);
+    })
+
+    it("Should return capacity info for an event", async () => {
+        const author = await createUser({}, true);
+        const type = await getOneEventType();
+        const category = await getOneCategory()
+        const event = await createFakeEvent({ author: author._id.toString(), type: type._id.toString(), categories: [category._id.toString()], maxAttendees: 5 }, true);
+        if (!event._id) {
+            throw new Error("Error creating event in test");
+        }
+
+        await RSVP.create({
+            event: event._id,
+            user: author._id,
+            status: STATUS_CONFIRMED,
+            eventDate: event.date
+        });
+
+        const result = await fetchOneWithCapacity(event._id.toString());
+        if (!result) {
+            throw new Error("No event retrieved in test")
+        }
+
+        expect(result.capacity).toEqual({
+            maxAttendees: 5,
+            confirmedAttendanceTotal: 0,
+            remainingSeats: 5
+        });
     })
 })
 describe("geosearch events tests SUCCESS", () => {

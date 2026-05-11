@@ -134,11 +134,21 @@ export async function update(data: UpdateRSVPInput, rsvpId: string, userId: stri
     }
 }
 
-export async function getForEvent(eventId: string, status: RSVPStatus = STATUS_CONFIRMED) {
+export async function getForEvent(eventId: string) {
     const event = await Event.findOne({ _id: eventId, active: true });
     if (!event) {
         throw new NotFoundError("event");
     }
-    const rsvps = await RSVP.find({ event: eventId, status }).populate('user');
+
+    const rsvps = await RSVP.find({ event: eventId, status: STATUS_CONFIRMED }).populate('user');
     return rsvps;
+}
+
+export async function getForCurrentUser(eventId: string, userId: string) {
+    const event = await Event.findOne({ _id: eventId, active: true });
+    if (!event) {
+        throw new NotFoundError("event");
+    }
+
+    return RSVP.findOne({ event: eventId, user: userId });
 }

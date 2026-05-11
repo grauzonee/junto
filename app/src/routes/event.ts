@@ -16,6 +16,7 @@ import { EventType } from "@/models/EventType";
 import { CreateRSVPSchema } from "@/schemas/http/RSVP";
 import { attend } from "@/requests/event/attend";
 import { listRsvps } from "@/requests/event/listRsvps";
+import { getCurrentUserRsvp } from "@/requests/event/getCurrentUserRsvp";
 import { fetchOne } from "@/requests/event/fetchOne";
 import { remove } from "@/requests/event/delete";
 import { listCurrentUser } from "@/requests/event/listCurrentUser";
@@ -35,3 +36,4 @@ router.patch('/:eventId', [authMiddleware, requestSchemaValidate(EditEventSchema
 router.delete('/:eventId', [authMiddleware], remove)
 router.post('/attend', [authMiddleware, requestSchemaValidate(CreateRSVPSchema)], attend)
 router.get('/:eventId/rsvps', listRsvps)
+router.get('/:eventId/rsvps/me', [authMiddleware], getCurrentUserRsvp)

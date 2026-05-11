@@ -17,6 +17,7 @@ describe("generateOpenApiSpec", () => {
         expect(spec.paths).toHaveProperty("/api/event/me");
         expect(spec.paths).toHaveProperty("/api/event/{eventId}");
         expect(spec.paths).toHaveProperty("/api/event/{eventId}/rsvps");
+        expect(spec.paths).toHaveProperty("/api/event/{eventId}/rsvps/me");
         expect(spec.paths).toHaveProperty("/api/user/password");
     });
 
@@ -39,11 +40,27 @@ describe("generateOpenApiSpec", () => {
     it("documents model-owned filter query params", () => {
         const spec = generateOpenApiSpec();
         const eventListOperation = asRecord(asRecord(spec.paths["/api/event"]).get);
+        const eventDetailOperation = asRecord(asRecord(spec.paths["/api/event/{eventId}"]).get);
+        const eventRsvpsOperation = asRecord(asRecord(spec.paths["/api/event/{eventId}/rsvps"]).get);
+        const currentUserRsvpOperation = asRecord(asRecord(spec.paths["/api/event/{eventId}/rsvps/me"]).get);
         const eventListParameters = eventListOperation.parameters as { name: string }[];
         const eventTypeOperation = asRecord(asRecord(spec.paths["/api/event/types"]).get);
         const eventTypeParameters = eventTypeOperation.parameters as { name: string }[];
         const interestsOperation = asRecord(asRecord(spec.paths["/api/interests"]).get);
         const interestsParameters = interestsOperation.parameters as { name: string }[];
+        const eventDetailResponses = asRecord(eventDetailOperation.responses);
+        const eventDetailOkResponse = asRecord(eventDetailResponses["200"]);
+        const eventDetailContent = asRecord(eventDetailOkResponse.content);
+        const eventDetailJson = asRecord(eventDetailContent["application/json"]);
+        const eventDetailSchema = asRecord(eventDetailJson.schema);
+        const eventDetailData = asRecord(asRecord(eventDetailSchema.properties).data);
+        const eventRsvpsResponses = asRecord(eventRsvpsOperation.responses);
+        const eventRsvpsOkResponse = asRecord(eventRsvpsResponses["200"]);
+        const eventRsvpsContent = asRecord(eventRsvpsOkResponse.content);
+        const eventRsvpsJson = asRecord(eventRsvpsContent["application/json"]);
+        const eventRsvpsSchema = asRecord(eventRsvpsJson.schema);
+        const eventRsvpsData = asRecord(asRecord(eventRsvpsSchema.properties).data);
+        const currentUserRsvpSecurity = currentUserRsvpOperation.security as { bearerAuth: [] }[];
 
         expect(eventListParameters.map(parameter => parameter.name)).toEqual(expect.arrayContaining([
             "date_eq",
@@ -62,6 +79,10 @@ describe("generateOpenApiSpec", () => {
             "title_eq",
             "title_contains"
         ]));
+        expect(eventDetailData.properties).not.toHaveProperty("maxAttendees");
+        expect(eventDetailData.properties).toHaveProperty("capacity");
+        expect(eventRsvpsData.properties).not.toHaveProperty("currentUserRsvp");
+        expect(currentUserRsvpSecurity).toEqual([{ bearerAuth: [] }]);
     });
 
     it("documents current user events as an authenticated event list", () => {

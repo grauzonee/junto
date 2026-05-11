@@ -24,6 +24,7 @@ import {
     ProfileDeletedResponseSchema,
     ProfileResponseSchema,
     RegisterAuthResponseSchema,
+    CurrentUserRsvpResponseSchema,
     RSVPListResponseSchema,
     RSVPResponseSchema,
     SortQuerySchema,
@@ -351,6 +352,25 @@ export const listEventRsvpsContract: OpenApiRouteContract = {
     }
 };
 
+export const getCurrentUserEventRsvpContract: OpenApiRouteContract = {
+    method: "get",
+    path: "/api/event/:eventId/rsvps/me",
+    operationId: "getCurrentUserEventRsvp",
+    summary: "Get the current user's RSVP for an event",
+    tags: ["Events", "RSVP"],
+    authenticated: true,
+    request: { params: EventIdParamsSchema },
+    responses: {
+        "200": {
+            description: "Current user's RSVP",
+            schema: successResponse(CurrentUserRsvpResponseSchema)
+        },
+        "400": ValidationErrorResponse,
+        "401": ValidationErrorResponse,
+        "404": ValidationErrorResponse
+    }
+};
+
 export const listInterestsContract: OpenApiRouteContract = {
     method: "get",
     path: "/api/interests",
@@ -488,6 +508,7 @@ export const openApiContracts = [
     deleteEventContract,
     attendEventContract,
     listEventRsvpsContract,
+    getCurrentUserEventRsvpContract,
     listInterestsContract,
     listCategoriesContract,
     updateRsvpContract,
