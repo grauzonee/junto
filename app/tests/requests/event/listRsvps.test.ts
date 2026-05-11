@@ -1,10 +1,10 @@
 import { getForEvent } from "@/services/RSVPService";
 jest.mock("@/services/RSVPService");
 import { createFakeRSVP } from "../../generators/rsvp";
-import { getMockedRequest, getMockedResponse } from "../../utils";
+import { getMockedRequest, getMockedResponse, MockedJsonDocument, withToJSON } from "../../utils";
 import { listRsvps } from "@/requests/event/listRsvps";
 import { NextFunction } from "express";
-import { RSVP } from "@/models/rsvp/RSVP";
+import { HydratedRSVP, RSVP } from "@/models/rsvp/RSVP";
 import { setSuccessResponse } from "@/helpers/requestHelper";
 import { BadInputError } from "@/types/errors/InputError";
 jest.mock("@/helpers/requestHelper")
@@ -13,9 +13,9 @@ const next = jest.fn() as NextFunction
 
 describe("listRsvps() success", () => {
     it("Should return list of RSVPs for the event", async () => {
-        const rsvps = [
-            await createFakeRSVP({ toJSON: jest.fn() }),
-            await createFakeRSVP({ toJSON: jest.fn() })
+        const rsvps: MockedJsonDocument<HydratedRSVP>[] = [
+            withToJSON(await createFakeRSVP({}, true)),
+            withToJSON(await createFakeRSVP({}, true))
         ];
         jest.mocked(getForEvent).mockResolvedValue(rsvps as never);
         const req = getMockedRequest({}, { eventId: "mockEventId" });

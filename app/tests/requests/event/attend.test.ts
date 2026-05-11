@@ -2,6 +2,7 @@ import { getMockedRequest, getMockedResponse, MockedJsonDocument, withToJSON } f
 import { Event } from "@/models/event/Event";
 import { NextFunction } from "express";
 import { create } from "@/services/RSVPService"
+import { HydratedRSVP } from "@/models/rsvp/RSVP";
 import { createFakeRSVP } from "../../generators/rsvp";
 import { createUser } from "@tests/generators/user";
 import { attend } from "@/requests/event/attend";
@@ -16,11 +17,11 @@ jest.mock("@/schemas/http/RSVP");
 let user: Awaited<ReturnType<typeof createUser>>;
 let res = getMockedResponse();
 const next = jest.fn() as NextFunction;
-let mockRSVP: MockedJsonDocument<Awaited<ReturnType<typeof createFakeRSVP>>>;
+let mockRSVP: MockedJsonDocument<HydratedRSVP>;
 let mockRSVPData: CreateRSVPInput;
 beforeAll(async () => {
     user = await createUser({}, true);
-    const rsvp = await createFakeRSVP();
+    const rsvp = await createFakeRSVP({}, true);
     mockRSVPData = {
         eventId: rsvp.event.toString(),
         status: rsvp.status,

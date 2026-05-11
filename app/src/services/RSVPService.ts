@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { RSVP } from "@/models/rsvp/RSVP";
+import { HydratedRSVP, RSVP } from "@/models/rsvp/RSVP";
 import { Event, HydratedEvent } from "@/models/event/Event";
 import { logger } from "@/config/loggerConfig";
 import { CreateRSVPInput, UpdateRSVPInput } from "@/types/services/RSVPService";
@@ -144,7 +144,7 @@ export async function getForEvent(eventId: string) {
     return rsvps;
 }
 
-export async function getForCurrentUser(eventId: string, userId: string) {
+export async function getForCurrentUser(eventId: string, userId: string): Promise<HydratedRSVP | null> {
     const event = await Event.findOne({ _id: eventId, active: true });
     if (!event) {
         throw new NotFoundError("event");

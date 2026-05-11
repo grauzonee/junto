@@ -14,8 +14,15 @@ const next = jest.fn() as NextFunction;
 
 describe("getCurrentUserRsvp() success", () => {
     it("Should return the current user's RSVP for the event", async () => {
-        const rsvp = await createFakeRSVP({ toJSON: jest.fn() });
-        jest.mocked(getForCurrentUser).mockResolvedValue(rsvp as never);
+        const response = {
+            _id: "rsvp-id",
+            event: "event-id",
+            user: "current-user-id",
+            status: "confirmed"
+        };
+        const rsvp = await createFakeRSVP({}, true);
+        jest.spyOn(rsvp, "toJSON").mockReturnValue(response);
+        jest.mocked(getForCurrentUser).mockResolvedValue(rsvp);
 
         const req = getMockedRequest({}, { eventId: "mockEventId" }, {
             user: { _id: "current-user-id" }
@@ -25,11 +32,11 @@ describe("getCurrentUserRsvp() success", () => {
         await getCurrentUserRsvp(req, res, next);
 
         expect(getForCurrentUser).toHaveBeenCalledWith("mockEventId", "current-user-id");
-        expect(setSuccessResponse).toHaveBeenCalledWith(res, rsvp.toJSON?.());
+        expect(setSuccessResponse).toHaveBeenCalledWith(res, response);
     });
 
     it("Should return null when the user has no RSVP", async () => {
-        jest.mocked(getForCurrentUser).mockResolvedValue(null as never);
+        jest.mocked(getForCurrentUser).mockResolvedValue(null);
 
         const req = getMockedRequest({}, { eventId: "mockEventId" }, {
             user: { _id: "current-user-id" }

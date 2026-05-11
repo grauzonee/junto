@@ -32,6 +32,24 @@ beforeEach(async () => {
     categoryId = category._id;
 })
 
+async function createDetailedEventFixture(overrides: Parameters<typeof createFakeEvent>[0] = {}) {
+    const author = await createUser({}, true);
+    const type = await getOneEventType();
+    const category = await getOneCategory();
+    const event = await createFakeEvent({
+        author: author._id.toString(),
+        type: type._id.toString(),
+        categories: [category._id.toString()],
+        ...overrides
+    }, true);
+
+    if (!event._id) {
+        throw new Error("Error creating event in test");
+    }
+
+    return { author, type, category, event };
+}
+
 
 describe("create event tests SUCCESS", () => {
     it("Should create event when all input data are correct", async () => {
@@ -117,14 +135,12 @@ describe("fetchOne tests SUCCESS", () => {
         await Event.deleteMany({});
     })
     it("Should return event if it exists", async () => {
-        const author = await createUser({}, true);
-        const type = await getOneEventType();
-        const category = await getOneCategory()
-        const event = await createFakeEvent({ author: author._id.toString(), type: type._id.toString(), categories: [category._id.toString()] }, true);
-        if (!event._id) {
+        const { author, type, category, event } = await createDetailedEventFixture();
+        const eventId = event._id;
+        if (!eventId) {
             throw new Error("Error creating event in test");
         }
-        const result = await fetchOne(event._id.toString());
+        const result = await fetchOne(eventId.toString());
         if (!result) {
             throw new Error("No event retrieved in test")
         }
@@ -152,22 +168,20 @@ describe("fetchOne tests SUCCESS", () => {
     })
 
     it("Should return capacity info for an event", async () => {
-        const author = await createUser({}, true);
-        const type = await getOneEventType();
-        const category = await getOneCategory()
-        const event = await createFakeEvent({ author: author._id.toString(), type: type._id.toString(), categories: [category._id.toString()], maxAttendees: 5 }, true);
-        if (!event._id) {
+        const { author, event } = await createDetailedEventFixture({ maxAttendees: 5 });
+        const eventId = event._id;
+        if (!eventId) {
             throw new Error("Error creating event in test");
         }
 
         await RSVP.create({
-            event: event._id,
+            event: eventId,
             user: author._id,
             status: STATUS_CONFIRMED,
             eventDate: event.date
         });
 
-        const result = await fetchOneWithCapacity(event._id.toString());
+        const result = await fetchOneWithCapacity(eventId.toString());
         if (!result) {
             throw new Error("No event retrieved in test")
         }
