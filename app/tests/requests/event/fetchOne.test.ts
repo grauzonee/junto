@@ -26,7 +26,7 @@ const result = {
 }
 describe("fetchOne()", () => {
     beforeEach(() => {
-        jest.resetAllMocks();
+        jest.clearAllMocks();
         (fetchOneWithCapacity as jest.Mock).mockResolvedValue(result)
     })
     it("Should call fetchOne method", async () => {
