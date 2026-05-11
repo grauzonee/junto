@@ -38,7 +38,7 @@ describe("fetchOne()", () => {
         expect(fetchOneWithCapacity).toHaveBeenCalledWith(eventId);
     })
     it("Should call setSuccessResponse method", async () => {
-        const req = getMockedRequest();
+        const req = getMockedRequest({}, { eventId: "event-id" });
         await fetchOne(req, res, next);
         expect(setSuccessResponse).toHaveBeenCalledTimes(1)
         expect(setSuccessResponse).toHaveBeenCalledWith(res, {

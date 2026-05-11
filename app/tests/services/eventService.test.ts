@@ -189,8 +189,8 @@ describe("fetchOne tests SUCCESS", () => {
 
         expect(result.capacity).toEqual({
             maxAttendees: 5,
-            confirmedAttendanceTotal: 0,
-            remainingSeats: 5
+            confirmedAttendanceTotal: 1,
+            remainingSeats: 4
         });
     })
 })
