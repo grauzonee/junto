@@ -2,7 +2,7 @@ import mongoose, { HydratedDocument, Types } from "mongoose"
 import { createFakeEvent } from "@tests/generators/event"
 import { createUser } from "@tests/generators/user"
 
-import { create as createEvent, list as listEvents, geoSearch, update as editEvent, fetchOne } from "@/services/eventService"
+import { create as createEvent, list as listEvents, geoSearch, update as editEvent, fetchOne, fetchOneWithCapacity } from "@/services/eventService"
 import { ForbiddenError, NotFoundError } from "@/types/errors/InputError"
 import { EventType } from "@/models/EventType"
 import { CreateEventInput } from "@/types/services/eventService"
@@ -31,6 +31,24 @@ beforeEach(async () => {
     eventTypeId = eventType._id;
     categoryId = category._id;
 })
+
+async function createDetailedEventFixture(overrides: Parameters<typeof createFakeEvent>[0] = {}) {
+    const author = await createUser({}, true);
+    const type = await getOneEventType();
+    const category = await getOneCategory();
+    const event = await createFakeEvent({
+        author: author._id.toString(),
+        type: type._id.toString(),
+        categories: [category._id.toString()],
+        ...overrides
+    }, true);
+
+    if (!event._id) {
+        throw new Error("Error creating event in test");
+    }
+
+    return { author, type, category, event };
+}
 
 
 describe("create event tests SUCCESS", () => {
@@ -117,14 +135,12 @@ describe("fetchOne tests SUCCESS", () => {
         await Event.deleteMany({});
     })
     it("Should return event if it exists", async () => {
-        const author = await createUser({}, true);
-        const type = await getOneEventType();
-        const category = await getOneCategory()
-        const event = await createFakeEvent({ author: author._id.toString(), type: type._id.toString(), categories: [category._id.toString()] }, true);
-        if (!event._id) {
+        const { author, type, category, event } = await createDetailedEventFixture();
+        const eventId = event._id;
+        if (!eventId) {
             throw new Error("Error creating event in test");
         }
-        const result = await fetchOne(event._id.toString());
+        const result = await fetchOne(eventId.toString());
         if (!result) {
             throw new Error("No event retrieved in test")
         }
@@ -149,6 +165,33 @@ describe("fetchOne tests SUCCESS", () => {
     it("Should return null if event not found", async () => {
         const result = await fetchOne(new Types.ObjectId().toString());
         expect(result).toBe(null);
+    })
+
+    it("Should return capacity info for an event", async () => {
+        const { event } = await createDetailedEventFixture({ maxAttendees: 5 });
+        const attendee = await createUser({}, true);
+        const eventId = event._id;
+        if (!eventId) {
+            throw new Error("Error creating event in test");
+        }
+
+        await RSVP.create({
+            event: eventId,
+            user: attendee._id,
+            status: STATUS_CONFIRMED,
+            eventDate: event.date
+        });
+
+        const result = await fetchOneWithCapacity(eventId.toString());
+        if (!result) {
+            throw new Error("No event retrieved in test")
+        }
+
+        expect(result.capacity).toEqual({
+            maxAttendees: 5,
+            confirmedAttendanceTotal: 1,
+            remainingSeats: 4
+        });
     })
 })
 describe("geosearch events tests SUCCESS", () => {

@@ -6,6 +6,7 @@ import { EventType } from "@/models/EventType";
 import { buildGeosearchQuery, buildFilterQuery, buildSearchQuery, buildSortQuery, combineQueries } from "@/helpers/queryBuilder";
 import { RequestData } from "@/types/common";
 import { softDeleteEventDocument } from "@/models/event/cascade";
+import { RSVP } from "@/models/rsvp/RSVP";
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
 import type { FilterQuery } from "mongoose";
 
@@ -91,6 +92,36 @@ export async function listCurrentUser(data: RequestData, userId: string) {
 export async function fetchOne(id: string) {
     const result = await Event.findOne({ _id: id, active: true }).populate('categories').populate('type').populate('author', '_id username email');
     return result;
+}
+
+export interface EventCapacityInfo {
+    maxAttendees: number;
+    confirmedAttendanceTotal: number;
+    remainingSeats: number | null;
+}
+
+export async function fetchOneWithCapacity(id: string) {
+    const event = await fetchOne(id);
+    if (!event) {
+        return null;
+    }
+
+    const authorId = event.author && typeof event.author === "object" && "_id" in event.author
+        ? event.author._id
+        : event.author;
+    const confirmedAttendanceTotal = await RSVP.getConfirmedAttendanceTotal(event._id, authorId);
+    const remainingSeats = event.maxAttendees < 0
+        ? null
+        : Math.max(event.maxAttendees - confirmedAttendanceTotal, 0);
+
+    return {
+        event,
+        capacity: {
+            maxAttendees: event.maxAttendees,
+            confirmedAttendanceTotal,
+            remainingSeats
+        } satisfies EventCapacityInfo
+    };
 }
 
 export async function listEventTypes(data: RequestData) {

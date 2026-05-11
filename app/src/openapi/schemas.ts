@@ -440,9 +440,25 @@ export const EventListItemResponseSchema = EventResponseSchema.extend({
     createdAt: z.string()
 }).meta({ example: eventListExample });
 
-export const EventDetailResponseSchema = EventListItemResponseSchema.extend({
-    author: EventAuthorResponseSchema
-}).meta({ example: singleEventExample });
+export const EventDetailResponseSchema = EventListItemResponseSchema.omit({
+    maxAttendees: true
+}).extend({
+    author: EventAuthorResponseSchema,
+    capacity: z.looseObject({
+        maxAttendees: z.number(),
+        confirmedAttendanceTotal: z.number(),
+        remainingSeats: z.union([z.number(), z.null()])
+    })
+}).meta({
+    example: {
+        ...(({ maxAttendees: _maxAttendees, ...rest }) => rest)(singleEventExample),
+        capacity: {
+            maxAttendees: 120,
+            confirmedAttendanceTotal: 42,
+            remainingSeats: 78
+        }
+    }
+});
 
 export const CreatedEventResponseSchema = EventResponseSchema.extend({
     date: z.union([z.number(), z.string()]).meta({ example: createdEventExample.date }),
@@ -513,3 +529,10 @@ export const RSVPListResponseSchema = z.object({
     total: z.number(),
     entities: z.array(RSVPListItemResponseSchema)
 }).meta({ example: rsvpListExample });
+
+export const CurrentUserRsvpResponseSchema = z.union([
+    RSVPResponseSchema,
+    z.null()
+]).meta({
+    example: rsvpEventExample
+});
