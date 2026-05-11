@@ -129,7 +129,7 @@ describe("getForEvent() method SUCCESS", () => {
         const populateMock = jest.fn().mockReturnValue([]);
         const findSpy = jest.spyOn(RSVP, "find").mockReturnValue({
             populate: populateMock,
-        });
+        } as never);
 
         await getForEvent(eventId);
         expect(Event.findOne).toHaveBeenCalledWith({ _id: eventId, active: true });
@@ -145,7 +145,7 @@ describe("getForEvent() method SUCCESS", () => {
         const eventFindSpy = jest.spyOn(Event, "findOne").mockResolvedValue({ _id: new Types.ObjectId() });
         const findSpy = jest.spyOn(RSVP, "find").mockReturnValue({
             populate: jest.fn().mockReturnValue(mockRSVPs),
-        });
+        } as never);
 
         const result = await getForEvent(new Types.ObjectId().toString());
         expect(result).toBe(mockRSVPs);

@@ -52,6 +52,7 @@ describe("GET /:eventId", () => {
         if (!event._id) {
             throw new Error("No events in DB!");
         }
+        const maxAttendees = event.maxAttendees ?? -1;
         const expectedDate = typeof event.date === "number"
             ? event.date
             : Math.floor(event.date.getTime() / 1000);
@@ -81,7 +82,12 @@ describe("GET /:eventId", () => {
         expect(typeof res.body.data.date).toBe("number");
         expect(res.body.data).toHaveProperty('fullAddress');
         expect(res.body.data).toHaveProperty('imageUrl');
-        expect(res.body.data).toHaveProperty('maxAttendees');
+        expect(res.body.data).toHaveProperty('capacity');
+        expect(res.body.data.capacity).toMatchObject({
+            maxAttendees,
+            confirmedAttendanceTotal: 0,
+            remainingSeats: maxAttendees < 0 ? null : maxAttendees
+        });
         expect(res.body.data).toHaveProperty('active');
         expect(res.body.data).toHaveProperty('createdAt');
     })

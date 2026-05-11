@@ -46,6 +46,5 @@ describe("fetchOne()", () => {
             title: "title",
             capacity: result.capacity
         })
-
     })
 })

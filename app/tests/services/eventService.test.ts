@@ -168,7 +168,8 @@ describe("fetchOne tests SUCCESS", () => {
     })
 
     it("Should return capacity info for an event", async () => {
-        const { author, event } = await createDetailedEventFixture({ maxAttendees: 5 });
+        const { event } = await createDetailedEventFixture({ maxAttendees: 5 });
+        const attendee = await createUser({}, true);
         const eventId = event._id;
         if (!eventId) {
             throw new Error("Error creating event in test");
@@ -176,7 +177,7 @@ describe("fetchOne tests SUCCESS", () => {
 
         await RSVP.create({
             event: eventId,
-            user: author._id,
+            user: attendee._id,
             status: STATUS_CONFIRMED,
             eventDate: event.date
         });
