@@ -1,4 +1,6 @@
-import { buildSeedEventDates } from "@/seeders/events.seeder";
+import { Comment } from "@/models/comment/Comment";
+import { Event } from "@/models/event/Event";
+import { buildSeedEventDates, seed as seedEvents } from "@/seeders/events.seeder";
 
 function startOfDay(value: Date): Date {
     return new Date(value.getFullYear(), value.getMonth(), value.getDate(), 0, 0, 0, 0);
@@ -65,5 +67,18 @@ describe("buildSeedEventDates()", () => {
         expect(thisWeekDate <= weekEnd).toBe(true);
         expect(isSameDay(thisWeekDate, referenceDate)).toBe(false);
         expect(randomMonthDates.every(date => isSameMonth(date, referenceDate))).toBe(true);
+    });
+});
+
+describe("events seeder", () => {
+    it("should seed comments for every active event", async () => {
+        await seedEvents();
+
+        const activeEvents = await Event.find({ active: true }, { _id: 1 }).lean();
+        const comments = await Comment.find({}).lean();
+        const activeEventIds = new Set(activeEvents.map(event => event._id.toString()));
+
+        expect(comments).toHaveLength(activeEvents.length * 2);
+        expect(comments.every(comment => activeEventIds.has(comment.event.toString()))).toBe(true);
     });
 });

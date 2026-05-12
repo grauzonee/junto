@@ -1,11 +1,24 @@
 import { Event } from "@/models/event/Event";
 import { EventType } from "@/models/EventType";
 import { Category } from "@/models/category/Category";
+import { Comment } from "@/models/comment/Comment";
 import { RSVP } from "@/models/rsvp/RSVP";
 import { User } from "@/models/user/User";
 import { Types } from "mongoose";
 
 const EVENT_HOURS = [18, 19, 20, 9, 16, 17, 12, 15, 14, 21];
+const COMMENT_CONTENTS = [
+    "This looks like a strong lineup. I am planning to join.",
+    "Is there anything attendees should bring?",
+    "Great venue choice. Looking forward to meeting everyone.",
+    "Will there be time for networking after the main session?",
+    "I have been waiting for an event like this in the city.",
+    "The agenda sounds useful. Count me in.",
+    "Can guests still register if they decide last minute?",
+    "Excited to hear more details from the organizers.",
+    "This should be a good fit for first-time attendees.",
+    "Thanks for putting this together."
+];
 
 type RandomFn = () => number;
 
@@ -147,6 +160,7 @@ export function buildSeedEventDates(
 }
 
 export async function seed() {
+    await Comment.deleteMany({});
     await RSVP.deleteMany({});
     await Event.deleteMany({});
 
@@ -366,7 +380,29 @@ export async function seed() {
         type: randomEventTypeId(),
     }));
 
-    await Event.insertMany(eventsToInsert);
+    const createdEvents = await Event.insertMany(eventsToInsert);
+    const activeEvents = createdEvents.filter(event => event.active);
+    const commentsToInsert = activeEvents.flatMap((event, eventIndex) => {
+        const firstAuthor = users[eventIndex % users.length]._id;
+        const secondAuthor = users[(eventIndex + 1) % users.length]._id;
+        const firstContent = COMMENT_CONTENTS[(eventIndex * 2) % COMMENT_CONTENTS.length];
+        const secondContent = COMMENT_CONTENTS[(eventIndex * 2 + 1) % COMMENT_CONTENTS.length];
+
+        return [
+            {
+                event: event._id,
+                author: firstAuthor,
+                content: firstContent
+            },
+            {
+                event: event._id,
+                author: secondAuthor,
+                content: secondContent
+            }
+        ];
+    });
+
+    await Comment.insertMany(commentsToInsert);
 
     if (!process.env.JEST_WORKER_ID) {
         console.log("Events seeding done.");
