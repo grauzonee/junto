@@ -2,6 +2,7 @@ import request from "supertest";
 import { NextFunction, Request, Response } from "express";
 import { createUser } from "../generators/user";
 import { createFakeRSVP } from "../generators/rsvp";
+import { createFakeComment } from "@tests/generators/comment";
 import { Types } from "mongoose";
 
 let user: Awaited<ReturnType<typeof createUser>>;
@@ -510,5 +511,58 @@ describe("GET /:eventId/rsvps", () => {
 
     afterAll(async () => {
         await user.deleteOne();
+    });
+});
+
+describe("GET /comments/:eventId and POST /comments", () => {
+    let eventId: string;
+    let commenterId: string;
+
+    beforeAll(async () => {
+        const author = await createUser({}, true);
+        const event = await createFakeEvent({ author: author._id.toString() }, true);
+        const firstComment = await createFakeComment({
+            event: event._id.toString(),
+            author: author._id.toString(),
+            content: "First comment"
+        }, true);
+        await new Promise(resolve => setTimeout(resolve, 10));
+        await createFakeComment({
+            event: event._id.toString(),
+            author: author._id.toString(),
+            content: "Second comment"
+        }, true);
+
+        if (!event?._id || !firstComment?._id) {
+            throw new Error("No comments found, check your seeders");
+        }
+
+        eventId = event._id.toString();
+        commenterId = author._id.toString();
+    });
+
+    it("Should list comments for an event", async () => {
+        const res = await request(app).get(`/api/comments/${eventId}`).send();
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty("data.total");
+        expect(res.body.data.total).toBeGreaterThanOrEqual(2);
+        expect(Array.isArray(res.body.data.entities)).toBe(true);
+        expect(res.body.data.entities[0]).toHaveProperty("author");
+        expect(res.body.data.entities[0].author).toHaveProperty("_id", commenterId);
+    });
+
+    it("Should create a comment for an event", async () => {
+        user = await createUser({}, true);
+        const requestBody = { eventId, content: "This event looks great" };
+        const res = await request(app).post("/api/comments").send(requestBody);
+
+        expect(res.statusCode).toBe(201);
+        expect(res.body).toHaveProperty("data");
+        expect(res.body.data).toHaveProperty("content", requestBody.content);
+        expect(res.body.data).toHaveProperty("event");
+        expect(res.body.data.event.toString()).toBe(eventId);
+        expect(res.body.data).toHaveProperty("author");
+        expect(res.body.data.author).toHaveProperty("_id", user._id.toString());
     });
 });

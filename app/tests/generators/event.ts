@@ -1,4 +1,4 @@
-import { IEvent, Event } from "@/models/event/Event";
+import { IEvent, Event, type HydratedEvent } from "@/models/event/Event";
 import { Types } from "mongoose";
 import { getOneCategory, getOneEventType, getOneUser } from "@tests/getters";
 
@@ -9,8 +9,9 @@ type FakeEvent = Omit<IEvent, "date" | "categories" | "type" | "author"> & {
     author: string;
 };
 
-
-export async function createFakeEvent(overrides: Partial<FakeEvent> = {}, save = false) {
+export async function createFakeEvent(overrides?: Partial<FakeEvent>, save?: false): Promise<FakeEvent>;
+export async function createFakeEvent(overrides: Partial<FakeEvent>, save: true): Promise<HydratedEvent>;
+export async function createFakeEvent(overrides: Partial<FakeEvent> = {}, save = false): Promise<FakeEvent | HydratedEvent> {
     if (!overrides.categories) {
         const category = await getOneCategory();
         overrides.categories = [category._id.toString()];
@@ -42,6 +43,6 @@ export async function createFakeEvent(overrides: Partial<FakeEvent> = {}, save =
         const event = await Event.create(eventData);
         return event;
     } else {
-        return eventData;
+        return eventData as FakeEvent;
     }
 }
