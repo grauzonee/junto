@@ -2,9 +2,10 @@ import { NextFunction } from "express"
 import { update as updateEvent } from "@/services/eventService";
 import { getMockedRequest, getMockedResponse, MockedJsonDocument, withToJSON } from "../../utils";
 import mongoose from "mongoose";
-import { createFakeEvent, type FakeEvent } from "../../generators/event"
+import { createFakeEvent } from "../../generators/event"
 import { setSuccessResponse } from "@/helpers/requestHelper";
 import { update } from "@/requests/event/update";
+import { Event } from "@/models/event/Event";
 
 jest.mock("@/services/eventService")
 jest.mock("@/helpers/requestHelper")
@@ -12,14 +13,16 @@ jest.mock("@/helpers/requestHelper")
 
 let res = getMockedResponse();
 const next = jest.fn() as NextFunction;
-let mockEvent: MockedJsonDocument<FakeEvent>;
+type UpdatedEvent = Awaited<ReturnType<typeof updateEvent>>;
+let mockEvent: MockedJsonDocument<UpdatedEvent>;
 beforeAll(async () => {
-    const event = await createFakeEvent();
+    const savedEvent = await createFakeEvent({}, true);
+    const event = await Event.findById(savedEvent._id).orFail();
     mockEvent = withToJSON(event);
 })
 beforeEach(() => {
     jest.resetAllMocks();
-    jest.mocked(updateEvent).mockResolvedValue(mockEvent as never)
+    jest.mocked(updateEvent).mockResolvedValue(mockEvent)
     res = getMockedResponse();
 
 })

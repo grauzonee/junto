@@ -1,19 +1,20 @@
 import { NextFunction } from "express"
 import { ParsedQs } from "qs";
 import { geoSearch as serviceGeoSearch } from "@/services/eventService";
-import { createFakeEvent, type FakeEvent } from "../../generators/event"
+import { createFakeEvent } from "../../generators/event"
 import { setSuccessResponse } from "@/helpers/requestHelper";
 import { getMockedRequest, getMockedResponse, MockedJsonDocument, withToJSON } from "../../utils";
 import { geosearch } from "@/requests/event/geosearch";
 import { ZodError } from "zod";
 import { CoordinatesSchema } from "@/schemas/http/Event";
 import { buildRequestData } from "@/requests/utils";
+import { type HydratedEvent } from "@/models/event/Event";
 jest.mock("@/services/eventService")
 jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/Event")
 
 let res = getMockedResponse();
-let mockEvent: MockedJsonDocument<FakeEvent>;
+let mockEvent: MockedJsonDocument<HydratedEvent>;
 let result: typeof mockEvent[] = [];
 const next = jest.fn() as NextFunction;
 const coordinates = {
@@ -23,14 +24,14 @@ const coordinates = {
 };
 const coordinateQuery = coordinates as unknown as ParsedQs;
 beforeAll(async () => {
-    const event = await createFakeEvent();
+    const event = await createFakeEvent({}, true);
     mockEvent = withToJSON(event);
     result = [mockEvent, mockEvent];
 });
 
 beforeEach(() => {
     jest.resetAllMocks();
-    jest.mocked(serviceGeoSearch).mockResolvedValue(result as never);
+    jest.mocked(serviceGeoSearch).mockResolvedValue(result);
     jest.mocked(CoordinatesSchema.parse).mockReturnValue(coordinates);
     res = getMockedResponse();
 

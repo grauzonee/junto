@@ -9,19 +9,22 @@ import { Category } from "@/models/category/Category"
 import { EventType } from "@/models/EventType"
 import { CreateEventSchema } from "@/schemas/http/Event";
 import { CreateEventInput } from "@/types/services/eventService"
+import { Event } from "@/models/event/Event";
 jest.mock("@/services/eventService")
 jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/Event");
 
 let res = getMockedResponse();
-let mockEvent: MockedJsonDocument<FakeEvent>;
+type CreatedEvent = Awaited<ReturnType<typeof createEvent>>;
+let mockEvent: MockedJsonDocument<CreatedEvent>;
 let newEvent: FakeEvent;
 const next = jest.fn() as NextFunction;
 let categoriesIds: string[];
 let eventTypeId: string;
 
 beforeAll(async () => {
-    const event = await createFakeEvent();
+    const savedEvent = await createFakeEvent({}, true);
+    const event = await Event.findById(savedEvent._id).orFail();
     mockEvent = withToJSON(event);
     const categories = await Category.find().limit(2);
     const eventType = await EventType.findOne();
@@ -35,7 +38,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
     jest.resetAllMocks();
-    jest.mocked(createEvent).mockResolvedValue(mockEvent as never);
+    jest.mocked(createEvent).mockResolvedValue(mockEvent);
     jest.mocked(CreateEventSchema.parse).mockReturnValue(newEvent as CreateEventInput);
     res = getMockedResponse();
 
