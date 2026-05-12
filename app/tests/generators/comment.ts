@@ -22,10 +22,12 @@ export async function createFakeComment(overrides: Partial<FakeComment> = {}, sa
         overrides.author = author._id.toString();
     }
 
+    commentSequence += 1;
+
     const commentData = {
         event: overrides.event ?? new Types.ObjectId().toString(),
         author: overrides.author ?? new Types.ObjectId().toString(),
-        content: `Sample comment ${commentSequence += 1}`,
+        content: `Sample comment ${commentSequence}`,
         ...overrides
     };
 
