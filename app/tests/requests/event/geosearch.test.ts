@@ -1,7 +1,7 @@
 import { NextFunction } from "express"
 import { ParsedQs } from "qs";
 import { geoSearch as serviceGeoSearch } from "@/services/eventService";
-import { createFakeEvent } from "../../generators/event"
+import { createFakeEvent, type FakeEvent } from "../../generators/event"
 import { setSuccessResponse } from "@/helpers/requestHelper";
 import { getMockedRequest, getMockedResponse, MockedJsonDocument, withToJSON } from "../../utils";
 import { geosearch } from "@/requests/event/geosearch";
@@ -13,7 +13,7 @@ jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/Event")
 
 let res = getMockedResponse();
-let mockEvent: MockedJsonDocument<Awaited<ReturnType<typeof createFakeEvent>>>;
+let mockEvent: MockedJsonDocument<FakeEvent>;
 let result: typeof mockEvent[] = [];
 const next = jest.fn() as NextFunction;
 const coordinates = {

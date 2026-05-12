@@ -6,10 +6,10 @@ import { Types } from "mongoose";
 import { createFakeEvent } from "../../generators/event";
 import { RSVP } from "@/models/rsvp/RSVP";
 import { STATUS_CONFIRMED } from "@/models/rsvp/utils";
-import { Event } from "@/models/event/Event";
+import { Event, type HydratedEvent } from "@/models/event/Event";
 import { createUser } from "@tests/generators/user";
 
-function getSavedEventId(event: Awaited<ReturnType<typeof createFakeEvent>>) {
+function getSavedEventId(event: HydratedEvent) {
     if (!event._id) {
         throw new Error("Failed to create fake event");
     }

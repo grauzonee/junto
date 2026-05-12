@@ -2,7 +2,7 @@ import { NextFunction } from "express"
 import { update as updateEvent } from "@/services/eventService";
 import { getMockedRequest, getMockedResponse, MockedJsonDocument, withToJSON } from "../../utils";
 import mongoose from "mongoose";
-import { createFakeEvent } from "../../generators/event"
+import { createFakeEvent, type FakeEvent } from "../../generators/event"
 import { setSuccessResponse } from "@/helpers/requestHelper";
 import { update } from "@/requests/event/update";
 
@@ -12,7 +12,7 @@ jest.mock("@/helpers/requestHelper")
 
 let res = getMockedResponse();
 const next = jest.fn() as NextFunction;
-let mockEvent: MockedJsonDocument<Awaited<ReturnType<typeof createFakeEvent>>>;
+let mockEvent: MockedJsonDocument<FakeEvent>;
 beforeAll(async () => {
     const event = await createFakeEvent();
     mockEvent = withToJSON(event);

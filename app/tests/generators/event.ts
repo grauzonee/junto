@@ -2,7 +2,7 @@ import { IEvent, Event, type HydratedEvent } from "@/models/event/Event";
 import { Types } from "mongoose";
 import { getOneCategory, getOneEventType, getOneUser } from "@tests/getters";
 
-type FakeEvent = Omit<IEvent, "date" | "categories" | "type" | "author"> & {
+export type FakeEvent = Omit<IEvent, "date" | "categories" | "type" | "author"> & {
     date: number;
     categories: string[];
     type: string;

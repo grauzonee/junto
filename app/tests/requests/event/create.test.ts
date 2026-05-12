@@ -3,7 +3,7 @@ import { getMockedRequest, getMockedResponse, MockedJsonDocument, withToJSON } f
 import mongoose from "mongoose"
 import { NextFunction } from "express"
 import { create as createEvent } from "@/services/eventService"
-import { createFakeEvent } from "../../generators/event"
+import { createFakeEvent, type FakeEvent } from "../../generators/event"
 import { setSuccessResponse } from "@/helpers/requestHelper"
 import { Category } from "@/models/category/Category"
 import { EventType } from "@/models/EventType"
@@ -14,8 +14,8 @@ jest.mock("@/helpers/requestHelper")
 jest.mock("@/schemas/http/Event");
 
 let res = getMockedResponse();
-let mockEvent: MockedJsonDocument<Awaited<ReturnType<typeof createFakeEvent>>>;
-let newEvent: Awaited<ReturnType<typeof createFakeEvent>>;
+let mockEvent: MockedJsonDocument<FakeEvent>;
+let newEvent: FakeEvent;
 const next = jest.fn() as NextFunction;
 let categoriesIds: string[];
 let eventTypeId: string;
