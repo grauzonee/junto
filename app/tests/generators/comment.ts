@@ -7,6 +7,8 @@ type FakeComment = Omit<IComment, "_id" | "event" | "author"> & {
     author: string;
 };
 
+let commentSequence = 0;
+
 export async function createFakeComment(overrides?: Partial<FakeComment>, save?: false): Promise<FakeComment>;
 export async function createFakeComment(overrides: Partial<FakeComment>, save: true): Promise<HydratedComment>;
 export async function createFakeComment(overrides: Partial<FakeComment> = {}, save = false): Promise<FakeComment | HydratedComment> {
@@ -23,7 +25,7 @@ export async function createFakeComment(overrides: Partial<FakeComment> = {}, sa
     const commentData = {
         event: overrides.event ?? new Types.ObjectId().toString(),
         author: overrides.author ?? new Types.ObjectId().toString(),
-        content: "Sample comment " + Math.random().toString(36).substring(7),
+        content: `Sample comment ${commentSequence += 1}`,
         ...overrides
     };
 
