@@ -16,6 +16,7 @@ jest.mock("@/middlewares/authMiddleware", () => ({
     ),
 }));
 import app from "@/app";
+import { Comment } from "@/models/comment/Comment";
 import { Event } from "@/models/event/Event";
 import { Category } from "@/models/category/Category";
 import { EventType } from "@/models/EventType";
@@ -517,6 +518,8 @@ describe("GET /:eventId/rsvps", () => {
 describe("GET /comments/:eventId and POST /comments", () => {
     let eventId: string;
     let commenterId: string;
+    let firstCommentId: string;
+    let commenterUser: Awaited<ReturnType<typeof createUser>>;
 
     beforeAll(async () => {
         const author = await createUser({}, true);
@@ -539,6 +542,8 @@ describe("GET /comments/:eventId and POST /comments", () => {
 
         eventId = event._id.toString();
         commenterId = author._id.toString();
+        firstCommentId = firstComment._id.toString();
+        commenterUser = author;
     });
 
     it("Should list comments for an event", async () => {
@@ -564,5 +569,31 @@ describe("GET /comments/:eventId and POST /comments", () => {
         expect(res.body.data.event.toString()).toBe(eventId);
         expect(res.body.data).toHaveProperty("author");
         expect(res.body.data.author).toHaveProperty("_id", user._id.toString());
+    });
+
+    it("Should delete the current user's comment", async () => {
+        user = commenterUser;
+        const res = await request(app).delete(`/api/comments/${firstCommentId}`).send();
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.data).toEqual({ message: "Comment has been deleted" });
+        await expect(Comment.findById(firstCommentId).orFail()).rejects.toThrow();
+    });
+
+    it("Should reject deleting another user's comment", async () => {
+        user = commenterUser;
+        const otherUser = await createUser({}, true);
+        const comment = await createFakeComment({
+            event: eventId,
+            author: otherUser._id.toString(),
+            content: "Not my comment"
+        }, true);
+
+        const res = await request(app).delete(`/api/comments/${comment._id.toString()}`).send();
+
+        expect(res.statusCode).toBe(403);
+        expect(res.body.success).toBe(false);
+        expect(res.body.data.formErrors).toEqual(["Only the comment author can delete this comment"]);
+        await expect(Comment.findById(comment._id).orFail()).resolves.toBeTruthy();
     });
 });

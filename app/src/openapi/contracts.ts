@@ -12,6 +12,7 @@ import {
     CreatedEventResponseSchema,
     CommentListResponseSchema,
     CommentResponseSchema,
+    DeleteCommentResponseSchema,
     DeleteEventResponseSchema,
     ErrorResponseSchema,
     EventDetailResponseSchema,
@@ -47,6 +48,10 @@ const ServerErrorResponse = {
 
 const EventIdParamsSchema = z.object({
     eventId: ObjectIdParamSchema
+});
+
+const CommentIdParamsSchema = z.object({
+    commentId: ObjectIdParamSchema
 });
 
 const RSVPIdParamsSchema = z.object({
@@ -413,6 +418,25 @@ export const createEventCommentContract: OpenApiRouteContract = {
     }
 };
 
+export const deleteCommentContract: OpenApiRouteContract = {
+    method: "delete",
+    path: "/api/comments/:commentId",
+    operationId: "deleteComment",
+    summary: "Delete a comment",
+    tags: ["Comments"],
+    authenticated: true,
+    request: { params: CommentIdParamsSchema },
+    responses: {
+        "200": {
+            description: "Comment deletion confirmation",
+            schema: successResponse(DeleteCommentResponseSchema)
+        },
+        "400": ValidationErrorResponse,
+        "403": ValidationErrorResponse,
+        "404": ValidationErrorResponse
+    }
+};
+
 export const listInterestsContract: OpenApiRouteContract = {
     method: "get",
     path: "/api/interests",
@@ -553,6 +577,7 @@ export const openApiContracts = [
     listEventRsvpsContract,
     getCurrentUserEventRsvpContract,
     createEventCommentContract,
+    deleteCommentContract,
     listInterestsContract,
     listCategoriesContract,
     updateRsvpContract,

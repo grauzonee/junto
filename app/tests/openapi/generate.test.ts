@@ -15,6 +15,7 @@ describe("generateOpenApiSpec", () => {
         expect(spec.paths).toHaveProperty("/status");
         expect(spec.paths).toHaveProperty("/api/auth/login");
         expect(spec.paths).toHaveProperty("/api/comments");
+        expect(spec.paths).toHaveProperty("/api/comments/{commentId}");
         expect(spec.paths).toHaveProperty("/api/comments/{eventId}");
         expect(spec.paths).toHaveProperty("/api/event/me");
         expect(spec.paths).toHaveProperty("/api/event/{eventId}");
@@ -45,6 +46,7 @@ describe("generateOpenApiSpec", () => {
         const eventDetailOperation = asRecord(asRecord(spec.paths["/api/event/{eventId}"]).get);
         const eventCommentsOperation = asRecord(asRecord(spec.paths["/api/comments/{eventId}"]).get);
         const createEventCommentsOperation = asRecord(asRecord(spec.paths["/api/comments"]).post);
+        const deleteCommentOperation = asRecord(asRecord(spec.paths["/api/comments/{commentId}"]).delete);
         const eventRsvpsOperation = asRecord(asRecord(spec.paths["/api/event/{eventId}/rsvps"]).get);
         const currentUserRsvpOperation = asRecord(asRecord(spec.paths["/api/event/{eventId}/rsvps/me"]).get);
         const eventListParameters = eventListOperation.parameters as { name: string }[];
@@ -82,6 +84,8 @@ describe("generateOpenApiSpec", () => {
             "limit"
         ]));
         expect(createEventCommentsOperation.responses).toHaveProperty("201");
+        expect(deleteCommentOperation.responses).toHaveProperty("200");
+        expect(deleteCommentOperation.security).toEqual([{ bearerAuth: [] }]);
         expect(eventTypeParameters.map(parameter => parameter.name)).toEqual(expect.arrayContaining([
             "title_eq",
             "title_contains"

@@ -58,6 +58,12 @@ export const DeleteEventResponseSchema = MessageSchema.meta({
     }
 });
 
+export const DeleteCommentResponseSchema = MessageSchema.meta({
+    example: {
+        message: "Comment has been deleted"
+    }
+});
+
 export const PasswordUpdatedResponseSchema = MessageSchema.meta({
     example: {
         message: "Password has been updated"

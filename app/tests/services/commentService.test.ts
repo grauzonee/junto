@@ -1,8 +1,9 @@
 import { createUser } from "@tests/generators/user";
 import { createFakeEvent } from "@tests/generators/event";
 import { createFakeComment } from "@tests/generators/comment";
-import { create, listForEvent } from "@/services/commentService";
-import { NotFoundError } from "@/types/errors/InputError";
+import { create, deleteComment, listForEvent } from "@/services/commentService";
+import { ForbiddenError, NotFoundError } from "@/types/errors/InputError";
+import { Comment } from "@/models/comment/Comment";
 
 describe("commentService.create()", () => {
     it("Should create a comment for an active event", async () => {
@@ -64,5 +65,31 @@ describe("commentService.listForEvent()", () => {
         await expect(listForEvent(event._id.toString(), {
             pagination: { offset: 0, limit: 10 }
         })).rejects.toBeInstanceOf(NotFoundError);
+    });
+});
+
+describe("commentService.deleteComment()", () => {
+    it("Should delete a comment authored by the user", async () => {
+        const author = await createUser({}, true);
+        const comment = await createFakeComment({ author: author._id.toString() }, true);
+
+        await deleteComment(comment._id.toString(), author._id.toString());
+
+        await expect(Comment.findById(comment._id).orFail()).rejects.toBeTruthy();
+    });
+
+    it("Should reject deleting another user's comment", async () => {
+        const owner = await createUser({}, true);
+        const otherUser = await createUser({}, true);
+        const comment = await createFakeComment({ author: owner._id.toString() }, true);
+
+        await expect(deleteComment(comment._id.toString(), otherUser._id.toString())).rejects.toBeInstanceOf(ForbiddenError);
+        await expect(Comment.findById(comment._id).orFail()).resolves.toBeTruthy();
+    });
+
+    it("Should reject deleting a missing comment", async () => {
+        const author = await createUser({}, true);
+
+        await expect(deleteComment(author._id.toString(), author._id.toString())).rejects.toBeInstanceOf(NotFoundError);
     });
 });
