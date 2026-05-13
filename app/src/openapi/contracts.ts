@@ -1,6 +1,7 @@
 import * as z from "zod";
 import { RegisterSchema, LoginSchema } from "../schemas/http/Auth";
 import { CoordinatesSchema, CreateEventSchema, EditEventSchema } from "../schemas/http/Event";
+import { CreateEventCommentSchema } from "../schemas/http/Comment";
 import { UpdateProfileSchema, UpdatePasswordSchema } from "../schemas/http/Profile";
 import { CreateRSVPSchema, UpdateRSVPSchema } from "../schemas/http/RSVP";
 import { SearchQuerySchema } from "../schemas/http/Search";
@@ -9,6 +10,9 @@ import type { OpenApiRouteContract } from "./types";
 import {
     CategoriesResponseSchema,
     CreatedEventResponseSchema,
+    CommentListResponseSchema,
+    CommentResponseSchema,
+    DeleteCommentResponseSchema,
     DeleteEventResponseSchema,
     ErrorResponseSchema,
     EventDetailResponseSchema,
@@ -44,6 +48,10 @@ const ServerErrorResponse = {
 
 const EventIdParamsSchema = z.object({
     eventId: ObjectIdParamSchema
+});
+
+const CommentIdParamsSchema = z.object({
+    commentId: ObjectIdParamSchema
 });
 
 const RSVPIdParamsSchema = z.object({
@@ -254,6 +262,26 @@ export const fetchEventContract: OpenApiRouteContract = {
     }
 };
 
+export const listEventCommentsContract: OpenApiRouteContract = {
+    method: "get",
+    path: "/api/comments/:eventId",
+    operationId: "listEventComments",
+    summary: "List comments for an event",
+    tags: ["Events", "Comments"],
+    request: {
+        params: EventIdParamsSchema,
+        query: PaginationQuerySchema
+    },
+    responses: {
+        "200": {
+            description: "Comment list",
+            schema: successResponse(CommentListResponseSchema)
+        },
+        "400": ValidationErrorResponse,
+        "404": ValidationErrorResponse
+    }
+};
+
 export const replaceEventContract: OpenApiRouteContract = {
     method: "put",
     path: "/api/event/:eventId",
@@ -367,6 +395,44 @@ export const getCurrentUserEventRsvpContract: OpenApiRouteContract = {
         },
         "400": ValidationErrorResponse,
         "401": ValidationErrorResponse,
+        "404": ValidationErrorResponse
+    }
+};
+
+export const createEventCommentContract: OpenApiRouteContract = {
+    method: "post",
+    path: "/api/comments",
+    operationId: "createEventComment",
+    summary: "Create a comment on an event",
+    tags: ["Events", "Comments"],
+    authenticated: true,
+    request: { body: CreateEventCommentSchema },
+    responses: {
+        "201": {
+            description: "Created comment",
+            schema: successResponse(CommentResponseSchema)
+        },
+        "400": ValidationErrorResponse,
+        "401": ValidationErrorResponse,
+        "404": ValidationErrorResponse
+    }
+};
+
+export const deleteCommentContract: OpenApiRouteContract = {
+    method: "delete",
+    path: "/api/comments/:commentId",
+    operationId: "deleteComment",
+    summary: "Delete a comment",
+    tags: ["Comments"],
+    authenticated: true,
+    request: { params: CommentIdParamsSchema },
+    responses: {
+        "200": {
+            description: "Comment deletion confirmation",
+            schema: successResponse(DeleteCommentResponseSchema)
+        },
+        "400": ValidationErrorResponse,
+        "403": ValidationErrorResponse,
         "404": ValidationErrorResponse
     }
 };
@@ -503,12 +569,15 @@ export const openApiContracts = [
     listEventTypesViaEventContract,
     geoSearchEventsContract,
     fetchEventContract,
+    listEventCommentsContract,
     replaceEventContract,
     updateEventContract,
     deleteEventContract,
     attendEventContract,
     listEventRsvpsContract,
     getCurrentUserEventRsvpContract,
+    createEventCommentContract,
+    deleteCommentContract,
     listInterestsContract,
     listCategoriesContract,
     updateRsvpContract,

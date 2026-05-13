@@ -14,8 +14,10 @@ jest.mock("@/middlewares/authMiddleware", () => ({
 import app from "@/app";
 import { createFakeEvent } from "@tests/generators/event";
 import { createFakeRSVP } from "@tests/generators/rsvp";
+import { createFakeComment } from "@tests/generators/comment";
 import { Event } from "@/models/event/Event";
 import { RSVP } from "@/models/rsvp/RSVP";
+import { Comment } from "@/models/comment/Comment";
 import { STATUS_CANCELED, STATUS_CONFIRMED } from "@/models/rsvp/utils";
 
 describe("DELETE /api/event/:eventId", () => {
@@ -33,6 +35,11 @@ describe("DELETE /api/event/:eventId", () => {
             status: STATUS_CONFIRMED,
             eventDate
         }, true);
+        await createFakeComment({
+            event: event._id.toString(),
+            author: attendee._id.toString(),
+            content: "Great event"
+        }, true);
 
         const res = await request(app).delete(`/api/event/${event._id.toString()}`).send();
         expect(res.statusCode).toBe(200);
@@ -40,12 +47,14 @@ describe("DELETE /api/event/:eventId", () => {
 
         const deletedEvent = await Event.findById(event._id);
         const rsvps = await RSVP.find({ event: event._id });
+        const comments = await Comment.find({ event: event._id });
         const fetchDeletedRes = await request(app).get(`/api/event/${event._id.toString()}`).send();
         const listRes = await request(app).get("/api/event").send();
         const eventId = event._id.toString();
 
         expect(deletedEvent?.active).toBe(false);
         expect(rsvps.every(rsvp => rsvp.status === STATUS_CANCELED)).toBe(true);
+        expect(comments).toHaveLength(0);
         expect(fetchDeletedRes.statusCode).toBe(404);
         expect(listRes.body.data.some((listedEvent: { _id: string }) => listedEvent._id === eventId)).toBe(false);
     });

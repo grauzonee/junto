@@ -58,6 +58,12 @@ export const DeleteEventResponseSchema = MessageSchema.meta({
     }
 });
 
+export const DeleteCommentResponseSchema = MessageSchema.meta({
+    example: {
+        message: "Comment has been deleted"
+    }
+});
+
 export const PasswordUpdatedResponseSchema = MessageSchema.meta({
     example: {
         message: "Password has been updated"
@@ -459,6 +465,44 @@ export const EventDetailResponseSchema = EventListItemResponseSchema.omit({
         }
     }
 });
+
+const commentAuthorExample = {
+    _id: "69e22b13ba1baa17b151ae43",
+    username: "ArtSoul",
+    avatarUrl: "http://localhost:3000/uploads/avatar.jpg"
+};
+
+const commentExample = {
+    _id: "69e496748a67eb4e7fc5dd9c",
+    event: "69e22b13ba1baa17b151ae62",
+    author: commentAuthorExample,
+    content: "Looking forward to this event.",
+    createdAt: "2026-04-19T09:00:00.000Z"
+};
+
+const commentListExample = {
+    total: 1,
+    entities: [commentExample]
+};
+
+export const CommentAuthorResponseSchema = z.looseObject({
+    _id: IdSchema,
+    username: z.string(),
+    avatarUrl: z.string().optional()
+});
+
+export const CommentResponseSchema = z.looseObject({
+    _id: IdSchema,
+    event: IdSchema,
+    author: CommentAuthorResponseSchema,
+    content: z.string(),
+    createdAt: z.string()
+}).meta({ example: commentExample });
+
+export const CommentListResponseSchema = z.object({
+    total: z.number(),
+    entities: z.array(CommentResponseSchema)
+}).meta({ example: commentListExample });
 
 export const CreatedEventResponseSchema = EventResponseSchema.extend({
     date: z.union([z.number(), z.string()]).meta({ example: createdEventExample.date }),

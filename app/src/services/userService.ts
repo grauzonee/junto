@@ -2,6 +2,7 @@ import { User } from "@/models/user/User";
 import { Event } from "@/models/event/Event";
 import { NotFoundError } from "@/types/errors/InputError";
 import { RSVP } from "@/models/rsvp/RSVP";
+import { Comment } from "@/models/comment/Comment";
 
 export async function deleteUser(userId: string) {
     const user = await User.findOne({ _id: userId, active: true });
@@ -14,6 +15,7 @@ export async function deleteUser(userId: string) {
     await user.save();
 
     await RSVP.cancelForUser(user._id);
+    await Comment.deleteForAuthor(user._id);
     await Event.softDeleteByAuthor(user._id);
 
     return user;
